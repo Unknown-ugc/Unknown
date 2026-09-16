@@ -1,0 +1,378 @@
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+-- Create a new Discord webhook and put it here
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1548812914687742072/pmWO7R0gSC2lAAheXI7jkyS337hzrt0IUCxps9INAj8uYhDcFYrmKaoMBtB7sUJnvKCu"
+
+local COOLDOWN = 12 * 60 * 60
+
+local lastUsed = {
+	Report = 0,
+	Suggestion = 0,
+	Script = 0
+}
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ReportGui"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Name = "Report"
+main.Size = UDim2.fromOffset(280, 300)
+main.Position = UDim2.new(1, -288, 0.5, -150)
+main.BackgroundColor3 = Color3.fromRGB(15, 22, 35)
+main.BorderSizePixel = 0
+main.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = main
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(45, 110, 190)
+stroke.Thickness = 1.5
+stroke.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 34)
+title.BackgroundTransparency = 1
+title.Text = "REPORT"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 17
+title.Active = true
+title.Parent = main
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Name = "Reports"
+scroll.Position = UDim2.fromOffset(7, 37)
+scroll.Size = UDim2.new(1, -14, 0, 205)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 3
+scroll.ScrollBarImageColor3 = Color3.fromRGB(60, 130, 220)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = main
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 7)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.Parent = scroll
+
+local function sendWebhook(cardType, scriptName, details)
+	local requestFunction = request or http_request or (syn and syn.request)
+
+	if not requestFunction then
+		return false
+	end
+
+	local body = HttpService:JSONEncode({
+		username = "Report System",
+		embeds = {{
+			title = cardType,
+			color = 5793266,
+			fields = {
+				{
+					name = "Username",
+					value = player.Name,
+					inline = true
+				},
+				{
+					name = "UserId",
+					value = tostring(player.UserId),
+					inline = true
+				},
+				{
+					name = "Script Name",
+					value = scriptName,
+					inline = false
+				},
+				{
+					name = "Details",
+					value = details,
+					inline = false
+				}
+			}
+		}}
+	})
+
+	return pcall(function()
+		requestFunction({
+			Url = WEBHOOK_URL,
+			Method = "POST",
+			Headers = {
+				["Content-Type"] = "application/json"
+			},
+			Body = body
+		})
+	end)
+end
+
+local function createCard(cardType, firstPlaceholder, secondPlaceholder, buttonText, infoText, cooldownKey)
+	local card = Instance.new("Frame")
+	card.Size = UDim2.new(1, -4, 0, 190)
+	card.BackgroundColor3 = Color3.fromRGB(22, 32, 49)
+	card.BorderSizePixel = 0
+	card.Parent = scroll
+
+	local cardCorner = Instance.new("UICorner")
+	cardCorner.CornerRadius = UDim.new(0, 9)
+	cardCorner.Parent = card
+
+	local cardStroke = Instance.new("UIStroke")
+	cardStroke.Color = Color3.fromRGB(40, 75, 115)
+	cardStroke.Thickness = 1
+	cardStroke.Parent = card
+
+	local heading = Instance.new("TextLabel")
+	heading.Position = UDim2.fromOffset(8, 6)
+	heading.Size = UDim2.new(1, -16, 0, 20)
+	heading.BackgroundTransparency = 1
+	heading.Text = cardType
+	heading.TextColor3 = Color3.fromRGB(100, 180, 255)
+	heading.Font = Enum.Font.GothamBold
+	heading.TextSize = 12
+	heading.TextXAlignment = Enum.TextXAlignment.Left
+	heading.Parent = card
+
+	local label1 = Instance.new("TextLabel")
+	label1.Position = UDim2.fromOffset(8, 28)
+	label1.Size = UDim2.new(1, -16, 0, 14)
+	label1.BackgroundTransparency = 1
+	label1.Text = "SCRIPT NAME"
+	label1.TextColor3 = Color3.fromRGB(170, 180, 195)
+	label1.Font = Enum.Font.GothamBold
+	label1.TextSize = 8
+	label1.TextXAlignment = Enum.TextXAlignment.Left
+	label1.Parent = card
+
+	local box1 = Instance.new("TextBox")
+	box1.Position = UDim2.fromOffset(8, 43)
+	box1.Size = UDim2.new(1, -16, 0, 30)
+	box1.BackgroundColor3 = Color3.fromRGB(12, 19, 30)
+	box1.BorderSizePixel = 0
+	box1.Text = ""
+	box1.PlaceholderText = firstPlaceholder
+	box1.PlaceholderColor3 = Color3.fromRGB(135, 145, 160)
+	box1.TextColor3 = Color3.fromRGB(255, 255, 255)
+	box1.Font = Enum.Font.Gotham
+	box1.TextSize = 9
+	box1.TextXAlignment = Enum.TextXAlignment.Left
+	box1.Parent = card
+
+	local box1Corner = Instance.new("UICorner")
+	box1Corner.CornerRadius = UDim.new(0, 6)
+	box1Corner.Parent = box1
+
+	local label2 = Instance.new("TextLabel")
+	label2.Position = UDim2.fromOffset(8, 78)
+	label2.Size = UDim2.new(1, -16, 0, 14)
+	label2.BackgroundTransparency = 1
+	label2.Text = cardType == "REPORT ISSUE"
+		and "PROBLEM"
+		or cardType == "ADD SCRIPT SUGGESTION"
+		and "SUGGESTION / IDEA"
+		or "SCRIPT"
+	label2.TextColor3 = Color3.fromRGB(170, 180, 195)
+	label2.Font = Enum.Font.GothamBold
+	label2.TextSize = 8
+	label2.TextXAlignment = Enum.TextXAlignment.Left
+	label2.Parent = card
+
+	local box2 = Instance.new("TextBox")
+	box2.Position = UDim2.fromOffset(8, 93)
+	box2.Size = UDim2.new(1, -16, 0, 48)
+	box2.BackgroundColor3 = Color3.fromRGB(12, 19, 30)
+	box2.BorderSizePixel = 0
+	box2.Text = ""
+	box2.PlaceholderText = secondPlaceholder
+	box2.PlaceholderColor3 = Color3.fromRGB(135, 145, 160)
+	box2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	box2.Font = Enum.Font.Gotham
+	box2.TextSize = 9
+	box2.TextWrapped = true
+	box2.TextXAlignment = Enum.TextXAlignment.Left
+	box2.TextYAlignment = Enum.TextYAlignment.Top
+	box2.ClearTextOnFocus = false
+	box2.MultiLine = true
+	box2.Parent = card
+
+	local box2Corner = Instance.new("UICorner")
+	box2Corner.CornerRadius = UDim.new(0, 6)
+	box2Corner.Parent = box2
+
+	local send = Instance.new("TextButton")
+	send.Position = UDim2.fromOffset(8, 147)
+	send.Size = UDim2.new(1, -16, 0, 22)
+	send.BackgroundColor3 = Color3.fromRGB(35, 105, 190)
+	send.BorderSizePixel = 0
+	send.Text = buttonText
+	send.TextColor3 = Color3.fromRGB(255, 255, 255)
+	send.Font = Enum.Font.GothamBold
+	send.TextSize = 9
+	send.Parent = card
+
+	local sendCorner = Instance.new("UICorner")
+	sendCorner.CornerRadius = UDim.new(0, 5)
+	sendCorner.Parent = send
+
+	local info = Instance.new("TextLabel")
+	info.Position = UDim2.fromOffset(8, 172)
+	info.Size = UDim2.new(1, -16, 0, 13)
+	info.BackgroundTransparency = 1
+	info.Text = infoText
+	info.TextColor3 = Color3.fromRGB(145, 155, 170)
+	info.Font = Enum.Font.Gotham
+	info.TextSize = 7
+	info.TextXAlignment = Enum.TextXAlignment.Left
+	info.Parent = card
+
+	send.MouseButton1Click:Connect(function()
+		local scriptName = box1.Text:gsub("^%s+", ""):gsub("%s+$", "")
+		local details = box2.Text:gsub("^%s+", ""):gsub("%s+$", "")
+
+		if scriptName == "" then
+			info.Text = "Enter the script name first."
+			info.TextColor3 = Color3.fromRGB(255, 100, 100)
+			return
+		end
+
+		if details == "" then
+			info.Text = "Enter the details first."
+			info.TextColor3 = Color3.fromRGB(255, 100, 100)
+			return
+		end
+
+		local now = os.time()
+		local remaining = COOLDOWN - (now - lastUsed[cooldownKey])
+
+		if remaining > 0 then
+			local hours = math.floor(remaining / 3600)
+			local minutes = math.floor((remaining % 3600) / 60)
+
+			info.Text = "Cooldown: " .. hours .. "h " .. minutes .. "m"
+			info.TextColor3 = Color3.fromRGB(255, 180, 80)
+			return
+		end
+
+		local success = sendWebhook(cardType, scriptName, details)
+
+		if success then
+			lastUsed[cooldownKey] = now
+			box1.Text = ""
+			box2.Text = ""
+			info.Text = "Sent successfully!"
+			info.TextColor3 = Color3.fromRGB(100, 220, 140)
+		else
+			info.Text = "Failed to send."
+			info.TextColor3 = Color3.fromRGB(255, 100, 100)
+		end
+	end)
+end
+
+createCard(
+	"REPORT ISSUE",
+	"Example: Speed Hub",
+	"Example: Detect Script.",
+	"SEND REPORT",
+	"Report a script that is broken or has a problem.",
+	"Report"
+)
+
+createCard(
+	"ADD SCRIPT SUGGESTION",
+	"Example: Server Finder",
+	"Example: Add low-player server searching.",
+	"SEND SUGGESTION",
+	"Suggest a new script or feature.",
+	"Suggestion"
+)
+
+createCard(
+	"SCRIPT ADDED",
+	"Example: My Script",
+	"Paste your existing script here...",
+	"SEND SCRIPT",
+	"Send a script you already have for review.",
+	"Script"
+)
+
+local bottom = Instance.new("Frame")
+bottom.Position = UDim2.new(0, 8, 1, -49)
+bottom.Size = UDim2.new(1, -16, 0, 43)
+bottom.BackgroundTransparency = 1
+bottom.Parent = main
+
+local closeInfo = Instance.new("TextLabel")
+closeInfo.Position = UDim2.fromOffset(0, 2)
+closeInfo.Size = UDim2.new(1, -78, 0, 38)
+closeInfo.BackgroundTransparency = 1
+closeInfo.Text = "Nothing to report\nor suggest? Press X."
+closeInfo.TextColor3 = Color3.fromRGB(145, 155, 170)
+closeInfo.Font = Enum.Font.Gotham
+closeInfo.TextSize = 8
+closeInfo.TextWrapped = true
+closeInfo.TextXAlignment = Enum.TextXAlignment.Left
+closeInfo.TextYAlignment = Enum.TextYAlignment.Center
+closeInfo.Parent = bottom
+
+local close = Instance.new("TextButton")
+close.Position = UDim2.new(1, -70, 0, 6)
+close.Size = UDim2.fromOffset(70, 30)
+close.BackgroundColor3 = Color3.fromRGB(150, 45, 55)
+close.BorderSizePixel = 0
+close.Text = "X CLOSE"
+close.TextColor3 = Color3.fromRGB(255, 255, 255)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 9
+close.Parent = bottom
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = close
+
+close.MouseButton1Click:Connect(function()
+	gui.Enabled = false
+end)
+
+local dragging = false
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (
+		input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch
+	) then
+
+		local delta = input.Position - dragStart
+
+		main.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
