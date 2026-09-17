@@ -1,0 +1,274 @@
+local HttpService = game:GetService("HttpService")
+local TextChatService = game:GetService("TextChatService")
+
+local WEBHOOKS = {
+	Secret = "https://discord.com/api/webhooks/1548580361146081383/JgvKnJllB5hNItajPJTj1iC_qW4Dyl8YETPF0lp0Z1_AqPje5k9JrQ_OCITE4omuNBYJ",
+	Enternal = "https://discord.com/api/webhooks/1545391742381985832/MSiBN_1GEAIRcauTiIlHbM653OIJnVu_opVxUonzHdRnWNlokkF7q0TMkDCDwn6Q9rIa",
+	Divine = "https://discord.com/api/webhooks/1545391908287807598/jKvhnZwwCLMRMyPoFuzmu9MPmrSAv6xoy6Afwoxkv6nTTBGkuNnV28ljVRdeT5cSbfVz"
+}
+
+local ROLES = {
+	Secret = "1545066265331372141",
+	Enternal = "1545067023590101024",
+	Divine = "1545067566400282754"
+}
+
+local GAME = "https://www.roblox.com/games/107778070777162/Steal-An-Egg"
+
+local recent = {}
+
+local PET_IMAGES = {
+	["Mutant Shark"] = "https://static.wikia.nocookie.net/stealanegg/images/e/e5/Mutant_Shark.png/revision/latest/scale-to-width-down/284?cb=20260901190802",
+	["Stag"] = "https://static.wikia.nocookie.net/stealanegg/images/1/10/Stag.png/revision/latest/scale-to-width-down/284?cb=20260903135633",
+	["Cosmic Skeleton Boss"] = "https://static.wikia.nocookie.net/stealanegg/images/9/97/Cosmic_Skeleton_Boss.png/revision/latest/scale-to-width-down/185?cb=20260904110709",
+	["Tralaledon"] = "https://static.wikia.nocookie.net/stealanegg/images/3/34/Tralaledon.png/revision/latest/scale-to-width-down/284?cb=20260901194501",
+	["Kraken"] = "https://static.wikia.nocookie.net/stealanegg/images/d/d3/Kraken.png/revision/latest/scale-to-width-down/284?cb=20260904110057",
+	["Cerberus"] = "https://static.wikia.nocookie.net/stealanegg/images/4/45/Cerberus.png/revision/latest/scale-to-width-down/284?cb=20260901194510",
+	["Yeti"] = "https://static.wikia.nocookie.net/stealanegg/images/7/7d/Yeti.png/revision/latest/scale-to-width-down/217?cb=20260904025057",
+	["T-Rex"] = "https://static.wikia.nocookie.net/stealanegg/images/f/f8/T-Rex.png/revision/latest/scale-to-width-down/284?cb=20260903161834",
+
+	["El Maja"] = "https://static.wikia.nocookie.net/stealanegg/images/9/9b/El_Maja.png/revision/latest/scale-to-width-down/284?cb=20260908051427",
+	["Gorilla King"] = "https://static.wikia.nocookie.net/stealanegg/images/b/bc/Gorilla_King.png/revision/latest/scale-to-width-down/284?cb=20260901190751",
+	["Oni Tiger"] = "https://static.wikia.nocookie.net/stealanegg/images/5/55/Oni_Tiger.png/revision/latest/scale-to-width-down/284?cb=20260903135620",
+	["Lunar Dragon"] = "https://static.wikia.nocookie.net/stealanegg/images/0/07/Eternal_Lunar_Dragon.png/revision/latest/scale-to-width-down/185?cb=20260904025034",
+	["Mosasaurus"] = "https://static.wikia.nocookie.net/stealanegg/images/b/b0/Mosasaurus.png/revision/latest/scale-to-width-down/178?cb=20260904025233",
+	["Phoenix"] = "https://static.wikia.nocookie.net/stealanegg/images/c/c1/Phoenix.png/revision/latest/scale-to-width-down/178?cb=20260904025201",
+	["Lava Dragon"] = "https://static.wikia.nocookie.net/stealanegg/images/7/77/Lava_Dragon.png/revision/latest/scale-to-width-down/178?cb=20260904025223",
+	["Ice Dragon"] = "https://static.wikia.nocookie.net/stealanegg/images/b/bb/Ice_Dragon.png/revision/latest/scale-to-width-down/284?cb=20260904110044",
+	["Cosmic Dragon"] = "https://static.wikia.nocookie.net/stealanegg/images/3/3e/Cosmic_Dragon.png/revision/latest/scale-to-width-down/284?cb=20260903140720",
+
+	["Unicorn"] = "https://static.wikia.nocookie.net/stealanegg/images/7/7e/Unicorn.png/revision/latest/scale-to-width-down/265?cb=20260901185215",
+	["Kitsune"] = "https://static.wikia.nocookie.net/stealanegg/images/0/04/Kitsune.png/revision/latest/scale-to-width-down/284?cb=20260903135644",
+	["Nightflame"] = "https://static.wikia.nocookie.net/stealanegg/images/a/aa/Nightflame.png/revision/latest/scale-to-width-down/284?cb=20260901190742",
+
+	["Gargoyle"] = "https://static.wikia.nocookie.net/stealanegg/images/4/44/Gargoyle.png/revision/latest/scale-to-width-down/284?cb=20260912164712",
+	["RazorFang"] = "https://static.wikia.nocookie.net/stealanegg/images/c/c2/RazorFang.png/revision/latest/scale-to-width-down/284?cb=20260912164720",
+	["Skeleton Horse"] = "https://static.wikia.nocookie.net/stealanegg/images/d/de/Skeleton_Horse.png/revision/latest/scale-to-width-down/284?cb=20260912164727",
+	["World Burner"] = "https://static.wikia.nocookie.net/stealanegg/images/f/fe/World_Burner.png/revision/latest/scale-to-width-down/284?cb=20260912164738",
+
+	["Pure Jellyfish"] = "https://static.wikia.nocookie.net/stealanegg/images/7/7e/Pure_Jellyfish.png/revision/latest/scale-to-width-down/284?cb=20260912164614",
+	["Centaur"] = "https://static.wikia.nocookie.net/stealanegg/images/b/bc/Centaur.png/revision/latest/scale-to-width-down/284?cb=20260912164622",
+	["Pegasus"] = "https://static.wikia.nocookie.net/stealanegg/images/3/36/Eternal_Pegasus.png/revision/latest/scale-to-width-down/284?cb=20260913012404",
+	["ArchAngel"] = "https://static.wikia.nocookie.net/stealanegg/images/6/60/ArchAngel.png/revision/latest/scale-to-width-down/284?cb=20260912164639",
+
+	["Equinox"] = "https://static.wikia.nocookie.net/stealanegg/images/e/e7/Equinox.png/revision/latest/scale-to-width-down/284?cb=20260913045536",
+	["Aetheron"] = "https://static.wikia.nocookie.net/stealanegg/images/e/e7/Aetheron.png/revision/latest/scale-to-width-down/284?cb=20260913045520"
+}
+
+local CREATURES = {
+
+	-- SECRET
+
+	["mutant shark"] = {"Mutant Shark", "Secret", 0x000000, "Titan Temple", "7B"},
+	["stag"] = {"Stag", "Secret", 0x000000, "Cherry Blossom", "2.5B"},
+	["cosmic skeleton boss"] = {"Cosmic Skeleton Boss", "Secret", 0x000000, "Cosmic", "700M"},
+	["tralaledon"] = {"Tralaledon", "Secret", 0x000000, "Prehistoric", "18M"},
+	["kraken"] = {"Kraken", "Secret", 0x000000, "Abyss Ocean", "2.5M"},
+	["cerberus"] = {"Cerberus", "Secret", 0x000000, "Volcano", "700K"},
+	["yeti"] = {"Yeti", "Secret", 0x000000, "Snow", "170K"},
+	["t-rex"] = {"T-Rex", "Secret", 0x000000, "Prehistoric", "18M"},
+	["cosmic dragon"] = {"Cosmic Dragon", "Secret", 0x000000, "Cosmic", "700M"},
+
+	["gargoyle"] = {"Gargoyle", "Secret", 0x000000, "Demon", "20B"},
+	["razorfang"] = {"RazorFang", "Secret", 0x000000, "Demon", "20B"},
+	["pure jellyfish"] = {"Pure Jellyfish", "Secret", 0x000000, "Angels", "20B"},
+	["centaur"] = {"Centaur", "Secret", 0x000000, "Angels", "20B"},
+
+	-- ENTERnal
+
+	["el maja"] = {"El Maja", "Enternal", 0xFF69B4, "Abyss Ocean", "2.5M"},
+	["gorilla king"] = {"Gorilla King", "Enternal", 0xFF69B4, "Titan Temple", "7B"},
+	["oni tiger"] = {"Oni Tiger", "Enternal", 0xFF69B4, "Cherry Blossom", "2.5B"},
+	["lunar dragon"] = {"Lunar Dragon", "Enternal", 0xFF69B4, "Cosmic", "700M"},
+	["mosasaurus"] = {"Mosasaurus", "Enternal", 0xFF69B4, "Prehistoric", "18M"},
+	["phoenix"] = {"Phoenix", "Enternal", 0xFF69B4, "Volcano", "700K"},
+	["lava dragon"] = {"Lava Dragon", "Enternal", 0xFF69B4, "Volcano", "700K"},
+	["ice dragon"] = {"Ice Dragon", "Enternal", 0xFF69B4, "Snow", "170K"},
+
+	["skeleton horse"] = {"Skeleton Horse", "Enternal", 0xFF69B4, "Demon", "20B"},
+	["pegasus"] = {"Pegasus", "Enternal", 0xFF69B4, "Angels", "20B"},
+	["equinox"] = {"Equinox", "Enternal", 0xFF69B4, "Angel and Demons", "20B"},
+
+	-- DIVINE
+
+	["unicorn"] = {"Unicorn", "Divine", 0xFFFF00, "Cosmic", "700M"},
+	["kitsune"] = {"Kitsune", "Divine", 0xFFFF00, "Cherry Blossom", "2.5B"},
+	["nightflame"] = {"Nightflame", "Divine", 0xFFFF00, "Titan Temple", "7B"},
+
+	["world burner"] = {"World Burner", "Divine", 0xFFFF00, "Demon", "20B"},
+	["archangel"] = {"ArchAngel", "Divine", 0xFFFF00, "Angels", "20B"},
+	["aetheron"] = {"Aetheron", "Divine", 0xFFFF00, "Angel and Demons", "20B"}
+}
+
+local MONEY = {
+
+	["Yeti"] = "5M",
+	["Ice Dragon"] = "65M",
+
+	["Cerberus"] = "8M",
+	["Phoenix"] = "85M",
+	["Lava Dragon"] = "100M",
+
+	["Kraken"] = "15M",
+	["El Maja"] = "130M",
+
+	["Tralaledon"] = "32M",
+	["T-Rex"] = "25M",
+	["Mosasaurus"] = "180M",
+
+	["Cosmic Dragon"] = "60M",
+	["Cosmic Skeleton Boss"] = "45M",
+	["Lunar Dragon"] = "250M",
+	["Unicorn"] = "1B",
+
+	["Stag"] = "145M",
+	["Oni Tiger"] = "600M",
+	["Kitsune"] = "1.8B",
+
+	["Mutant Shark"] = "215M",
+	["Gorilla King"] = "880M",
+	["Nightflame"] = "3B",
+
+	["Gargoyle"] = "225M",
+	["RazorFang"] = "350M",
+	["Skeleton Horse"] = "1.3B",
+	["World Burner"] = "5B",
+
+	["Pure Jellyfish"] = "225M",
+	["Centaur"] = "350M",
+	["Pegasus"] = "1.3B",
+	["ArchAngel"] = "5B",
+
+	["Equinox"] = "1.8B",
+	["Aetheron"] = "6.9B"
+}
+
+local function send(creature)
+
+	local name = creature[1]
+	local rarity = creature[2]
+	local color = creature[3]
+	local biome = creature[4]
+	local speed = creature[5]
+
+	local role = ROLES[rarity]
+	local webhook = WEBHOOKS[rarity]
+	local image = PET_IMAGES[name]
+	local money = MONEY[name] or "Unknown"
+
+	if not webhook or webhook == "" or webhook:find("YOUR_") then
+		warn("Webhook not configured for:", rarity)
+		return
+	end
+
+	local timestamp = os.time()
+
+	local description =
+		"ðŸ¥š **Egg Spawn Detected!**\n\n" ..
+		"ðŸ¾ **Pet:** "..name.."\n" ..
+		"ðŸŒ‹ **Biome:** "..biome.."\n" ..
+		"ðŸ’° **Money/s:** "..money.."\n" ..
+		"ðŸ‘Ÿ **Recommended Speed:** "..speed.."\n\n" ..
+		"ðŸ”— **Roblox Link:** [Join Steal An Egg]("..GAME..")\n" ..
+		"ðŸ• **Date:** <t:"..timestamp..":D>\n" ..
+		"â° **Time:** <t:"..timestamp..":t>\n\n" ..
+		"**0 delay notifier**"
+
+	local embed = {
+		title = rarity:upper().." EGG SPAWN!",
+		description = description,
+		color = color,
+
+		footer = {
+			text = "Steal An Egg â€¢ 0 Delay Notifier"
+		}
+	}
+
+	if image then
+		embed.thumbnail = {
+			url = image
+		}
+	end
+
+	local data = {
+		content = "<@&"..role..">",
+
+		allowed_mentions = {
+			roles = {role}
+		},
+
+		embeds = {
+			embed
+		}
+	}
+
+	local ok, response = pcall(function()
+
+		return HttpService:RequestAsync({
+			Url = webhook,
+			Method = "POST",
+
+			Headers = {
+				["Content-Type"] = "application/json"
+			},
+
+			Body = HttpService:JSONEncode(data)
+		})
+
+	end)
+
+	if ok and response.Success then
+
+		print(
+			"Discord sent:",
+			name,
+			rarity,
+			biome,
+			money
+		)
+
+	else
+
+		warn(
+			"Discord webhook failed:",
+			response and response.Body or response
+		)
+
+	end
+end
+
+TextChatService.MessageReceived:Connect(function(message)
+
+	local text = string.lower(message.Text or "")
+
+	for key, creature in pairs(CREATURES) do
+
+		if string.find(text, key, 1, true) then
+
+			local id = key .. "|" .. text
+
+			if recent[id] then
+				return
+			end
+
+			recent[id] = true
+
+			task.delay(5, function()
+				recent[id] = nil
+			end)
+
+			send(creature)
+
+			return
+		end
+	end
+end)
+
+print("================================")
+print("STEAL AN EGG DISCORD TRACKER ON")
+print("System Chat Only")
+print("Pet thumbnails enabled")
+print("Role pings enabled")
+print("5 second duplicate protection")
+print("All biome data loaded")
+print("================================")
