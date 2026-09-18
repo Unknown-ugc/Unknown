@@ -31,7 +31,7 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 local main = Instance.new("Frame")
 main.Name = "Main"
-main.Size = UDim2.fromOffset(350,270)
+main.Size = UDim2.fromOffset(350,320)
 main.Position = UDim2.new(0.5,-175,0.5,-135)
 main.BackgroundColor3 = Theme.BG
 main.BorderSizePixel = 0
@@ -105,7 +105,7 @@ close.Parent = header
 local nav = Instance.new("Frame")
 nav.Name = "Navigation"
 nav.Position = UDim2.fromOffset(8,50)
-nav.Size = UDim2.fromOffset(50,240)
+nav.Size = UDim2.fromOffset(50,270)
 nav.BackgroundColor3 = Theme.Card
 nav.BorderSizePixel = 0
 nav.Parent = main
@@ -325,7 +325,6 @@ aboutPage.CanvasSize = UDim2.fromOffset(0,420)
 aboutPage.Visible = false
 aboutPage.Parent = content
 
-local aboutTitle = Instance.new("TextLabel")
 local aboutTitle = Instance.new("TextLabel")
 aboutTitle.Position = UDim2.fromOffset(10, 8)
 aboutTitle.Size = UDim2.new(1, -20, 0, 24)
