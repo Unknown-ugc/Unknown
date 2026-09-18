@@ -326,8 +326,9 @@ aboutPage.Visible = false
 aboutPage.Parent = content
 
 local aboutTitle = Instance.new("TextLabel")
-aboutTitle.Position = UDim2.fromOffset(0,0)
-aboutTitle.Size = UDim2.fromOffset(270,24)
+local aboutTitle = Instance.new("TextLabel")
+aboutTitle.Position = UDim2.fromOffset(10, 8)
+aboutTitle.Size = UDim2.new(1, -20, 0, 24)
 aboutTitle.BackgroundTransparency = 1
 aboutTitle.Text = "ABOUT • V1.2"
 aboutTitle.TextSize = 12
@@ -337,10 +338,11 @@ aboutTitle.TextXAlignment = Enum.TextXAlignment.Left
 aboutTitle.Parent = aboutPage
 
 local aboutText = Instance.new("TextLabel")
-aboutText.Position = UDim2.fromOffset(0,32)
-aboutText.Size = UDim2.new(1,-8,0,370)
+aboutText.Position = UDim2.fromOffset(10, 38)
+aboutText.Size = UDim2.new(1, -20, 0, 560)
 aboutText.BackgroundTransparency = 1
 aboutText.Text = "ABOUT\n\nSTEAL AN EGG ALL SCRIPT\nVersion 1.2\n\n━━━━━━━━━━━━━━━━━━\nV1.2 • CHANGELOG\n━━━━━━━━━━━━━━━━━━\n\n[+] SERVER PAGE\n• Added a dedicated public server browser.\n• View available servers and current player counts.\n• Supports servers from 0 players up to full capacity.\n• Full servers are labeled as FULL.\n• Select a server to join directly.\n• Replaced the previous Find One Player Server feature.\n• Server checking remains manual — no automatic refresh.\n\n[+] VISUALS\n• Added 1 new Visual Script.\n• More visual features coming in future updates.\n\n[+] CREDIT\n• Added a dedicated Credit section.\n\n[+] IMPROVEMENTS\n• Updated the hub layout and page organization.\n• Improved the overall V1.2 structure.\n\n━━━━━━━━━━━━━━━━━━\nUPCOMING\n━━━━━━━━━━━━━━━━━━\n\nMore scripts, visual features, and improvements are coming soon.\n\nThank you for using\nSTEAL AN EGG ALL SCRIPT."
+
 aboutText.TextSize = 9
 aboutText.Font = Enum.Font.Gotham
 aboutText.TextWrapped = true
@@ -349,28 +351,128 @@ aboutText.TextYAlignment = Enum.TextYAlignment.Top
 aboutText.TextColor3 = Theme.Text
 aboutText.Parent = aboutPage
 
-local creditTitle = Instance.new("TextLabel")
-creditTitle.Position = UDim2.fromOffset(0,0)
-creditTitle.Size = UDim2.fromOffset(270,24)
-creditTitle.BackgroundTransparency = 1
-creditTitle.Text = "CREDIT"
-creditTitle.TextSize = 12
-creditTitle.Font = Enum.Font.GothamBold
-creditTitle.TextColor3 = Theme.Text
-creditTitle.TextXAlignment = Enum.TextXAlignment.Left
-creditTitle.Parent = creditPage
+aboutPage.CanvasSize = UDim2.fromOffset(0, 620)
 
-local creditText = Instance.new("TextLabel")
-creditText.Position = UDim2.fromOffset(0,32)
-creditText.Size = UDim2.fromOffset(260,120)
-creditText.BackgroundTransparency = 1
-creditText.Text = "Steal an Egg All Script\\n\\nCreated and maintained by Chris.\\n\\nDiscord community and script updates are available from the HOME page."
-creditText.TextSize = 9
-creditText.Font = Enum.Font.Gotham
-creditText.TextWrapped = true
-creditText.TextYAlignment = Enum.TextYAlignment.Top
-creditText.TextColor3 = Theme.Text
-creditText.Parent = creditPage
+local creditsPage = Instance.new("ScrollingFrame")
+creditsPage.Name = "CreditsPage"
+creditsPage.Position = UDim2.fromOffset(0,0)
+creditsPage.Size = UDim2.new(1,0,1,0)
+creditsPage.BackgroundTransparency = 1
+creditsPage.BorderSizePixel = 0
+creditsPage.ScrollBarThickness = 3
+creditsPage.CanvasSize = UDim2.fromOffset(0,330)
+creditsPage.Visible = false
+creditsPage.Parent = content
+
+local creditsTitle = Instance.new("TextLabel")
+creditsTitle.BackgroundTransparency = 1
+creditsTitle.Position = UDim2.fromOffset(8,8)
+creditsTitle.Size = UDim2.fromOffset(250,22)
+creditsTitle.Font = Enum.Font.GothamBold
+creditsTitle.Text = "CREDITS"
+creditsTitle.TextSize = 13
+creditsTitle.TextColor3 = Theme.Text
+creditsTitle.TextXAlignment = Enum.TextXAlignment.Left
+creditsTitle.Parent = creditsPage
+
+local thankYou = Instance.new("TextLabel")
+thankYou.BackgroundTransparency = 1
+thankYou.Position = UDim2.fromOffset(8,38)
+thankYou.Size = UDim2.fromOffset(260,48)
+thankYou.Font = Enum.Font.Gotham
+thankYou.Text = "THANK YOU\nThank you for using my script!\nI will keep updating the script."
+thankYou.TextSize = 9
+thankYou.TextColor3 = Theme.Text
+thankYou.TextXAlignment = Enum.TextXAlignment.Left
+thankYou.TextYAlignment = Enum.TextYAlignment.Top
+thankYou.Parent = creditsPage
+
+local specialThanks = Instance.new("TextLabel")
+specialThanks.BackgroundTransparency = 1
+specialThanks.Position = UDim2.fromOffset(8,92)
+specialThanks.Size = UDim2.fromOffset(260,35)
+specialThanks.Font = Enum.Font.Gotham
+specialThanks.Text = "SPECIAL THANKS\nSpecial thanks to these TikTok accounts for promoting my script:"
+specialThanks.TextSize = 8
+specialThanks.TextColor3 = Theme.Muted
+specialThanks.TextXAlignment = Enum.TextXAlignment.Left
+specialThanks.TextYAlignment = Enum.TextYAlignment.Top
+specialThanks.Parent = creditsPage
+
+local function createTikTokButton(name, link, y)
+	local button = Instance.new("TextButton")
+	button.Position = UDim2.fromOffset(8,y)
+	button.Size = UDim2.fromOffset(250,25)
+	button.BackgroundColor3 = Theme.Card
+	button.BorderSizePixel = 0
+	button.Text = name
+	button.TextSize = 9
+	button.Font = Enum.Font.GothamBold
+	button.TextColor3 = Theme.Main
+	button.TextXAlignment = Enum.TextXAlignment.Left
+	button.AutoButtonColor = true
+	button.Parent = creditsPage
+
+	Instance.new("UICorner",button).CornerRadius = UDim.new(0,6)
+
+	button.Activated:Connect(function()
+		if setclipboard then
+			setclipboard(link)
+		end
+	end)
+
+	return button
+end
+
+createTikTokButton(
+	"@noah_dump5",
+	"https://www.tiktok.com/@noah_dump5?_r=1&_t=ZS-99pIzZOQGwq",
+	135
+)
+
+createTikTokButton(
+	"@_johnxines",
+	"https://www.tiktok.com/@_johnxines?_r=1&_t=ZS-99pIzxRThiL",
+	165
+)
+
+createTikTokButton(
+	"@official_mneil",
+	"https://www.tiktok.com/@official_mneil?_r=1&_t=ZS-99pItOhT2h7",
+	195
+)
+
+local copyInfo = Instance.new("TextLabel")
+copyInfo.BackgroundTransparency = 1
+copyInfo.Position = UDim2.fromOffset(8,225)
+copyInfo.Size = UDim2.fromOffset(250,20)
+copyInfo.Font = Enum.Font.Gotham
+copyInfo.Text = "Tap a TikTok name to copy their link"
+copyInfo.TextSize = 8
+copyInfo.TextColor3 = Theme.Muted
+copyInfo.TextXAlignment = Enum.TextXAlignment.Left
+copyInfo.Parent = creditsPage
+
+local ownerTitle = Instance.new("TextLabel")
+ownerTitle.BackgroundTransparency = 1
+ownerTitle.Position = UDim2.fromOffset(8,250)
+ownerTitle.Size = UDim2.fromOffset(250,20)
+ownerTitle.Font = Enum.Font.GothamBold
+ownerTitle.Text = "OWNER"
+ownerTitle.TextSize = 10
+ownerTitle.TextColor3 = Theme.Text
+ownerTitle.TextXAlignment = Enum.TextXAlignment.Left
+ownerTitle.Parent = creditsPage
+
+local ownerImage = Instance.new("ImageLabel")
+ownerImage.Position = UDim2.fromOffset(8,275)
+ownerImage.Size = UDim2.fromOffset(45,45)
+ownerImage.BackgroundColor3 = Theme.Card
+ownerImage.BorderSizePixel = 0
+ownerImage.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=113058136114857&width=420&height=420&format=png"
+ownerImage.Parent = creditsPage
+
+Instance.new("UICorner",ownerImage).CornerRadius = UDim.new(1,0)
 
 local function makeNav(text,y)
 	local b = Instance.new("TextButton")
