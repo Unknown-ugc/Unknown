@@ -32,7 +32,7 @@ gui.Parent = player:WaitForChild("PlayerGui")
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.Size = UDim2.fromOffset(350,320)
-main.Position = UDim2.new(0.5,-175,0.5,-135)
+main.Position = UDim2.new(0.5,-175,0.5,-160)
 main.BackgroundColor3 = Theme.BG
 main.BorderSizePixel = 0
 main.Active = true
@@ -104,8 +104,8 @@ close.Parent = header
 
 local nav = Instance.new("Frame")
 nav.Name = "Navigation"
-nav.Position = UDim2.fromOffset(8,50)
-nav.Size = UDim2.fromOffset(50,270)
+nav.Position = UDim2.fromOffset(65,50)
+nav.Size = UDim2.fromOffset(50,262)
 nav.BackgroundColor3 = Theme.Card
 nav.BorderSizePixel = 0
 nav.Parent = main
@@ -115,7 +115,7 @@ Instance.new("UICorner",nav).CornerRadius = UDim.new(0,10)
 local content = Instance.new("Frame")
 content.Name = "Content"
 content.Position = UDim2.fromOffset(65,50)
-content.Size = UDim2.new(1,-75,1,-25)
+content.Size = UDim2.new(1,-75,1,-58)
 content.BackgroundTransparency = 1
 content.Parent = main
 
@@ -127,8 +127,10 @@ home.Parent = content
 
 local scriptsPage = Instance.new("Frame")
 scriptsPage.Name = "ScriptsPage"
+scriptsPage.Position = UDim2.fromOffset(0,0)
 scriptsPage.Size = UDim2.fromScale(1,1)
 scriptsPage.BackgroundTransparency = 1
+scriptsPage.ClipsDescendants = true
 scriptsPage.Visible = false
 scriptsPage.Parent = content
 
