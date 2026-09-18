@@ -356,13 +356,14 @@ aboutPage.CanvasSize = UDim2.fromOffset(0, 620)
 
 local creditsPage = Instance.new("ScrollingFrame")
 creditsPage.Name = "CreditsPage"
-creditsPage.Position = UDim2.fromOffset(0,350)
+creditsPage.Position = UDim2.fromOffset(0,0)
 creditsPage.Size = UDim2.new(1,0,1,0)
 creditsPage.BackgroundTransparency = 1
 creditsPage.BorderSizePixel = 0
 creditsPage.ScrollBarThickness = 3
 creditsPage.CanvasSize = UDim2.fromOffset(0,330)
 creditsPage.Visible = false
+creditsPage.ClipsDescendants = true
 creditsPage.Parent = content
 
 local creditsTitle = Instance.new("TextLabel")
@@ -421,27 +422,11 @@ local function createTikTokButton(name, link, y)
 			setclipboard(link)
 		end
 	end)
-
-	return button
 end
 
-createTikTokButton(
-	"@official_mneil",
-	"https://www.tiktok.com/@official_mneil?_r=1&_t=ZS-99pItOhT2h7",
-	135
-)
-
-createTikTokButton(
-	"@noah_dump5",
-	"https://www.tiktok.com/@noah_dump5?_r=1&_t=ZS-99pIzZOQGwq",
-	165
-)
-
-createTikTokButton(
-	"@_johnxines",
-	"https://www.tiktok.com/@_johnxines?_r=1&_t=ZS-99pIzxRThiL",
-	195
-)
+createTikTokButton("@official_mneil", "https://www.tiktok.com/@official_mneil", 135)
+createTikTokButton("@noah_dump5", "https://www.tiktok.com/@noah_dump5", 165)
+createTikTokButton("@_johnxines", "https://www.tiktok.com/@_johnxines", 195)
 
 local copyInfo = Instance.new("TextLabel")
 copyInfo.BackgroundTransparency = 1
