@@ -104,8 +104,8 @@ close.Parent = header
 
 local nav = Instance.new("Frame")
 nav.Name = "Navigation"
-nav.Position = UDim2.fromOffset(65,50)
-nav.Size = UDim2.fromOffset(50,262)
+nav.Position = UDim2.fromOffset(8,50)
+nav.Size = UDim2.fromOffset(50,240)
 nav.BackgroundColor3 = Theme.Card
 nav.BorderSizePixel = 0
 nav.Parent = main
@@ -356,42 +356,12 @@ aboutPage.CanvasSize = UDim2.fromOffset(0, 620)
 
 local creditsPage = Instance.new("ScrollingFrame")
 creditsPage.Name = "CreditsPage"
-creditsPage.Position = UDim2.fromOffset(0,0)
+creditsPage.Position = UDim2.fromOffset(0,350)
 creditsPage.Size = UDim2.new(1,0,1,0)
 creditsPage.BackgroundTransparency = 1
 creditsPage.BorderSizePixel = 0
 creditsPage.ScrollBarThickness = 3
 creditsPage.CanvasSize = UDim2.fromOffset(0,330)
-creditsPage.Visible = false
-creditsPage.Parent = content
-
-local creditsTitle = Instance.new("TextLabel")
-creditsTitle.BackgroundTransparency = 1
-creditsTitle.Position = UDim2.fromOffset(8,8)
-creditsTitle.Size = UDim2.fromOffset(250,22)
-creditsTitle.Font = Enum.Font.GothamBold
-creditsTitle.Text = "CREDITS"
-creditsTitle.TextSize = 13
-creditsTitle.TextColor3 = Theme.Text
-creditsTitle.TextXAlignment = Enum.TextXAlignment.Left
-creditsTitle.Parent = creditsPage
-
-local thankYou = Instance.new("TextLabel")
-thankYou.BackgroundTransparency = 1
-thankYou.Position = UDim2.fromOffset(8,38)
-thankYou.Size = UDim2.fromOffset(260,48)
-thankYou.Font = Enum.Font.Gotham
-thankYou.Text = "THANK YOU\nThank you for using my script!\nI will keep updating the script."
-thankYou.TextSize = 9
-thankYou.TextColor3 = Theme.Text
-local creditsPage = Instance.new("ScrollingFrame")
-creditsPage.Name = "CreditsPage"
-creditsPage.Position = UDim2.fromOffset(0,0)
-creditsPage.Size = UDim2.new(1,0,1,0)
-creditsPage.BackgroundTransparency = 1
-creditsPage.BorderSizePixel = 0
-creditsPage.ScrollBarThickness = 3
-creditsPage.CanvasSize = UDim2.fromOffset(0,350)
 creditsPage.Visible = false
 creditsPage.Parent = content
 
