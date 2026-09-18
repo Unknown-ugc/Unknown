@@ -512,7 +512,7 @@ local function showPage(page)
 	scriptsPage.Visible = false
 	serverPage.Visible = false
 	settingsPage.Visible = false
-	creditPage.Visible = false
+	creditsPage.Visible = false
 	aboutPage.Visible = false
 	page.Visible = true
 end
@@ -541,7 +541,7 @@ end)
 
 creditButton.Activated:Connect(function()
 	selectNav(creditButton)
-	showPage(creditPage)
+	showPage(creditsPage)
 end)
 
 aboutButton.Activated:Connect(function()
