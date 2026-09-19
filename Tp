@@ -15,6 +15,7 @@ local IMAGE_ID = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
 
 local LOADING_TIME = 2
 local TELEPORT_COUNT = 6
+local TP_DELAY = 0
 
 local TARGET_CFRAME =
 	CFrame.new(
@@ -187,6 +188,7 @@ local function showLoading()
 	end
 
 	updateLoading(100)
+
 	removeLoading()
 
 	return true
@@ -209,7 +211,7 @@ local function doTeleportSequence()
 
 	busy = true
 
-	-- Loading screen first
+	-- Show loading first
 	local finishedLoading = showLoading()
 
 	if not finishedLoading then
@@ -224,13 +226,17 @@ local function doTeleportSequence()
 		return
 	end
 
-	-- Instant TP, no TP-back
+	-- 6 instant TP calls
 	for i = 1, TELEPORT_COUNT do
 		if not enabled then
 			break
 		end
 
 		character:PivotTo(TARGET_CFRAME)
+
+		if TP_DELAY > 0 then
+			task.wait(TP_DELAY)
+		end
 	end
 
 	busy = false
@@ -436,4 +442,5 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, triggeringPlayer
 	task.spawn(doTeleportSequence)
 end)
 
+-- Initial state
 updateToggle()
