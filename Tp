@@ -1,5 +1,4 @@
 local Players = game:GetService("Players")
-
 local player = Players.LocalPlayer
 
 local TP_CFRAME =
@@ -17,10 +16,7 @@ local TP_CFRAME =
 local enabled = false
 local running = false
 
---========================
--- MAIN GUI
---========================
-
+-- GUI
 local gui = Instance.new("ScreenGui")
 gui.Name = "FastTP4"
 gui.ResetOnSpawn = false
@@ -40,17 +36,12 @@ button.Parent = gui
 
 Instance.new("UICorner", button).CornerRadius = UDim.new(0, 9)
 
---========================
--- LOADING SCREEN
---========================
-
+-- Loading screen
 local loadingGui
 local loadingText
 
 local function showLoading()
-	if loadingGui then
-		return
-	end
+	if loadingGui then return end
 
 	loadingGui = Instance.new("ScreenGui")
 	loadingGui.Name = "TPLoading"
@@ -77,6 +68,12 @@ local function showLoading()
 	loadingText.Parent = box
 end
 
+local function updateLoading(number)
+	if loadingText then
+		loadingText.Text = "Teleporting " .. number .. "/4"
+	end
+end
+
 local function hideLoading()
 	if loadingGui then
 		loadingGui:Destroy()
@@ -85,16 +82,7 @@ local function hideLoading()
 	end
 end
 
-local function updateLoading(number)
-	if loadingText then
-		loadingText.Text = "Teleporting " .. number .. "/4"
-	end
-end
-
---========================
 -- ON / OFF
---========================
-
 button.MouseButton1Click:Connect(function()
 	enabled = not enabled
 
@@ -107,18 +95,11 @@ button.MouseButton1Click:Connect(function()
 	end
 end)
 
---========================
--- FAST 4× TELEPORT
---========================
-
+-- Teleport 4 times, 1 second apart
 local function teleportFourTimes()
-	if not enabled or running then
-		return
-	end
+	if not enabled or running then return end
 
 	running = true
-
-	-- Show loading BEFORE first teleport
 	showLoading()
 
 	local character = player.Character
@@ -128,30 +109,23 @@ local function teleportFourTimes()
 		for i = 1, 4 do
 			updateLoading(i)
 
-			-- Separate teleport event
 			root.CFrame = TP_CFRAME
 
-			-- Very small yield so Roblox registers it separately
+			-- Wait 1 second before the next teleport
 			if i < 4 then
-				task.wait(0.03)
+				task.wait(1)
 			end
 		end
 	end
 
-	-- Only remove after all 4
+	-- Remove only after TP #4
 	hideLoading()
-
 	running = false
 end
 
---========================
--- PROXIMITY PROMPT
---========================
-
+-- ProximityPrompt detection
 local function connectPrompt(object)
-	if not object:IsA("ProximityPrompt") then
-		return
-	end
+	if not object:IsA("ProximityPrompt") then return end
 
 	object.Triggered:Connect(function(triggeringPlayer)
 		if triggeringPlayer == player then
