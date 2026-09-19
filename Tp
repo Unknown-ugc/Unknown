@@ -1,9 +1,5 @@
---// ANTI GUARD
---// Made by: Chris
-
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
-local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 
@@ -11,43 +7,245 @@ local player = Players.LocalPlayer
 -- SETTINGS
 --==================================================
 
-local IMAGE_ID = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
-
-local LOADING_TIME = 2
-local TELEPORT_COUNT = 6
-local TP_DELAY = 0
-
-local TARGET_CFRAME =
+local TP_CFRAME =
 	CFrame.new(
 		550.9732055664062,
 		70.57628631591797,
 		-377.2372741699219
-	)
-	* CFrame.Angles(
+	) *
+	CFrame.Angles(
 		1.0725773567921149e-11,
 		1.4790611267089844,
 		1.657335713812218e-09
 	)
 
---==================================================
--- VARIABLES
---==================================================
+local TELEPORT_COUNT = 8
+local TELEPORT_DELAY = 0.1
+local LOADING_TIME = 2
+
+-- Roblox thumbnail version of your image
+local IMAGE = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
 
 local enabled = false
-local busy = false
+local running = false
+
+--==================================================
+-- MAIN GUI
+--==================================================
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AntiGuard"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Name = "Main"
+frame.Size = UDim2.fromOffset(185, 95)
+frame.Position = UDim2.new(0.5, -92, 0.5, -47)
+frame.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 11)
+frameCorner.Parent = frame
+
+--==================================================
+-- TITLE
+--==================================================
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -65, 0, 25)
+title.Position = UDim2.fromOffset(7, 4)
+title.BackgroundTransparency = 1
+title.Text = "Anti Guard"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = frame
+
+-- Made by
+local madeBy = Instance.new("TextLabel")
+madeBy.Size = UDim2.new(1, -14, 0, 17)
+madeBy.Position = UDim2.fromOffset(7, 27)
+madeBy.BackgroundTransparency = 1
+madeBy.Text = "Made by: Chris"
+madeBy.TextColor3 = Color3.fromRGB(205, 220, 240)
+madeBy.TextSize = 11
+madeBy.Font = Enum.Font.Gotham
+madeBy.TextXAlignment = Enum.TextXAlignment.Left
+madeBy.Parent = frame
+
+--==================================================
+-- MINIMIZE
+--==================================================
+
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "Minimize"
+minimizeButton.Size = UDim2.fromOffset(25, 25)
+minimizeButton.Position = UDim2.new(1, -57, 0, 3)
+minimizeButton.BackgroundTransparency = 1
+minimizeButton.Text = "−"
+minimizeButton.TextColor3 = Color3.new(1, 1, 1)
+minimizeButton.TextSize = 20
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Parent = frame
+
+--==================================================
+-- CLOSE
+--==================================================
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "Close"
+closeButton.Size = UDim2.fromOffset(25, 25)
+closeButton.Position = UDim2.new(1, -29, 0, 3)
+closeButton.BackgroundTransparency = 1
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+closeButton.TextSize = 20
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = frame
+
+--==================================================
+-- ON / OFF
+--==================================================
+
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(1, -20, 0, 32)
+toggle.Position = UDim2.fromOffset(10, 55)
+toggle.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+toggle.Text = "OFF"
+toggle.TextColor3 = Color3.new(1, 1, 1)
+toggle.TextSize = 14
+toggle.Font = Enum.Font.GothamBold
+toggle.Parent = frame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = toggle
+
+--==================================================
+-- MINIMIZED CIRCLE
+--==================================================
+
+local circle = Instance.new("ImageButton")
+circle.Name = "MiniCircle"
+circle.Size = UDim2.fromOffset(62, 62)
+circle.Position = UDim2.new(0.5, -31, 0.5, -31)
+circle.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
+circle.BorderSizePixel = 0
+circle.Image = IMAGE
+circle.ScaleType = Enum.ScaleType.Fit
+circle.Visible = false
+circle.Active = true
+circle.Draggable = true
+circle.Parent = gui
+
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1, 0)
+circleCorner.Parent = circle
+
+--==================================================
+-- LOADING SCREEN
+--==================================================
 
 local loadingGui
 local progressText
 local progressBar
 
-local mainGui
-local mainFrame
-local toggleButton
-local miniButton
+local function createLoading()
+	if loadingGui then
+		return
+	end
 
---==================================================
--- LOADING
---==================================================
+	loadingGui = Instance.new("ScreenGui")
+	loadingGui.Name = "AntiGuardLoading"
+	loadingGui.ResetOnSpawn = false
+	loadingGui.IgnoreGuiInset = true
+	loadingGui.DisplayOrder = 999999
+	loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	loadingGui.Parent = player:WaitForChild("PlayerGui")
+
+	-- Blue full-screen background
+	local background = Instance.new("Frame")
+	background.Name = "Background"
+	background.Size = UDim2.fromScale(1, 1)
+	background.BackgroundColor3 = Color3.fromRGB(10, 55, 125)
+	background.BorderSizePixel = 0
+	background.Parent = loadingGui
+
+	-- Darker blue overlay
+	local overlay = Instance.new("Frame")
+	overlay.Size = UDim2.fromScale(1, 1)
+	overlay.BackgroundColor3 = Color3.fromRGB(5, 30, 75)
+	overlay.BackgroundTransparency = 0.35
+	overlay.BorderSizePixel = 0
+	overlay.Parent = background
+
+	-- Medium circular image
+	local image = Instance.new("ImageLabel")
+	image.Name = "LoadingImage"
+	image.Size = UDim2.fromOffset(145, 145)
+	image.Position = UDim2.new(0.5, -72, 0.5, -115)
+	image.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
+	image.BorderSizePixel = 0
+	image.Image = IMAGE
+	image.ScaleType = Enum.ScaleType.Fit
+	image.Parent = background
+
+	local imageCorner = Instance.new("UICorner")
+	imageCorner.CornerRadius = UDim.new(1, 0)
+	imageCorner.Parent = image
+
+	-- 0-100%
+	progressText = Instance.new("TextLabel")
+	progressText.Size = UDim2.new(1, -40, 0, 35)
+	progressText.Position = UDim2.new(0, 20, 0.5, 45)
+	progressText.BackgroundTransparency = 1
+	progressText.Text = "0%"
+	progressText.TextColor3 = Color3.new(1, 1, 1)
+	progressText.TextSize = 23
+	progressText.Font = Enum.Font.GothamBold
+	progressText.Parent = background
+
+	-- Progress bar background
+	local barBackground = Instance.new("Frame")
+	barBackground.Size = UDim2.new(0.65, 0, 0, 7)
+	barBackground.Position = UDim2.new(0.175, 0, 0.5, 83)
+	barBackground.BackgroundColor3 = Color3.fromRGB(30, 60, 105)
+	barBackground.BorderSizePixel = 0
+	barBackground.Parent = background
+
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(1, 0)
+	barCorner.Parent = barBackground
+
+	-- Progress bar
+	progressBar = Instance.new("Frame")
+	progressBar.Size = UDim2.new(0, 0, 1, 0)
+	progressBar.BackgroundColor3 = Color3.new(1, 1, 1)
+	progressBar.BorderSizePixel = 0
+	progressBar.Parent = barBackground
+
+	local progressCorner = Instance.new("UICorner")
+	progressCorner.CornerRadius = UDim.new(1, 0)
+	progressCorner.Parent = progressBar
+
+	-- Bottom text
+	local working = Instance.new("TextLabel")
+	working.Size = UDim2.new(1, -40, 0, 35)
+	working.Position = UDim2.new(0, 20, 1, -65)
+	working.BackgroundTransparency = 1
+	working.Text = "Working Anti Guard"
+	working.TextColor3 = Color3.fromRGB(225, 235, 255)
+	working.TextSize = 15
+	working.Font = Enum.Font.GothamMedium
+	working.Parent = background
+end
 
 local function updateLoading(percent)
 	if not loadingGui then
@@ -74,373 +272,115 @@ local function removeLoading()
 	end
 end
 
-local function showLoading()
+--==================================================
+-- TOGGLE
+--==================================================
+
+toggle.MouseButton1Click:Connect(function()
+	enabled = not enabled
+
+	if enabled then
+		toggle.Text = "ON"
+		toggle.BackgroundColor3 = Color3.fromRGB(35, 170, 95)
+	else
+		toggle.Text = "OFF"
+		toggle.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+	end
+end)
+
+--==================================================
+-- MINIMIZE / RESTORE
+--==================================================
+
+minimizeButton.MouseButton1Click:Connect(function()
+	frame.Visible = false
+	circle.Visible = true
+end)
+
+circle.MouseButton1Click:Connect(function()
+	circle.Visible = false
+	frame.Visible = true
+end)
+
+--==================================================
+-- CLOSE
+--==================================================
+
+closeButton.MouseButton1Click:Connect(function()
 	removeLoading()
+	gui:Destroy()
+end)
 
-	loadingGui = Instance.new("ScreenGui")
-	loadingGui.Name = "AntiGuardLoading"
-	loadingGui.ResetOnSpawn = false
-	loadingGui.IgnoreGuiInset = true
-	loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	loadingGui.Parent = player:WaitForChild("PlayerGui")
+--==================================================
+-- 6× TELEPORT + EXACT 3 SECOND LOADING
+--==================================================
 
-	local background = Instance.new("Frame")
-	background.Size = UDim2.fromScale(1, 1)
-	background.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
-	background.BorderSizePixel = 0
-	background.Parent = loadingGui
+local function teleportSixTimes()
+	if not enabled or running then
+		return
+	end
 
-	-- Image
-	local image = Instance.new("ImageLabel")
-	image.AnchorPoint = Vector2.new(0.5, 0.5)
-	image.Position = UDim2.fromScale(0.5, 0.38)
-	image.Size = UDim2.fromOffset(130, 130)
-	image.BackgroundTransparency = 1
-	image.Image = IMAGE_ID
-	image.Parent = background
+	running = true
 
-	local imageCorner = Instance.new("UICorner")
-	imageCorner.CornerRadius = UDim.new(1, 0)
-	imageCorner.Parent = image
+	createLoading()
+	updateLoading(0)
 
-	-- Title
-	local title = Instance.new("TextLabel")
-	title.AnchorPoint = Vector2.new(0.5, 0)
-	title.Position = UDim2.fromScale(0.5, 0.53)
-	title.Size = UDim2.fromOffset(300, 35)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
-	title.Text = "Anti Guard"
-	title.TextSize = 24
-	title.TextColor3 = Color3.new(1, 1, 1)
-	title.Parent = background
-
-	-- Percentage
-	progressText = Instance.new("TextLabel")
-	progressText.AnchorPoint = Vector2.new(0.5, 0)
-	progressText.Position = UDim2.fromScale(0.5, 0.60)
-	progressText.Size = UDim2.fromOffset(200, 30)
-	progressText.BackgroundTransparency = 1
-	progressText.Font = Enum.Font.GothamBold
-	progressText.Text = "0%"
-	progressText.TextSize = 20
-	progressText.TextColor3 = Color3.new(1, 1, 1)
-	progressText.Parent = background
-
-	-- Bar background
-	local barBackground = Instance.new("Frame")
-	barBackground.AnchorPoint = Vector2.new(0.5, 0)
-	barBackground.Position = UDim2.fromScale(0.5, 0.66)
-	barBackground.Size = UDim2.new(0.7, 0, 0, 10)
-	barBackground.BackgroundColor3 = Color3.fromRGB(10, 55, 110)
-	barBackground.BorderSizePixel = 0
-	barBackground.Parent = background
-
-	local barCorner = Instance.new("UICorner")
-	barCorner.CornerRadius = UDim.new(1, 0)
-	barCorner.Parent = barBackground
-
-	-- Progress bar
-	progressBar = Instance.new("Frame")
-	progressBar.Size = UDim2.new(0, 0, 1, 0)
-	progressBar.BackgroundColor3 = Color3.new(1, 1, 1)
-	progressBar.BorderSizePixel = 0
-	progressBar.Parent = barBackground
-
-	local progressCorner = Instance.new("UICorner")
-	progressCorner.CornerRadius = UDim.new(1, 0)
-	progressCorner.Parent = progressBar
-
-	-- Bottom text
-	local bottomText = Instance.new("TextLabel")
-	bottomText.AnchorPoint = Vector2.new(0.5, 1)
-	bottomText.Position = UDim2.fromScale(0.5, 0.94)
-	bottomText.Size = UDim2.fromOffset(300, 30)
-	bottomText.BackgroundTransparency = 1
-	bottomText.Font = Enum.Font.Gotham
-	bottomText.Text = "Working Anti Guard"
-	bottomText.TextSize = 16
-	bottomText.TextColor3 = Color3.fromRGB(220, 235, 255)
-	bottomText.Parent = background
-
-	-- 0 → 100 in 2 seconds
 	local startTime = os.clock()
 
-	while os.clock() - startTime < LOADING_TIME do
-		if not loadingGui then
-			return false
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+
+	-- Six separate teleports
+	if root then
+		for i = 1, TELEPORT_COUNT do
+
+			root.CFrame = TP_CFRAME
+
+			if i < TELEPORT_COUNT then
+				task.wait(TELEPORT_DELAY)
+			end
 		end
+	end
 
+	-- Keep loading screen for exactly 3 seconds total
+	while os.clock() - startTime < LOADING_TIME do
 		local elapsed = os.clock() - startTime
-
-		local percent = math.clamp(
-			(elapsed / LOADING_TIME) * 100,
-			0,
-			100
-		)
-
-		-- 10% steps
-		percent = math.floor(percent / 10) * 10
+		local percent = math.clamp((elapsed / LOADING_TIME) * 100, 0, 100)
 
 		updateLoading(percent)
 
-		task.wait(0.02)
+		RunService.RenderStepped:Wait()
 	end
 
+	-- Exact 100%
 	updateLoading(100)
 
-	removeLoading()
-
-	return true
-end
-
---==================================================
--- TELEPORT
---==================================================
-
-local function doTeleportSequence()
-	if busy or not enabled then
-		return
-	end
-
-	local character = player.Character
-
-	if not character or not character.Parent then
-		return
-	end
-
-	busy = true
-
-	-- Show loading first
-	local finishedLoading = showLoading()
-
-	if not finishedLoading then
-		busy = false
-		return
-	end
-
-	character = player.Character
-
-	if not character or not character.Parent then
-		busy = false
-		return
-	end
-
-	-- 6 instant TP calls
-	for i = 1, TELEPORT_COUNT do
-		if not enabled then
-			break
-		end
-
-		character:PivotTo(TARGET_CFRAME)
-
-		if TP_DELAY > 0 then
-			task.wait(TP_DELAY)
-		end
-	end
-
-	busy = false
-end
-
---==================================================
--- MAIN GUI
---==================================================
-
-mainGui = Instance.new("ScreenGui")
-mainGui.Name = "AntiGuard"
-mainGui.ResetOnSpawn = false
-mainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-mainGui.Parent = player:WaitForChild("PlayerGui")
-
-mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.fromOffset(230, 125)
-mainFrame.Position = UDim2.new(0.5, -115, 0.5, -62)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
-mainFrame.BorderSizePixel = 0
-mainFrame.Parent = mainGui
-
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
-mainCorner.Parent = mainFrame
-
--- Title
-local title = Instance.new("TextLabel")
-title.Position = UDim2.fromOffset(12, 8)
-title.Size = UDim2.fromOffset(150, 25)
-title.BackgroundTransparency = 1
-title.Font = Enum.Font.GothamBold
-title.Text = "Anti Guard"
-title.TextSize = 19
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Parent = mainFrame
-
--- Subtitle
-local subtitle = Instance.new("TextLabel")
-subtitle.Position = UDim2.fromOffset(12, 32)
-subtitle.Size = UDim2.fromOffset(150, 18)
-subtitle.BackgroundTransparency = 1
-subtitle.Font = Enum.Font.Gotham
-subtitle.Text = "Made by: Chris"
-subtitle.TextSize = 12
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.TextColor3 = Color3.fromRGB(210, 225, 245)
-subtitle.Parent = mainFrame
-
--- Close
-local closeButton = Instance.new("TextButton")
-closeButton.Position = UDim2.new(1, -34, 0, 7)
-closeButton.Size = UDim2.fromOffset(27, 27)
-closeButton.BackgroundTransparency = 1
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "×"
-closeButton.TextSize = 24
-closeButton.TextColor3 = Color3.new(1, 1, 1)
-closeButton.Parent = mainFrame
-
-closeButton.MouseButton1Click:Connect(function()
-	mainGui:Destroy()
-
-	if miniButton then
-		miniButton:Destroy()
-	end
+	-- Remove after reaching 100%
+	task.wait()
 
 	removeLoading()
-end)
 
--- Minimize
-local minimizeButton = Instance.new("TextButton")
-minimizeButton.Position = UDim2.new(1, -65, 0, 7)
-minimizeButton.Size = UDim2.fromOffset(27, 27)
-minimizeButton.BackgroundTransparency = 1
-minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.Text = "−"
-minimizeButton.TextSize = 23
-minimizeButton.TextColor3 = Color3.new(1, 1, 1)
-minimizeButton.Parent = mainFrame
-
--- Toggle
-toggleButton = Instance.new("TextButton")
-toggleButton.Position = UDim2.fromOffset(15, 65)
-toggleButton.Size = UDim2.fromOffset(200, 42)
-toggleButton.BackgroundColor3 = Color3.fromRGB(35, 65, 105)
-toggleButton.BorderSizePixel = 0
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.Text = "OFF"
-toggleButton.TextSize = 17
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Parent = mainFrame
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 9)
-toggleCorner.Parent = toggleButton
-
-local function updateToggle()
-	if enabled then
-		toggleButton.Text = "ON"
-		toggleButton.BackgroundColor3 = Color3.fromRGB(35, 145, 75)
-	else
-		toggleButton.Text = "OFF"
-		toggleButton.BackgroundColor3 = Color3.fromRGB(35, 65, 105)
-	end
+	running = false
 end
 
-toggleButton.MouseButton1Click:Connect(function()
-	enabled = not enabled
-	updateToggle()
-end)
-
 --==================================================
--- MINIMIZE CIRCLE
+-- PROXIMITY PROMPTS
 --==================================================
 
-local function createMiniButton()
-	if miniButton then
+local function connectPrompt(object)
+	if not object:IsA("ProximityPrompt") then
 		return
 	end
 
-	miniButton = Instance.new("ImageButton")
-	miniButton.Name = "AntiGuardMini"
-	miniButton.Size = UDim2.fromOffset(58, 58)
-	miniButton.Position = UDim2.new(0.5, -29, 0, 25)
-	miniButton.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
-	miniButton.Image = IMAGE_ID
-	miniButton.Parent = mainGui
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(1, 0)
-	corner.Parent = miniButton
-
-	miniButton.MouseButton1Click:Connect(function()
-		mainFrame.Visible = true
-		miniButton:Destroy()
-		miniButton = nil
+	object.Triggered:Connect(function(triggeringPlayer)
+		if triggeringPlayer == player then
+			teleportSixTimes()
+		end
 	end)
 end
 
-minimizeButton.MouseButton1Click:Connect(function()
-	mainFrame.Visible = false
-	createMiniButton()
-end)
+for _, object in ipairs(workspace:GetDescendants()) do
+	connectPrompt(object)
+end
 
---==================================================
--- DRAG MAIN GUI
---==================================================
-
-local dragging = false
-local dragStart
-local startPos
-
-mainFrame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch then
-
-		dragging = true
-		dragStart = input.Position
-		startPos = mainFrame.Position
-
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if not dragging then
-		return
-	end
-
-	if input.UserInputType == Enum.UserInputType.MouseMovement
-		or input.UserInputType == Enum.UserInputType.Touch then
-
-		local delta = input.Position - dragStart
-
-		mainFrame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
-
---==================================================
--- PROXIMITY PROMPT
---==================================================
-
-ProximityPromptService.PromptTriggered:Connect(function(prompt, triggeringPlayer)
-	if triggeringPlayer and triggeringPlayer ~= player then
-		return
-	end
-
-	if not enabled or busy then
-		return
-	end
-
-	task.spawn(doTeleportSequence)
-end)
-
--- Initial state
-updateToggle()
+workspace.DescendantAdded:Connect(connectPrompt)
