@@ -1,86 +1,144 @@
 local Players = game:GetService("Players")
+
 local player = Players.LocalPlayer
 
+local TP_CFRAME =
+	CFrame.new(
+		550.9732055664062,
+		70.57628631591797,
+		-377.2372741699219
+	)
+	* CFrame.Angles(
+		1.0725773567921149e-11,
+		1.4790611267089844,
+		1.657335713812218e-09
+	)
+
+local enabled = false
+local running = false
+
+--// Main GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "CopyTP"
+gui.Name = "InstantTP"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(190, 105)
-frame.Position = UDim2.new(0.5, -95, 0.5, -52)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+frame.Size = UDim2.fromOffset(180, 85)
+frame.Position = UDim2.new(0.5, -90, 0.5, -42)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,30)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -35, 0, 30)
+title.Size = UDim2.new(1,0,0,32)
 title.BackgroundTransparency = 1
-title.Text = "Copy Teleport"
-title.TextColor3 = Color3.new(1, 1, 1)
+title.Text = "Instant TP ×4"
+title.TextColor3 = Color3.new(1,1,1)
 title.TextSize = 16
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
-local close = Instance.new("TextButton")
-close.Size = UDim2.fromOffset(30, 30)
-close.Position = UDim2.new(1, -30, 0, 0)
-close.BackgroundTransparency = 1
-close.Text = "×"
-close.TextColor3 = Color3.fromRGB(255, 80, 80)
-close.TextSize = 22
-close.Font = Enum.Font.GothamBold
-close.Parent = frame
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(1,-20,0,38)
+toggle.Position = UDim2.fromOffset(10,40)
+toggle.BackgroundColor3 = Color3.fromRGB(170,55,55)
+toggle.Text = "OFF"
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.TextSize = 15
+toggle.Font = Enum.Font.GothamBold
+toggle.Parent = frame
 
-close.MouseButton1Click:Connect(function()
-	gui:Destroy()
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(0,8)
+
+--// Loading
+local loadingGui
+
+local function showLoading()
+	if loadingGui then return end
+
+	loadingGui = Instance.new("ScreenGui")
+	loadingGui.Name = "TPLoading"
+	loadingGui.ResetOnSpawn = false
+	loadingGui.Parent = player.PlayerGui
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromOffset(240,60)
+	label.Position = UDim2.new(0.5,-120,0.5,-30)
+	label.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	label.Text = "Teleporting... 0/4"
+	label.TextColor3 = Color3.new(1,1,1)
+	label.TextSize = 18
+	label.Font = Enum.Font.GothamBold
+	label.Parent = loadingGui
+
+	Instance.new("UICorner", label).CornerRadius = UDim.new(0,10)
+end
+
+local function hideLoading()
+	if loadingGui then
+		loadingGui:Destroy()
+		loadingGui = nil
+	end
+end
+
+--// ON / OFF
+toggle.MouseButton1Click:Connect(function()
+	enabled = not enabled
+
+	if enabled then
+		toggle.Text = "ON"
+		toggle.BackgroundColor3 = Color3.fromRGB(50,170,90)
+	else
+		toggle.Text = "OFF"
+		toggle.BackgroundColor3 = Color3.fromRGB(170,55,55)
+		running = false
+		hideLoading()
+	end
 end)
 
-local copy = Instance.new("TextButton")
-copy.Size = UDim2.new(1, -20, 0, 45)
-copy.Position = UDim2.fromOffset(10, 45)
-copy.BackgroundColor3 = Color3.fromRGB(50, 110, 220)
-copy.Text = "COPY TP"
-copy.TextColor3 = Color3.new(1, 1, 1)
-copy.TextSize = 16
-copy.Font = Enum.Font.GothamBold
-copy.Parent = frame
-
-Instance.new("UICorner", copy).CornerRadius = UDim.new(0, 8)
-
-copy.MouseButton1Click:Connect(function()
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-
-	if not root then
+--// Instant ×4
+local function teleportFourTimes()
+	if not enabled or running then
 		return
 	end
 
-	local cf = root.CFrame
+	running = true
+	showLoading()
 
-	-- Copy position + rotation
-	local text = string.format(
-		"game:GetService('Players').LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(%s, %s, %s) * CFrame.Angles(%s, %s, %s)",
-		cf.Position.X,
-		cf.Position.Y,
-		cf.Position.Z,
-		select(1, cf:ToOrientation()),
-		select(2, cf:ToOrientation()),
-		select(3, cf:ToOrientation())
-	)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
 
-	if setclipboard then
-		setclipboard(text)
-		copy.Text = "COPIED!"
-		task.wait(1)
-		copy.Text = "COPY TP"
-	else
-		copy.Text = "Clipboard unavailable"
-		task.wait(1.5)
-		copy.Text = "COPY TP"
+	if root then
+		-- NO WAIT / NO COOLDOWN
+		for i = 1,4 do
+			root.CFrame = TP_CFRAME
+		end
 	end
-end)
+
+	hideLoading()
+	running = false
+end
+
+--// Connect ProximityPrompts
+local function setupPrompt(prompt)
+	if not prompt:IsA("ProximityPrompt") then
+		return
+	end
+
+	prompt.Triggered:Connect(function(triggeringPlayer)
+		if triggeringPlayer == player then
+			teleportFourTimes()
+		end
+	end)
+end
+
+for _, obj in ipairs(workspace:GetDescendants()) do
+	setupPrompt(obj)
+end
+
+workspace.DescendantAdded:Connect(setupPrompt)
