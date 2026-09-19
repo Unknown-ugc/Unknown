@@ -1,4 +1,6 @@
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
 local player = Players.LocalPlayer
 
 --==================================================
@@ -19,7 +21,10 @@ local TP_CFRAME =
 
 local TELEPORT_COUNT = 6
 local TELEPORT_DELAY = 0.1
-local FINISH_LOADING_TIME = 4
+local LOADING_TIME = 3
+
+-- Roblox thumbnail version of your image
+local IMAGE = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
 
 local enabled = false
 local running = false
@@ -36,16 +41,16 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
 frame.Name = "Main"
-frame.Size = UDim2.fromOffset(180, 92)
-frame.Position = UDim2.new(0.5, -90, 0.5, -46)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+frame.Size = UDim2.fromOffset(185, 95)
+frame.Position = UDim2.new(0.5, -92, 0.5, -47)
+frame.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
 local frameCorner = Instance.new("UICorner")
-frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.CornerRadius = UDim.new(0, 11)
 frameCorner.Parent = frame
 
 --==================================================
@@ -53,24 +58,26 @@ frameCorner.Parent = frame
 --==================================================
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -60, 0, 25)
-title.Position = UDim2.fromOffset(5, 3)
+title.Size = UDim2.new(1, -65, 0, 25)
+title.Position = UDim2.fromOffset(7, 4)
 title.BackgroundTransparency = 1
 title.Text = "Anti Guard"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextColor3 = Color3.new(1, 1, 1)
 title.TextSize = 16
 title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
 -- Made by
 local madeBy = Instance.new("TextLabel")
-madeBy.Size = UDim2.new(1, -10, 0, 16)
-madeBy.Position = UDim2.fromOffset(5, 25)
+madeBy.Size = UDim2.new(1, -14, 0, 17)
+madeBy.Position = UDim2.fromOffset(7, 27)
 madeBy.BackgroundTransparency = 1
 madeBy.Text = "Made by: Chris"
-madeBy.TextColor3 = Color3.fromRGB(160, 160, 160)
+madeBy.TextColor3 = Color3.fromRGB(205, 220, 240)
 madeBy.TextSize = 11
 madeBy.Font = Enum.Font.Gotham
+madeBy.TextXAlignment = Enum.TextXAlignment.Left
 madeBy.Parent = frame
 
 --==================================================
@@ -80,10 +87,10 @@ madeBy.Parent = frame
 local minimizeButton = Instance.new("TextButton")
 minimizeButton.Name = "Minimize"
 minimizeButton.Size = UDim2.fromOffset(25, 25)
-minimizeButton.Position = UDim2.new(1, -55, 0, 3)
+minimizeButton.Position = UDim2.new(1, -57, 0, 3)
 minimizeButton.BackgroundTransparency = 1
 minimizeButton.Text = "−"
-minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.TextColor3 = Color3.new(1, 1, 1)
 minimizeButton.TextSize = 20
 minimizeButton.Font = Enum.Font.GothamBold
 minimizeButton.Parent = frame
@@ -95,10 +102,10 @@ minimizeButton.Parent = frame
 local closeButton = Instance.new("TextButton")
 closeButton.Name = "Close"
 closeButton.Size = UDim2.fromOffset(25, 25)
-closeButton.Position = UDim2.new(1, -28, 0, 3)
+closeButton.Position = UDim2.new(1, -29, 0, 3)
 closeButton.BackgroundTransparency = 1
 closeButton.Text = "×"
-closeButton.TextColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
 closeButton.TextSize = 20
 closeButton.Font = Enum.Font.GothamBold
 closeButton.Parent = frame
@@ -108,29 +115,30 @@ closeButton.Parent = frame
 --==================================================
 
 local toggle = Instance.new("TextButton")
-toggle.Size = UDim2.new(1, -20, 0, 30)
-toggle.Position = UDim2.fromOffset(10, 52)
-toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
+toggle.Size = UDim2.new(1, -20, 0, 32)
+toggle.Position = UDim2.fromOffset(10, 55)
+toggle.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 toggle.Text = "OFF"
-toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggle.TextColor3 = Color3.new(1, 1, 1)
 toggle.TextSize = 14
 toggle.Font = Enum.Font.GothamBold
 toggle.Parent = frame
 
 local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 7)
+toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = toggle
 
 --==================================================
--- CIRCLE MINIMIZED GUI
+-- MINIMIZED CIRCLE
 --==================================================
 
 local circle = Instance.new("ImageButton")
-circle.Name = "Circle"
-circle.Size = UDim2.fromOffset(55, 55)
-circle.Position = UDim2.new(0.5, -27, 0.5, -27)
-circle.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-circle.Image = "rbxassetid://85422381974829"
+circle.Name = "MiniCircle"
+circle.Size = UDim2.fromOffset(62, 62)
+circle.Position = UDim2.new(0.5, -31, 0.5, -31)
+circle.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
+circle.BorderSizePixel = 0
+circle.Image = IMAGE
 circle.ScaleType = Enum.ScaleType.Fit
 circle.Visible = false
 circle.Active = true
@@ -162,37 +170,53 @@ local function createLoading()
 	loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	loadingGui.Parent = player:WaitForChild("PlayerGui")
 
+	-- Blue full-screen background
 	local background = Instance.new("Frame")
+	background.Name = "Background"
 	background.Size = UDim2.fromScale(1, 1)
-	background.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
+	background.BackgroundColor3 = Color3.fromRGB(10, 55, 125)
 	background.BorderSizePixel = 0
 	background.Parent = loadingGui
 
-	-- Loading image
+	-- Darker blue overlay
+	local overlay = Instance.new("Frame")
+	overlay.Size = UDim2.fromScale(1, 1)
+	overlay.BackgroundColor3 = Color3.fromRGB(5, 30, 75)
+	overlay.BackgroundTransparency = 0.35
+	overlay.BorderSizePixel = 0
+	overlay.Parent = background
+
+	-- Medium circular image
 	local image = Instance.new("ImageLabel")
-	image.Size = UDim2.fromOffset(150, 150)
-	image.Position = UDim2.new(0.5, -75, 0.5, -115)
-	image.BackgroundTransparency = 1
-	image.Image = "rbxassetid://85422381974829"
+	image.Name = "LoadingImage"
+	image.Size = UDim2.fromOffset(145, 145)
+	image.Position = UDim2.new(0.5, -72, 0.5, -115)
+	image.BackgroundColor3 = Color3.fromRGB(20, 85, 170)
+	image.BorderSizePixel = 0
+	image.Image = IMAGE
 	image.ScaleType = Enum.ScaleType.Fit
 	image.Parent = background
 
-	-- Percentage
+	local imageCorner = Instance.new("UICorner")
+	imageCorner.CornerRadius = UDim.new(1, 0)
+	imageCorner.Parent = image
+
+	-- 0-100%
 	progressText = Instance.new("TextLabel")
 	progressText.Size = UDim2.new(1, -40, 0, 35)
 	progressText.Position = UDim2.new(0, 20, 0.5, 45)
 	progressText.BackgroundTransparency = 1
 	progressText.Text = "0%"
-	progressText.TextColor3 = Color3.fromRGB(255, 255, 255)
-	progressText.TextSize = 22
+	progressText.TextColor3 = Color3.new(1, 1, 1)
+	progressText.TextSize = 23
 	progressText.Font = Enum.Font.GothamBold
 	progressText.Parent = background
 
-	-- Bar background
+	-- Progress bar background
 	local barBackground = Instance.new("Frame")
-	barBackground.Size = UDim2.new(0.65, 0, 0, 6)
-	barBackground.Position = UDim2.new(0.175, 0, 0.5, 82)
-	barBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+	barBackground.Size = UDim2.new(0.65, 0, 0, 7)
+	barBackground.Position = UDim2.new(0.175, 0, 0.5, 83)
+	barBackground.BackgroundColor3 = Color3.fromRGB(30, 60, 105)
 	barBackground.BorderSizePixel = 0
 	barBackground.Parent = background
 
@@ -200,10 +224,10 @@ local function createLoading()
 	barCorner.CornerRadius = UDim.new(1, 0)
 	barCorner.Parent = barBackground
 
-	-- Bar
+	-- Progress bar
 	progressBar = Instance.new("Frame")
 	progressBar.Size = UDim2.new(0, 0, 1, 0)
-	progressBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	progressBar.BackgroundColor3 = Color3.new(1, 1, 1)
 	progressBar.BorderSizePixel = 0
 	progressBar.Parent = barBackground
 
@@ -217,7 +241,7 @@ local function createLoading()
 	working.Position = UDim2.new(0, 20, 1, -65)
 	working.BackgroundTransparency = 1
 	working.Text = "Working Anti Guard"
-	working.TextColor3 = Color3.fromRGB(200, 200, 200)
+	working.TextColor3 = Color3.fromRGB(225, 235, 255)
 	working.TextSize = 15
 	working.Font = Enum.Font.GothamMedium
 	working.Parent = background
@@ -249,7 +273,7 @@ local function removeLoading()
 end
 
 --==================================================
--- BUTTONS
+-- TOGGLE
 --==================================================
 
 toggle.MouseButton1Click:Connect(function()
@@ -257,12 +281,16 @@ toggle.MouseButton1Click:Connect(function()
 
 	if enabled then
 		toggle.Text = "ON"
-		toggle.BackgroundColor3 = Color3.fromRGB(50, 170, 90)
+		toggle.BackgroundColor3 = Color3.fromRGB(35, 170, 95)
 	else
 		toggle.Text = "OFF"
-		toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
+		toggle.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 	end
 end)
+
+--==================================================
+-- MINIMIZE / RESTORE
+--==================================================
 
 minimizeButton.MouseButton1Click:Connect(function()
 	frame.Visible = false
@@ -274,13 +302,17 @@ circle.MouseButton1Click:Connect(function()
 	frame.Visible = true
 end)
 
+--==================================================
+-- CLOSE
+--==================================================
+
 closeButton.MouseButton1Click:Connect(function()
 	removeLoading()
 	gui:Destroy()
 end)
 
 --==================================================
--- 6× TELEPORT
+-- 6× TELEPORT + EXACT 3 SECOND LOADING
 --==================================================
 
 local function teleportSixTimes()
@@ -290,43 +322,49 @@ local function teleportSixTimes()
 
 	running = true
 
-	-- Show loading
 	createLoading()
 	updateLoading(0)
+
+	local startTime = os.clock()
 
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 
+	-- Six separate teleports
 	if root then
 		for i = 1, TELEPORT_COUNT do
 
-			-- 16.67% per teleport
-			updateLoading((i / TELEPORT_COUNT) * 100)
-
-			-- Teleport
 			root.CFrame = TP_CFRAME
 
-			-- Wait between teleports
 			if i < TELEPORT_COUNT then
 				task.wait(TELEPORT_DELAY)
 			end
 		end
 	end
 
-	-- Finished all 6
+	-- Keep loading screen for exactly 3 seconds total
+	while os.clock() - startTime < LOADING_TIME do
+		local elapsed = os.clock() - startTime
+		local percent = math.clamp((elapsed / LOADING_TIME) * 100, 0, 100)
+
+		updateLoading(percent)
+
+		RunService.RenderStepped:Wait()
+	end
+
+	-- Exact 100%
 	updateLoading(100)
 
-	-- Keep loading screen for 4 seconds
-	task.wait(FINISH_LOADING_TIME)
+	-- Remove after reaching 100%
+	task.wait()
 
-	-- Remove loading
 	removeLoading()
 
 	running = false
 end
 
 --==================================================
--- PROXIMITY PROMPT
+-- PROXIMITY PROMPTS
 --==================================================
 
 local function connectPrompt(object)
@@ -341,10 +379,8 @@ local function connectPrompt(object)
 	end)
 end
 
--- Existing prompts
 for _, object in ipairs(workspace:GetDescendants()) do
 	connectPrompt(object)
 end
 
--- New prompts
 workspace.DescendantAdded:Connect(connectPrompt)
