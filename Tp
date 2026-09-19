@@ -1,6 +1,10 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
+--==================================================
+-- SETTINGS
+--==================================================
+
 local TP_CFRAME =
 	CFrame.new(
 		550.9732055664062,
@@ -13,119 +17,264 @@ local TP_CFRAME =
 		1.657335713812218e-09
 	)
 
+local TELEPORT_COUNT = 4
+local TELEPORT_DELAY = 0.1
+local FINISH_LOADING_TIME = 4
+
 local enabled = false
 local running = false
 
--- GUI
+--==================================================
+-- MAIN GUI
+--==================================================
+
 local gui = Instance.new("ScreenGui")
-gui.Name = "FastTP4"
+gui.Name = "AntiGuard"
 gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = player:WaitForChild("PlayerGui")
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.fromOffset(170, 48)
-button.Position = UDim2.new(0.5, -85, 0.5, -24)
-button.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
-button.Text = "TP ×4 : OF"
-button.TextColor3 = Color3.new(1, 1, 1)
-button.TextSize = 16
-button.Font = Enum.Font.GothamBold
-button.Active = true
-button.Draggable = true
-button.Parent = gui
+local frame = Instance.new("Frame")
+frame.Name = "Main"
+frame.Size = UDim2.fromOffset(175, 82)
+frame.Position = UDim2.new(0.5, -87, 0.5, -41)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
 
-Instance.new("UICorner", button).CornerRadius = UDim.new(0, 9)
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = frame
 
--- Loading screen
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -10, 0, 25)
+title.Position = UDim2.fromOffset(5, 3)
+title.BackgroundTransparency = 1
+title.Text = "Anti Guard"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+-- Made by
+local madeBy = Instance.new("TextLabel")
+madeBy.Size = UDim2.new(1, -10, 0, 16)
+madeBy.Position = UDim2.fromOffset(5, 25)
+madeBy.BackgroundTransparency = 1
+madeBy.Text = "Made by: Chris"
+madeBy.TextColor3 = Color3.fromRGB(160, 160, 160)
+madeBy.TextSize = 11
+madeBy.Font = Enum.Font.Gotham
+madeBy.Parent = frame
+
+-- Toggle
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(1, -20, 0, 30)
+toggle.Position = UDim2.fromOffset(10, 47)
+toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
+toggle.Text = "OFF"
+toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggle.TextSize = 14
+toggle.Font = Enum.Font.GothamBold
+toggle.Parent = frame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 7)
+toggleCorner.Parent = toggle
+
+--==================================================
+-- LOADING SCREEN
+--==================================================
+
 local loadingGui
-local loadingText
+local progressText
+local workingText
+local progressBar
 
-local function showLoading()
-	if loadingGui then return end
+local function createLoading()
+	if loadingGui then
+		return
+	end
 
 	loadingGui = Instance.new("ScreenGui")
-	loadingGui.Name = "TPLoading"
+	loadingGui.Name = "AntiGuardLoading"
 	loadingGui.ResetOnSpawn = false
+	loadingGui.IgnoreGuiInset = true
 	loadingGui.DisplayOrder = 999999
-	loadingGui.Parent = player.PlayerGui
+	loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	loadingGui.Parent = player:WaitForChild("PlayerGui")
 
-	local box = Instance.new("Frame")
-	box.Size = UDim2.fromOffset(250, 90)
-	box.Position = UDim2.new(0.5, -125, 0.5, -45)
-	box.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-	box.BorderSizePixel = 0
-	box.Parent = loadingGui
+	-- Full screen background
+	local background = Instance.new("Frame")
+	background.Name = "Background"
+	background.Size = UDim2.fromScale(1, 1)
+	background.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
+	background.BorderSizePixel = 0
+	background.Parent = loadingGui
 
-	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 10)
+	-- Image
+	local image = Instance.new("ImageLabel")
+	image.Name = "LoadingImage"
+	image.Size = UDim2.fromOffset(150, 150)
+	image.Position = UDim2.new(0.5, -75, 0.5, -115)
+	image.BackgroundTransparency = 1
+	image.Image = "rbxassetid://85422381974829"
+	image.ScaleType = Enum.ScaleType.Fit
+	image.Parent = background
 
-	loadingText = Instance.new("TextLabel")
-	loadingText.Size = UDim2.fromScale(1, 1)
-	loadingText.BackgroundTransparency = 1
-	loadingText.Text = "Teleporting 0/4"
-	loadingText.TextColor3 = Color3.new(1, 1, 1)
-	loadingText.TextSize = 19
-	loadingText.Font = Enum.Font.GothamBold
-	loadingText.Parent = box
+	-- Progress text
+	progressText = Instance.new("TextLabel")
+	progressText.Name = "Progress"
+	progressText.Size = UDim2.new(1, -40, 0, 35)
+	progressText.Position = UDim2.new(0, 20, 0.5, 45)
+	progressText.BackgroundTransparency = 1
+	progressText.Text = "0%"
+	progressText.TextColor3 = Color3.fromRGB(255, 255, 255)
+	progressText.TextSize = 22
+	progressText.Font = Enum.Font.GothamBold
+	progressText.Parent = background
+
+	-- Progress bar background
+	local progressBackground = Instance.new("Frame")
+	progressBackground.Name = "ProgressBackground"
+	progressBackground.Size = UDim2.new(0.65, 0, 0, 6)
+	progressBackground.Position = UDim2.new(0.175, 0, 0.5, 82)
+	progressBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+	progressBackground.BorderSizePixel = 0
+	progressBackground.Parent = background
+
+	local progressCorner = Instance.new("UICorner")
+	progressCorner.CornerRadius = UDim.new(1, 0)
+	progressCorner.Parent = progressBackground
+
+	-- Progress bar
+	progressBar = Instance.new("Frame")
+	progressBar.Name = "ProgressBar"
+	progressBar.Size = UDim2.new(0, 0, 1, 0)
+	progressBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	progressBar.BorderSizePixel = 0
+	progressBar.Parent = progressBackground
+
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(1, 0)
+	barCorner.Parent = progressBar
+
+	-- Bottom text
+	workingText = Instance.new("TextLabel")
+	workingText.Name = "Working"
+	workingText.Size = UDim2.new(1, -40, 0, 35)
+	workingText.Position = UDim2.new(0, 20, 1, -65)
+	workingText.BackgroundTransparency = 1
+	workingText.Text = "Working Anti Guard"
+	workingText.TextColor3 = Color3.fromRGB(200, 200, 200)
+	workingText.TextSize = 15
+	workingText.Font = Enum.Font.GothamMedium
+	workingText.Parent = background
 end
 
-local function updateLoading(number)
-	if loadingText then
-		loadingText.Text = "Teleporting " .. number .. "/4"
+local function updateLoading(percent)
+	if not loadingGui then
+		return
+	end
+
+	percent = math.clamp(percent, 0, 100)
+
+	if progressText then
+		progressText.Text = math.floor(percent) .. "%"
+	end
+
+	if progressBar then
+		progressBar.Size = UDim2.new(percent / 100, 0, 1, 0)
 	end
 end
 
-local function hideLoading()
+local function removeLoading()
 	if loadingGui then
 		loadingGui:Destroy()
 		loadingGui = nil
-		loadingText = nil
+		progressText = nil
+		progressBar = nil
+		workingText = nil
 	end
 end
 
+--==================================================
 -- ON / OFF
-button.MouseButton1Click:Connect(function()
+--==================================================
+
+toggle.MouseButton1Click:Connect(function()
 	enabled = not enabled
 
 	if enabled then
-		button.Text = "TP ×4 : ON"
-		button.BackgroundColor3 = Color3.fromRGB(50, 170, 90)
+		toggle.Text = "ON"
+		toggle.BackgroundColor3 = Color3.fromRGB(50, 170, 90)
 	else
-		button.Text = "TP ×4 : OFF"
-		button.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
+		toggle.Text = "OFF"
+		toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
 	end
 end)
 
--- Teleport 4 times, 1 second apart
+--==================================================
+-- 4× TELEPORT
+--==================================================
+
 local function teleportFourTimes()
-	if not enabled or running then return end
+	if not enabled or running then
+		return
+	end
 
 	running = true
-	showLoading()
+
+	-- Loading starts immediately
+	createLoading()
+	updateLoading(0)
 
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 
 	if root then
-		for i = 1, 6 do
-			updateLoading(i)
+		for i = 1, TELEPORT_COUNT do
 
+			-- Progress:
+			-- 1 = 25%
+			-- 2 = 50%
+			-- 3 = 75%
+			-- 4 = 100%
+			updateLoading((i / TELEPORT_COUNT) * 100)
+
+			-- Separate teleport
 			root.CFrame = TP_CFRAME
 
-			-- Wait 1 second before the next teleport
-			if i < 4 then
-				task.wait(0.1)
+			-- 0.1 second between teleports
+			if i < TELEPORT_COUNT then
+				task.wait(TELEPORT_DELAY)
 			end
 		end
 	end
 
-	-- Remove only after TP #4
-	hideLoading()
+	-- Make sure it displays 100%
+	updateLoading(100)
+
+	-- Keep loading screen for 4 seconds AFTER TP #4
+	task.wait(FINISH_LOADING_TIME)
+
+	-- Now remove it
+	removeLoading()
+
 	running = false
 end
 
--- ProximityPrompt detection
+--==================================================
+-- PROXIMITY PROMPT
+--==================================================
+
 local function connectPrompt(object)
-	if not object:IsA("ProximityPrompt") then return end
+	if not object:IsA("ProximityPrompt") then
+		return
+	end
 
 	object.Triggered:Connect(function(triggeringPlayer)
 		if triggeringPlayer == player then
@@ -134,8 +283,10 @@ local function connectPrompt(object)
 	end)
 end
 
+-- Existing prompts
 for _, object in ipairs(workspace:GetDescendants()) do
 	connectPrompt(object)
 end
 
+-- New prompts
 workspace.DescendantAdded:Connect(connectPrompt)
