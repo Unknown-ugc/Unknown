@@ -20,7 +20,7 @@ local TP_CFRAME =
 	)
 
 local TELEPORT_COUNT = 8
-local TELEPORT_DELAY = 0.1
+local TELEPORT_DELAY = 0
 local LOADING_TIME = 2
 
 -- Roblox thumbnail version of your image
