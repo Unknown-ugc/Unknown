@@ -26,7 +26,7 @@ local button = Instance.new("TextButton")
 button.Size = UDim2.fromOffset(170, 48)
 button.Position = UDim2.new(0.5, -85, 0.5, -24)
 button.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
-button.Text = "TP ×4 : OFF"
+button.Text = "TP ×4 : OF"
 button.TextColor3 = Color3.new(1, 1, 1)
 button.TextSize = 16
 button.Font = Enum.Font.GothamBold
@@ -106,14 +106,14 @@ local function teleportFourTimes()
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 
 	if root then
-		for i = 1, 4 do
+		for i = 1, 6 do
 			updateLoading(i)
 
 			root.CFrame = TP_CFRAME
 
 			-- Wait 1 second before the next teleport
 			if i < 4 then
-				task.wait(0.35)
+				task.wait(0.1)
 			end
 		end
 	end
