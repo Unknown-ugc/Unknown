@@ -21,7 +21,7 @@ local TP_CFRAME =
 
 local TELEPORT_COUNT = 8
 local TELEPORT_DELAY = 0.1
-local LOADING_TIME = 2
+local LOADING_TIME = 2.3
 
 -- Roblox thumbnail version of your image
 local IMAGE = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
