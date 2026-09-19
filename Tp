@@ -7,8 +7,8 @@ local TP_CFRAME =
 		550.9732055664062,
 		70.57628631591797,
 		-377.2372741699219
-	)
-	* CFrame.Angles(
+	) *
+	CFrame.Angles(
 		1.0725773567921149e-11,
 		1.4790611267089844,
 		1.657335713812218e-09
@@ -17,101 +17,58 @@ local TP_CFRAME =
 local enabled = false
 local running = false
 
---==================================================
--- MAIN GUI
---==================================================
-
+-- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "InstantTPGui"
+gui.Name = "TP4GUI"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(180, 85)
-frame.Position = UDim2.new(0.5, -90, 0.5, -42)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-frame.Parent = gui
+local button = Instance.new("TextButton")
+button.Size = UDim2.fromOffset(160, 50)
+button.Position = UDim2.new(0.5, -80, 0.5, -25)
+button.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
+button.Text = "TP ×4 : OFF"
+button.TextColor3 = Color3.new(1,1,1)
+button.TextSize = 16
+button.Font = Enum.Font.GothamBold
+button.Active = true
+button.Draggable = true
+button.Parent = gui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = frame
+Instance.new("UICorner", button).CornerRadius = UDim.new(0, 10)
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 32)
-title.BackgroundTransparency = 1
-title.Text = "Instant TP ×4"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.TextSize = 16
-title.Font = Enum.Font.GothamBold
-title.Parent = frame
-
-local toggle = Instance.new("TextButton")
-toggle.Size = UDim2.new(1, -20, 0, 38)
-toggle.Position = UDim2.fromOffset(10, 40)
-toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
-toggle.Text = "OFF"
-toggle.TextColor3 = Color3.new(1, 1, 1)
-toggle.TextSize = 15
-toggle.Font = Enum.Font.GothamBold
-toggle.Parent = frame
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 8)
-toggleCorner.Parent = toggle
-
---==================================================
--- LOADING SCREEN
---==================================================
-
+-- Loading screen
 local loadingGui
-local loadingText
 
 local function showLoading()
-	if loadingGui then
-		return
-	end
+	if loadingGui then return end
 
 	loadingGui = Instance.new("ScreenGui")
-	loadingGui.Name = "TeleportLoading"
+	loadingGui.Name = "TPLoading"
 	loadingGui.ResetOnSpawn = false
 	loadingGui.DisplayOrder = 999999
-	loadingGui.IgnoreGuiInset = true
-	loadingGui.Parent = player:WaitForChild("PlayerGui")
+	loadingGui.Parent = player.PlayerGui
 
-	local background = Instance.new("Frame")
-	background.Size = UDim2.fromScale(1, 1)
-	background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	background.BackgroundTransparency = 0.25
-	background.BorderSizePixel = 0
-	background.Parent = loadingGui
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.fromOffset(240, 70)
+	text.Position = UDim2.new(0.5, -120, 0.5, -35)
+	text.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	text.Text = "Teleporting 0/4"
+	text.TextColor3 = Color3.new(1,1,1)
+	text.TextSize = 20
+	text.Font = Enum.Font.GothamBold
+	text.Parent = loadingGui
 
-	local box = Instance.new("Frame")
-	box.Size = UDim2.fromOffset(250, 100)
-	box.Position = UDim2.new(0.5, -125, 0.5, -50)
-	box.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-	box.BorderSizePixel = 0
-	box.Parent = background
-
-	local boxCorner = Instance.new("UICorner")
-	boxCorner.CornerRadius = UDim.new(0, 12)
-	boxCorner.Parent = box
-
-	loadingText = Instance.new("TextLabel")
-	loadingText.Size = UDim2.fromScale(1, 1)
-	loadingText.BackgroundTransparency = 1
-	loadingText.Text = "Teleporting... 0/4"
-	loadingText.TextColor3 = Color3.new(1, 1, 1)
-	loadingText.TextSize = 19
-	loadingText.Font = Enum.Font.GothamBold
-	loadingText.Parent = box
+	Instance.new("UICorner", text).CornerRadius = UDim.new(0, 10)
 end
 
-local function updateLoading(count)
-	if loadingText then
-		loadingText.Text = "Teleporting... " .. count .. "/4"
+local function updateLoading(number)
+	if loadingGui then
+		local text = loadingGui:FindFirstChildWhichIsA("TextLabel", true)
+
+		if text then
+			text.Text = "Teleporting " .. number .. "/4"
+		end
 	end
 end
 
@@ -119,41 +76,29 @@ local function hideLoading()
 	if loadingGui then
 		loadingGui:Destroy()
 		loadingGui = nil
-		loadingText = nil
 	end
 end
 
---==================================================
--- TOGGLE
---==================================================
-
-toggle.MouseButton1Click:Connect(function()
+-- ON / OFF
+button.MouseButton1Click:Connect(function()
 	enabled = not enabled
 
 	if enabled then
-		toggle.Text = "ON"
-		toggle.BackgroundColor3 = Color3.fromRGB(50, 170, 90)
+		button.Text = "TP ×4 : ON"
+		button.BackgroundColor3 = Color3.fromRGB(50,170,90)
 	else
-		toggle.Text = "OFF"
-		toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
-
-		running = false
-		hideLoading()
+		button.Text = "TP ×4 : OFF"
+		button.BackgroundColor3 = Color3.fromRGB(170,55,55)
 	end
 end)
 
---==================================================
--- TELEPORT ×4
---==================================================
-
-local function teleportFourTimes()
+-- 4 TELEPORT TRIGGERS
+local function triggerFourTimes()
 	if not enabled or running then
 		return
 	end
 
 	running = true
-
-	-- Loading appears BEFORE teleport #1
 	showLoading()
 
 	local character = player.Character
@@ -161,38 +106,34 @@ local function teleportFourTimes()
 
 	if root then
 		for i = 1, 4 do
-			-- Update the visible counter
 			updateLoading(i)
 
-			-- Instant teleport
+			-- Trigger teleport
 			root.CFrame = TP_CFRAME
 		end
 	end
 
-	-- Loading disappears ONLY after all 4 are complete
+	-- Remove loading AFTER all 4
 	hideLoading()
 
 	running = false
 end
 
---==================================================
--- PROXIMITY PROMPTS
---==================================================
-
-local function setupPrompt(object)
-	if not object:IsA("ProximityPrompt") then
+-- Detect ProximityPrompt
+local function connectPrompt(prompt)
+	if not prompt:IsA("ProximityPrompt") then
 		return
 	end
 
-	object.Triggered:Connect(function(triggeringPlayer)
+	prompt.Triggered:Connect(function(triggeringPlayer)
 		if triggeringPlayer == player then
-			teleportFourTimes()
+			triggerFourTimes()
 		end
 	end)
 end
 
 for _, object in ipairs(workspace:GetDescendants()) do
-	setupPrompt(object)
+	connectPrompt(object)
 end
 
-workspace.DescendantAdded:Connect(setupPrompt)
+workspace.DescendantAdded:Connect(connectPrompt)
