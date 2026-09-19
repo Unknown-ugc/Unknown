@@ -1,35 +1,28 @@
--- Copy TP GUI
--- Saves your current position and teleports you back to it
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
-local savedCFrame = nil
-
 local gui = Instance.new("ScreenGui")
-gui.Name = "CopyTPGui"
+gui.Name = "CopyTP"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(180, 125)
-frame.Position = UDim2.new(0.5, -90, 0.5, -62)
+frame.Size = UDim2.fromOffset(190, 105)
+frame.Position = UDim2.new(0.5, -95, 0.5, -52)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = frame
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -35, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "Copy TP"
+title.Text = "Copy Teleport"
 title.TextColor3 = Color3.new(1, 1, 1)
-title.TextSize = 18
+title.TextSize = 16
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
@@ -47,51 +40,47 @@ close.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
 
-local copyButton = Instance.new("TextButton")
-copyButton.Size = UDim2.new(1, -20, 0, 35)
-copyButton.Position = UDim2.fromOffset(10, 35)
-copyButton.BackgroundColor3 = Color3.fromRGB(45, 100, 200)
-copyButton.Text = "Copy TP"
-copyButton.TextColor3 = Color3.new(1, 1, 1)
-copyButton.TextSize = 15
-copyButton.Font = Enum.Font.GothamBold
-copyButton.Parent = frame
+local copy = Instance.new("TextButton")
+copy.Size = UDim2.new(1, -20, 0, 45)
+copy.Position = UDim2.fromOffset(10, 45)
+copy.BackgroundColor3 = Color3.fromRGB(50, 110, 220)
+copy.Text = "COPY TP"
+copy.TextColor3 = Color3.new(1, 1, 1)
+copy.TextSize = 16
+copy.Font = Enum.Font.GothamBold
+copy.Parent = frame
 
-local copyCorner = Instance.new("UICorner")
-copyCorner.CornerRadius = UDim.new(0, 7)
-copyCorner.Parent = copyButton
+Instance.new("UICorner", copy).CornerRadius = UDim.new(0, 8)
 
-local tpButton = Instance.new("TextButton")
-tpButton.Size = UDim2.new(1, -20, 0, 35)
-tpButton.Position = UDim2.fromOffset(10, 78)
-tpButton.BackgroundColor3 = Color3.fromRGB(50, 160, 90)
-tpButton.Text = "Teleport"
-tpButton.TextColor3 = Color3.new(1, 1, 1)
-tpButton.TextSize = 15
-tpButton.Font = Enum.Font.GothamBold
-tpButton.Parent = frame
-
-local tpCorner = Instance.new("UICorner")
-tpCorner.CornerRadius = UDim.new(0, 7)
-tpCorner.Parent = tpButton
-
-copyButton.MouseButton1Click:Connect(function()
+copy.MouseButton1Click:Connect(function()
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 
-	if root then
-		savedCFrame = root.CFrame
-		copyButton.Text = "Position Saved!"
-		task.wait(1)
-		copyButton.Text = "Copy TP"
+	if not root then
+		return
 	end
-end)
 
-tpButton.MouseButton1Click:Connect(function()
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local cf = root.CFrame
 
-	if root and savedCFrame then
-		root.CFrame = savedCFrame + Vector3.new(0, 3, 0)
+	-- Copy position + rotation
+	local text = string.format(
+		"game:GetService('Players').LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(%s, %s, %s) * CFrame.Angles(%s, %s, %s)",
+		cf.Position.X,
+		cf.Position.Y,
+		cf.Position.Z,
+		select(1, cf:ToOrientation()),
+		select(2, cf:ToOrientation()),
+		select(3, cf:ToOrientation())
+	)
+
+	if setclipboard then
+		setclipboard(text)
+		copy.Text = "COPIED!"
+		task.wait(1)
+		copy.Text = "COPY TP"
+	else
+		copy.Text = "Clipboard unavailable"
+		task.wait(1.5)
+		copy.Text = "COPY TP"
 	end
 end)
