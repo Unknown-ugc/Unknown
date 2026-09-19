@@ -427,6 +427,7 @@ end
 createTikTokButton("@official_mneil", "https://www.tiktok.com/@official_mneil", 135)
 createTikTokButton("@noah_dump5", "https://www.tiktok.com/@noah_dump5", 165)
 createTikTokButton("@_johnxines", "https://www.tiktok.com/@_johnxines", 195)
+createTikTokButton("@kenn50921", "https://www.tiktok.com/@kenn50921", 225)
 
 local copyInfo = Instance.new("TextLabel")
 copyInfo.BackgroundTransparency = 1
@@ -990,10 +991,6 @@ local function SpeedHub()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
 end
 
-local function NightHub()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/StealAnEggs.luau"))()   
-end
-
 local function ZeroinHub()
 	loadstring(game:HttpGet("https://zeroinhub.com/api/script"))()   
 end
@@ -1020,6 +1017,10 @@ local function LennonHub()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/lennonxscripts/lennonhubv2/refs/heads/main/stealaneggv2"))()
 end
 
+local function NightHub()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/StealAnEggs.luau"))()   
+end
+
 local function Foxname()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()
 end
@@ -1044,9 +1045,8 @@ local function Void()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/VoidShell-null/VoidShell-Hub/refs/heads/main/Scripts/StealAnEgg.luau"))()
 end
 
-local function AntiHit()
-	script_key = "Trial"
-                                loadstring(game:HttpGet("https://api.getpolsec.com/scripts/hosted/6582551b42d21c6b7eb55f1d76d8d50ce53cb35592093d6615b5e83437594dc0.lua"))()
+local function AntiGuard()    
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/Unknown-ugc/Unknown/refs/heads/main/Tp"))()
 end
 
 local function Lkz()
@@ -1170,7 +1170,6 @@ local function showKeyScripts()
 	makeScriptButton("Ajjans hub",AjjansHub)
 	makeScriptButton("Big Foot",BigFoot)
 	makeScriptButton("Speed Hub",SpeedHub)
-    makeScriptButton("Night Hub",NightHub)
     makeScriptButton("Zeroin Hub",ZeroinHub)
     makeScriptButton("Quantumq Onyx",QuantumqOnyx)
     makeScriptButton("Fyy community",FyyCommunity)
@@ -1187,11 +1186,12 @@ local function showKeylessScripts()
     makeScriptButton("Nasi Rendang",NasiRendang)
 	makeScriptButton("Lennon hub",LennonHub)
 	makeScriptButton("Foxname",Foxname)
+    makeScriptButton("Night Hub",NightHub)
 	makeScriptButton("Axonic",Axonic)
 	makeScriptButton("Mcrzhub",Mcrzhub)
 	makeScriptButton("ub-hub",UbHub)
     makeScriptButton("VXEZES",VXEZES)
-    makeScriptButton("Anti Hit",AntiHit)
+    makeScriptButton("Anti Guard",AntiGuard)
     makeScriptButton("Lkz",Lkz)
     makeScriptButton("Zeroin",Zeroin)
     makeScriptButton("Decode",Decode)
