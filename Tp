@@ -17,7 +17,7 @@ local TP_CFRAME =
 		1.657335713812218e-09
 	)
 
-local TELEPORT_COUNT = 4
+local TELEPORT_COUNT = 6
 local TELEPORT_DELAY = 0.1
 local FINISH_LOADING_TIME = 4
 
@@ -36,8 +36,8 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
 frame.Name = "Main"
-frame.Size = UDim2.fromOffset(175, 82)
-frame.Position = UDim2.new(0.5, -87, 0.5, -41)
+frame.Size = UDim2.fromOffset(180, 92)
+frame.Position = UDim2.new(0.5, -90, 0.5, -46)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -48,9 +48,12 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 10)
 frameCorner.Parent = frame
 
--- Title
+--==================================================
+-- TITLE
+--==================================================
+
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -10, 0, 25)
+title.Size = UDim2.new(1, -60, 0, 25)
 title.Position = UDim2.fromOffset(5, 3)
 title.BackgroundTransparency = 1
 title.Text = "Anti Guard"
@@ -70,10 +73,43 @@ madeBy.TextSize = 11
 madeBy.Font = Enum.Font.Gotham
 madeBy.Parent = frame
 
--- Toggle
+--==================================================
+-- MINIMIZE
+--==================================================
+
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "Minimize"
+minimizeButton.Size = UDim2.fromOffset(25, 25)
+minimizeButton.Position = UDim2.new(1, -55, 0, 3)
+minimizeButton.BackgroundTransparency = 1
+minimizeButton.Text = "−"
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.TextSize = 20
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Parent = frame
+
+--==================================================
+-- CLOSE
+--==================================================
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "Close"
+closeButton.Size = UDim2.fromOffset(25, 25)
+closeButton.Position = UDim2.new(1, -28, 0, 3)
+closeButton.BackgroundTransparency = 1
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.TextSize = 20
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = frame
+
+--==================================================
+-- ON / OFF
+--==================================================
+
 local toggle = Instance.new("TextButton")
 toggle.Size = UDim2.new(1, -20, 0, 30)
-toggle.Position = UDim2.fromOffset(10, 47)
+toggle.Position = UDim2.fromOffset(10, 52)
 toggle.BackgroundColor3 = Color3.fromRGB(170, 55, 55)
 toggle.Text = "OFF"
 toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -86,12 +122,31 @@ toggleCorner.CornerRadius = UDim.new(0, 7)
 toggleCorner.Parent = toggle
 
 --==================================================
+-- CIRCLE MINIMIZED GUI
+--==================================================
+
+local circle = Instance.new("ImageButton")
+circle.Name = "Circle"
+circle.Size = UDim2.fromOffset(55, 55)
+circle.Position = UDim2.new(0.5, -27, 0.5, -27)
+circle.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+circle.Image = "rbxassetid://85422381974829"
+circle.ScaleType = Enum.ScaleType.Fit
+circle.Visible = false
+circle.Active = true
+circle.Draggable = true
+circle.Parent = gui
+
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1, 0)
+circleCorner.Parent = circle
+
+--==================================================
 -- LOADING SCREEN
 --==================================================
 
 local loadingGui
 local progressText
-local workingText
 local progressBar
 
 local function createLoading()
@@ -107,17 +162,14 @@ local function createLoading()
 	loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	loadingGui.Parent = player:WaitForChild("PlayerGui")
 
-	-- Full screen background
 	local background = Instance.new("Frame")
-	background.Name = "Background"
 	background.Size = UDim2.fromScale(1, 1)
 	background.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
 	background.BorderSizePixel = 0
 	background.Parent = loadingGui
 
-	-- Image
+	-- Loading image
 	local image = Instance.new("ImageLabel")
-	image.Name = "LoadingImage"
 	image.Size = UDim2.fromOffset(150, 150)
 	image.Position = UDim2.new(0.5, -75, 0.5, -115)
 	image.BackgroundTransparency = 1
@@ -125,9 +177,8 @@ local function createLoading()
 	image.ScaleType = Enum.ScaleType.Fit
 	image.Parent = background
 
-	-- Progress text
+	-- Percentage
 	progressText = Instance.new("TextLabel")
-	progressText.Name = "Progress"
 	progressText.Size = UDim2.new(1, -40, 0, 35)
 	progressText.Position = UDim2.new(0, 20, 0.5, 45)
 	progressText.BackgroundTransparency = 1
@@ -137,42 +188,39 @@ local function createLoading()
 	progressText.Font = Enum.Font.GothamBold
 	progressText.Parent = background
 
-	-- Progress bar background
-	local progressBackground = Instance.new("Frame")
-	progressBackground.Name = "ProgressBackground"
-	progressBackground.Size = UDim2.new(0.65, 0, 0, 6)
-	progressBackground.Position = UDim2.new(0.175, 0, 0.5, 82)
-	progressBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-	progressBackground.BorderSizePixel = 0
-	progressBackground.Parent = background
-
-	local progressCorner = Instance.new("UICorner")
-	progressCorner.CornerRadius = UDim.new(1, 0)
-	progressCorner.Parent = progressBackground
-
-	-- Progress bar
-	progressBar = Instance.new("Frame")
-	progressBar.Name = "ProgressBar"
-	progressBar.Size = UDim2.new(0, 0, 1, 0)
-	progressBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	progressBar.BorderSizePixel = 0
-	progressBar.Parent = progressBackground
+	-- Bar background
+	local barBackground = Instance.new("Frame")
+	barBackground.Size = UDim2.new(0.65, 0, 0, 6)
+	barBackground.Position = UDim2.new(0.175, 0, 0.5, 82)
+	barBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+	barBackground.BorderSizePixel = 0
+	barBackground.Parent = background
 
 	local barCorner = Instance.new("UICorner")
 	barCorner.CornerRadius = UDim.new(1, 0)
-	barCorner.Parent = progressBar
+	barCorner.Parent = barBackground
+
+	-- Bar
+	progressBar = Instance.new("Frame")
+	progressBar.Size = UDim2.new(0, 0, 1, 0)
+	progressBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	progressBar.BorderSizePixel = 0
+	progressBar.Parent = barBackground
+
+	local progressCorner = Instance.new("UICorner")
+	progressCorner.CornerRadius = UDim.new(1, 0)
+	progressCorner.Parent = progressBar
 
 	-- Bottom text
-	workingText = Instance.new("TextLabel")
-	workingText.Name = "Working"
-	workingText.Size = UDim2.new(1, -40, 0, 35)
-	workingText.Position = UDim2.new(0, 20, 1, -65)
-	workingText.BackgroundTransparency = 1
-	workingText.Text = "Working Anti Guard"
-	workingText.TextColor3 = Color3.fromRGB(200, 200, 200)
-	workingText.TextSize = 15
-	workingText.Font = Enum.Font.GothamMedium
-	workingText.Parent = background
+	local working = Instance.new("TextLabel")
+	working.Size = UDim2.new(1, -40, 0, 35)
+	working.Position = UDim2.new(0, 20, 1, -65)
+	working.BackgroundTransparency = 1
+	working.Text = "Working Anti Guard"
+	working.TextColor3 = Color3.fromRGB(200, 200, 200)
+	working.TextSize = 15
+	working.Font = Enum.Font.GothamMedium
+	working.Parent = background
 end
 
 local function updateLoading(percent)
@@ -197,12 +245,11 @@ local function removeLoading()
 		loadingGui = nil
 		progressText = nil
 		progressBar = nil
-		workingText = nil
 	end
 end
 
 --==================================================
--- ON / OFF
+-- BUTTONS
 --==================================================
 
 toggle.MouseButton1Click:Connect(function()
@@ -217,18 +264,33 @@ toggle.MouseButton1Click:Connect(function()
 	end
 end)
 
+minimizeButton.MouseButton1Click:Connect(function()
+	frame.Visible = false
+	circle.Visible = true
+end)
+
+circle.MouseButton1Click:Connect(function()
+	circle.Visible = false
+	frame.Visible = true
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+	removeLoading()
+	gui:Destroy()
+end)
+
 --==================================================
--- 4× TELEPORT
+-- 6× TELEPORT
 --==================================================
 
-local function teleportFourTimes()
+local function teleportSixTimes()
 	if not enabled or running then
 		return
 	end
 
 	running = true
 
-	-- Loading starts immediately
+	-- Show loading
 	createLoading()
 	updateLoading(0)
 
@@ -238,30 +300,26 @@ local function teleportFourTimes()
 	if root then
 		for i = 1, TELEPORT_COUNT do
 
-			-- Progress:
-			-- 1 = 25%
-			-- 2 = 50%
-			-- 3 = 75%
-			-- 4 = 100%
+			-- 16.67% per teleport
 			updateLoading((i / TELEPORT_COUNT) * 100)
 
-			-- Separate teleport
+			-- Teleport
 			root.CFrame = TP_CFRAME
 
-			-- 0.1 second between teleports
+			-- Wait between teleports
 			if i < TELEPORT_COUNT then
 				task.wait(TELEPORT_DELAY)
 			end
 		end
 	end
 
-	-- Make sure it displays 100%
+	-- Finished all 6
 	updateLoading(100)
 
-	-- Keep loading screen for 4 seconds AFTER TP #4
+	-- Keep loading screen for 4 seconds
 	task.wait(FINISH_LOADING_TIME)
 
-	-- Now remove it
+	-- Remove loading
 	removeLoading()
 
 	running = false
@@ -278,7 +336,7 @@ local function connectPrompt(object)
 
 	object.Triggered:Connect(function(triggeringPlayer)
 		if triggeringPlayer == player then
-			teleportFourTimes()
+			teleportSixTimes()
 		end
 	end)
 end
