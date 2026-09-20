@@ -482,12 +482,12 @@ local function makeNav(text,y)
 	return b
 end
 
-local homeButton = makeNav("🏠HOME",6)
-local scriptButton = makeNav("📃SCRIPT",44)
-local serverButton = makeNav("🌐SERVER",82)
-local settingsButton = makeNav("⚙️SETTINGS",120)
-local creditButton = makeNav("👤CREDIT",158)
-local aboutButton = makeNav("ℹ️ABOUT",196)
+local homeButton = makeNav("HOME",6)
+local scriptButton = makeNav("SCRIPT",44)
+local serverButton = makeNav("SERVER",82)
+local settingsButton = makeNav("SETTINGS",120)
+local creditButton = makeNav("CREDIT",158)
+local aboutButton = makeNav("ABOUT",196)
 
 local function selectNav(selected)
 	homeButton.BackgroundTransparency = 1
