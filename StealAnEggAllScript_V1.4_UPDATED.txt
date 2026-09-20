@@ -330,23 +330,7 @@ aboutTitle.Font = Enum.Font.GothamBold
 aboutTitle.TextColor3 = Theme.Text
 aboutTitle.TextXAlignment = Enum.TextXAlignment.Left
 aboutTitle.Parent = aboutPage
-
-aboutText.Text = [[
-ABOUT • V1.4
-
-STEAL AN EGG ALL SCRIPT
-Version 1.4
-
-[+] V1.4 CHANGELOG
-
-• Miranda Hub moved to KEYLESS.
-• Lennon Hub restored.
-• Added Tsuo Keyless.
-• Added Ouroboros.
-• Added Avatar Changer to VISUALS.
-• Updated About page for V1.4.
-]]\n\nMore scripts, updates, visual features, and improvements are coming soon.\n\nThank you for using\🐱CAT HUB🐱."
-
+aboutText.Text = "ABOUT\n\nSTEAL AN EGG ALL SCRIPT\nVersion 1.4\n\n━━━━━━━━━━━━━━━━━━\nV1.4 • CHANGELOG\n━━━━━━━━━━━━━━━━━━\n\n[+] SCRIPT UPDATES\n• Miranda Hub moved to KEYLESS.\n• Lennon Hub restored.\n• Added Tsuo Keyless.\n• Added Ouroboros.\n• Added Avatar Changer to VISUALS.\n• Updated About page for V1.4.\n\nMore scripts, updates, visual features, and improvements are coming soon.\n\nThank you for using\n🐱CAT HUB🐱."
 aboutText.TextSize = 9
 aboutText.Font = Enum.Font.Gotham
 aboutText.TextWrapped = true
@@ -1224,7 +1208,7 @@ local function showKeylessScripts()
     makeScriptButton("Sena Hub ",SenaHub)
     makeScriptButton("Vincetore ",Vincetore)
     makeScriptButton("Miranda Hub",MirandaHub)
-    makeScriptButton("Tsuo Keyless",TsuoKeyless)
+    makeScriptButton("Tsuo",Tsuo)
     makeScriptButton("Ouroboros",Ouroboros)
     makeScriptButton("Lennon Hub",LennonHub)
     makeScriptButton("Chilli Hub",ChilliHub)
