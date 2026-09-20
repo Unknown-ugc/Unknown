@@ -967,7 +967,8 @@ layout.Parent = scriptList
 local function MirandaHub()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaeggs"))()
 end
-\nlocal function TsuoHub()
+
+local function TsuoHub()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/stealanegg"))()
 end
 
