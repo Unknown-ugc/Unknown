@@ -1127,7 +1127,7 @@ local function Shader2()
     loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Simple-Shader-37434"))()
 end
 
-local function AvatarChanger)
+local function AvatarChanger()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Unknown-ugc/Unknown/refs/heads/main/Avatar%20change"))()
 end
 
