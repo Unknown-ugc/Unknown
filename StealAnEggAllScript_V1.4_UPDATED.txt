@@ -60,7 +60,7 @@ local title = Instance.new("TextLabel")
 title.Position = UDim2.fromOffset(12,6)
 title.Size = UDim2.new(1,-100,0,20)
 title.BackgroundTransparency = 1
-title.Text = "Steal an Egg All Script"
+title.Text = "🐱CAT HUB🐱"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 13
 title.TextColor3 = Theme.Text
@@ -331,11 +331,21 @@ aboutTitle.TextColor3 = Theme.Text
 aboutTitle.TextXAlignment = Enum.TextXAlignment.Left
 aboutTitle.Parent = aboutPage
 
-local aboutText = Instance.new("TextLabel")
-aboutText.Position = UDim2.fromOffset(10, 38)
-aboutText.Size = UDim2.new(1, -20, 0, 620)
-aboutText.BackgroundTransparency = 1
-aboutText.Text = "ABOUT\n\nSTEAL AN EGG ALL SCRIPT\nVersion 1.4\n\n━━━━━━━━━━━━━━━━━━\nV1.3 • CHANGELOG\n━━━━━━━━━━━━━━━━━━\n\n[+] SCRIPT UPDATES\n• Updated Sena with the new V3 loader.\n• Updated Vincetore with the latest supplied loader.\n• Added NEOX HUB.\n• Added NeonHub.\n\n[+] KEY SECTION\n• Moved key-required hubs into the KEY tab.\n• Axonic requires a key.\n• Night Hub requires a key.\n• Zeroin requires a key.\n• On Hub requires a key.\n• NEOX HUB requires a key.\n• NeonHub requires a key.\n\n[+] TEMPORARILY REMOVED\n• Miranda Hub temporarily removed while its update is pending.\n• Lennon Hub temporarily removed while its update is pending.\n\n[+] CREDIT\n• Fixed the Credits page layout.\n• Added the new TikTok promoter @kenn50921.\n• Adjusted the Credits page spacing so the promoter list and Owner section do not overlap.\n\n[+] IMPROVEMENTS\n• Updated the V1.3 script organization.\n• Cleaned up the old unused Credit page container.\n• Improved script categorization between KEY, KEYLESS, and VISUALS.\n\n━━━━━━━━━━━━━━━━━━\nUPCOMING\n━━━━━━━━━━━━━━━━━━\n\nMiranda Hub and Lennon Hub can be restored after their updated versions are available.\n\nMore scripts, updates, visual features, and improvements are coming soon.\n\nThank you for using\nSTEAL AN EGG ALL SCRIPT."
+aboutText.Text = [[
+ABOUT • V1.4
+
+STEAL AN EGG ALL SCRIPT
+Version 1.4
+
+[+] V1.4 CHANGELOG
+
+• Miranda Hub moved to KEYLESS.
+• Lennon Hub restored.
+• Added Tsuo Keyless.
+• Added Ouroboros.
+• Added Avatar Changer to VISUALS.
+• Updated About page for V1.4.
+]]\n\nMore scripts, updates, visual features, and improvements are coming soon.\n\nThank you for using\🐱CAT HUB🐱."
 
 aboutText.TextSize = 9
 aboutText.Font = Enum.Font.Gotham
