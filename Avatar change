@@ -1,5 +1,5 @@
 --// CHRIS AVATAR CHANGER
---// Visual-only avatar replacement
+--// Synced Animation Visual Avatar
 --// Made by Chris
 
 local Players = game:GetService("Players")
@@ -8,20 +8,21 @@ local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
---// SETTINGS
 local IMAGE_ID = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
 
 --// CLEAN OLD GUI
-local oldGui = LocalPlayer.PlayerGui:FindFirstChild("ChrisAvatarChanger")
-if oldGui then
-	oldGui:Destroy()
+local OldGui = LocalPlayer.PlayerGui:FindFirstChild("ChrisAvatarChanger")
+if OldGui then
+	OldGui:Destroy()
 end
 
 --// VARIABLES
-local CurrentCharacter
-local OverlayModel
-local AnimationConnection
-local CharacterConnection
+local CurrentCharacter = nil
+local OverlayModel = nil
+local AnimationConnection = nil
+local CharacterConnection = nil
+
+local SyncedTracks = {}
 
 --// GUI
 local ScreenGui = Instance.new("ScreenGui")
@@ -45,7 +46,6 @@ MainCorner.Parent = Main
 
 --// TITLE
 local Title = Instance.new("TextLabel")
-Title.Name = "Title"
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.fromOffset(15, 7)
 Title.Size = UDim2.new(1, -105, 0, 28)
@@ -92,7 +92,6 @@ CloseCorner.Parent = Close
 
 --// CREDIT
 local Credit = Instance.new("TextLabel")
-Credit.Name = "Credit"
 Credit.BackgroundTransparency = 1
 Credit.Position = UDim2.fromOffset(15, 35)
 Credit.Size = UDim2.new(1, -30, 0, 20)
@@ -103,7 +102,7 @@ Credit.TextSize = 12
 Credit.TextXAlignment = Enum.TextXAlignment.Left
 Credit.Parent = Main
 
---// USERNAME BOX
+--// USERNAME
 local UsernameBox = Instance.new("TextBox")
 UsernameBox.Name = "UsernameBox"
 UsernameBox.Position = UDim2.fromOffset(15, 63)
@@ -123,7 +122,7 @@ local BoxCorner = Instance.new("UICorner")
 BoxCorner.CornerRadius = UDim.new(0, 8)
 BoxCorner.Parent = UsernameBox
 
---// CHANGE BUTTON
+--// CHANGE
 local ChangeButton = Instance.new("TextButton")
 ChangeButton.Name = "ChangeAvatar"
 ChangeButton.Position = UDim2.fromOffset(15, 112)
@@ -140,7 +139,7 @@ local ChangeCorner = Instance.new("UICorner")
 ChangeCorner.CornerRadius = UDim.new(0, 8)
 ChangeCorner.Parent = ChangeButton
 
---// REMOVE BUTTON
+--// REMOVE
 local RemoveButton = Instance.new("TextButton")
 RemoveButton.Name = "RemoveAvatar"
 RemoveButton.Position = UDim2.new(0.5, 5, 0, 112)
@@ -157,7 +156,7 @@ local RemoveCorner = Instance.new("UICorner")
 RemoveCorner.CornerRadius = UDim.new(0, 8)
 RemoveCorner.Parent = RemoveButton
 
---// MINIMIZED BUTTON
+--// MINI
 local Mini = Instance.new("ImageButton")
 Mini.Name = "Mini"
 Mini.Size = UDim2.fromOffset(58, 58)
@@ -177,62 +176,62 @@ MiniStroke.Thickness = 2
 MiniStroke.Color = Color3.fromRGB(255, 255, 255)
 MiniStroke.Parent = Mini
 
---// DRAG FUNCTION
+--// DRAG
 local function MakeDraggable(Object)
-	local dragging = false
-	local dragStart
-	local startPosition
-	local dragged = false
+	local Dragging = false
+	local DragStart
+	local StartPosition
+	local WasDragged = false
 
-	Object.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+	Object.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1
+			or Input.UserInputType == Enum.UserInputType.Touch then
 
-			dragging = true
-			dragged = false
-			dragStart = input.Position
-			startPosition = Object.Position
+			Dragging = true
+			WasDragged = false
+			DragStart = Input.Position
+			StartPosition = Object.Position
 
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
+			Input.Changed:Connect(function()
+				if Input.UserInputState == Enum.UserInputState.End then
+					Dragging = false
 				end
 			end)
 		end
 	end)
 
-	UserInputService.InputChanged:Connect(function(input)
-		if not dragging then
+	UserInputService.InputChanged:Connect(function(Input)
+		if not Dragging then
 			return
 		end
 
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if Input.UserInputType == Enum.UserInputType.MouseMovement
+			or Input.UserInputType == Enum.UserInputType.Touch then
 
-			local delta = input.Position - dragStart
+			local Delta = Input.Position - DragStart
 
-			if math.abs(delta.X) > 4 or math.abs(delta.Y) > 4 then
-				dragged = true
+			if math.abs(Delta.X) > 4 or math.abs(Delta.Y) > 4 then
+				WasDragged = true
 			end
 
 			Object.Position = UDim2.new(
-				startPosition.X.Scale,
-				startPosition.X.Offset + delta.X,
-				startPosition.Y.Scale,
-				startPosition.Y.Offset + delta.Y
+				StartPosition.X.Scale,
+				StartPosition.X.Offset + Delta.X,
+				StartPosition.Y.Scale,
+				StartPosition.Y.Offset + Delta.Y
 			)
 		end
 	end)
 
 	return function()
-		return dragged
+		return WasDragged
 	end
 end
 
-local MainWasDragged = MakeDraggable(Main)
-local MiniWasDragged = MakeDraggable(Mini)
+local MainDragged = MakeDraggable(Main)
+local MiniDragged = MakeDraggable(Mini)
 
---// HIDE ORIGINAL CHARACTER
+--// HIDE REAL CHARACTER
 local function HideCharacter(Character)
 	if not Character then
 		return
@@ -241,13 +240,14 @@ local function HideCharacter(Character)
 	for _, Object in ipairs(Character:GetDescendants()) do
 		if Object:IsA("BasePart") then
 			Object.LocalTransparencyModifier = 1
+
 		elseif Object:IsA("Decal") then
 			Object.Transparency = 1
 		end
 	end
 end
 
---// RESTORE ORIGINAL CHARACTER
+--// RESTORE REAL CHARACTER
 local function RestoreCharacter(Character)
 	if not Character then
 		return
@@ -256,13 +256,14 @@ local function RestoreCharacter(Character)
 	for _, Object in ipairs(Character:GetDescendants()) do
 		if Object:IsA("BasePart") then
 			Object.LocalTransparencyModifier = 0
+
 		elseif Object:IsA("Decal") then
 			Object.Transparency = 0
 		end
 	end
 end
 
---// MAKE OVERLAY VISUAL ONLY
+--// MAKE VISUAL AVATAR NON-PHYSICAL
 local function SetupVisualPart(Object)
 	if Object:IsA("BasePart") then
 		Object.CanCollide = false
@@ -271,11 +272,125 @@ local function SetupVisualPart(Object)
 		Object.Massless = true
 		Object.CastShadow = false
 	end
+end
 
-	if Object:IsA("Script")
-		or Object:IsA("LocalScript")
-		or Object:IsA("ModuleScript") then
-		Object:Destroy()
+--// GET HUMANOID
+local function GetHumanoid(Model)
+	if not Model then
+		return nil
+	end
+
+	return Model:FindFirstChildOfClass("Humanoid")
+end
+
+--// GET ANIMATOR
+local function GetAnimator(Model)
+	local Humanoid = GetHumanoid(Model)
+
+	if not Humanoid then
+		return nil
+	end
+
+	local Animator = Humanoid:FindFirstChildOfClass("Animator")
+
+	if not Animator then
+		Animator = Instance.new("Animator")
+		Animator.Parent = Humanoid
+	end
+
+	return Animator
+end
+
+--// STOP SYNCED TRACKS
+local function StopSyncedTracks()
+	for _, Track in pairs(SyncedTracks) do
+		pcall(function()
+			Track:Stop(0)
+			Track:Destroy()
+		end)
+	end
+
+	table.clear(SyncedTracks)
+end
+
+--// SYNC PLAYER ANIMATIONS
+local function SyncAnimations()
+	if not CurrentCharacter or not OverlayModel then
+		return
+	end
+
+	local OriginalAnimator = GetAnimator(CurrentCharacter)
+	local OverlayAnimator = GetAnimator(OverlayModel)
+
+	if not OriginalAnimator or not OverlayAnimator then
+		return
+	end
+
+	local PlayingTracks = OriginalAnimator:GetPlayingAnimationTracks()
+	local ActiveAnimations = {}
+
+	for _, OriginalTrack in ipairs(PlayingTracks) do
+		local Animation = OriginalTrack.Animation
+
+		if Animation and Animation.AnimationId ~= "" then
+			local AnimationId = Animation.AnimationId
+
+			ActiveAnimations[AnimationId] = true
+
+			local OverlayTrack = SyncedTracks[AnimationId]
+
+			--// CREATE TRACK
+			if not OverlayTrack then
+				local NewAnimation = Instance.new("Animation")
+				NewAnimation.AnimationId = AnimationId
+
+				local Success, Result = pcall(function()
+					return OverlayAnimator:LoadAnimation(NewAnimation)
+				end)
+
+				NewAnimation:Destroy()
+
+				if Success and Result then
+					OverlayTrack = Result
+					OverlayTrack.Priority = OriginalTrack.Priority
+					OverlayTrack.Looped = OriginalTrack.Looped
+
+					pcall(function()
+						OverlayTrack:Play(0)
+					end)
+
+					SyncedTracks[AnimationId] = OverlayTrack
+				end
+			end
+
+			--// SYNC EXISTING TRACK
+			if OverlayTrack then
+				pcall(function()
+					OverlayTrack.Priority = OriginalTrack.Priority
+					OverlayTrack.Looped = OriginalTrack.Looped
+					OverlayTrack:AdjustSpeed(OriginalTrack.Speed)
+
+					local Difference =
+						math.abs(OverlayTrack.TimePosition - OriginalTrack.TimePosition)
+
+					if Difference > 0.08 then
+						OverlayTrack.TimePosition = OriginalTrack.TimePosition
+					end
+				end)
+			end
+		end
+	end
+
+	--// REMOVE OLD TRACKS
+	for AnimationId, Track in pairs(SyncedTracks) do
+		if not ActiveAnimations[AnimationId] then
+			pcall(function()
+				Track:Stop(0.1)
+				Track:Destroy()
+			end)
+
+			SyncedTracks[AnimationId] = nil
+		end
 	end
 end
 
@@ -286,6 +401,8 @@ local function RemoveAvatar()
 		AnimationConnection = nil
 	end
 
+	StopSyncedTracks()
+
 	if OverlayModel then
 		OverlayModel:Destroy()
 		OverlayModel = nil
@@ -294,19 +411,6 @@ local function RemoveAvatar()
 	if CurrentCharacter then
 		RestoreCharacter(CurrentCharacter)
 	end
-end
-
---// FIND MOTOR
-local function GetMotors(Model)
-	local Motors = {}
-
-	for _, Object in ipairs(Model:GetDescendants()) do
-		if Object:IsA("Motor6D") then
-			Motors[Object.Name] = Object
-		end
-	end
-
-	return Motors
 end
 
 --// CHANGE AVATAR
@@ -333,10 +437,12 @@ local function ChangeAvatar()
 		return
 	end
 
+	--// REMOVE OLD REPLACEMENT FIRST
 	RemoveAvatar()
 
 	CurrentCharacter = Character
 
+	--// CREATE AVATAR
 	local ModelSuccess, NewModel = pcall(function()
 		return Players:CreateHumanoidModelFromUserIdAsync(UserId)
 	end)
@@ -349,60 +455,64 @@ local function ChangeAvatar()
 	OverlayModel = NewModel
 	OverlayModel.Name = "ChrisAvatarVisual"
 
-	--// Remove scripts + disable physics
+	--// REMOVE UNNEEDED SCRIPTS
+	for _, Object in ipairs(OverlayModel:GetDescendants()) do
+		if Object:IsA("Script")
+			or Object:IsA("LocalScript")
+			or Object:IsA("ModuleScript") then
+
+			Object:Destroy()
+		end
+	end
+
+	--// MAKE EVERYTHING VISUAL ONLY
 	for _, Object in ipairs(OverlayModel:GetDescendants()) do
 		SetupVisualPart(Object)
 	end
 
-	--// Put visual model in camera
+	--// PARENT TO CAMERA
 	OverlayModel.Parent = workspace.CurrentCamera
 
-	--// Match current position
+	--// INITIAL POSITION
 	pcall(function()
 		OverlayModel:PivotTo(Character:GetPivot())
 	end)
 
-	--// Hide real character locally
+	--// HIDE REAL AVATAR
 	HideCharacter(Character)
 
-	--// Motor maps
-	local OriginalMotors = GetMotors(Character)
-	local OverlayMotors = GetMotors(OverlayModel)
-
-	--// Follow original character + animations
+	--// CREATE ANIMATION CONNECTION
 	AnimationConnection = RunService.RenderStepped:Connect(function()
-		if not Character.Parent then
+		if not Character
+			or not Character.Parent
+			or not OverlayModel
+			or not OverlayModel.Parent then
 			return
 		end
 
-		if not OverlayModel or not OverlayModel.Parent then
-			return
-		end
-
-		-- Keep visual avatar at the same position
+		--// FOLLOW REAL PLAYER EXACTLY
 		pcall(function()
 			OverlayModel:PivotTo(Character:GetPivot())
 		end)
 
-		-- Copy Motor6D transforms
-		for MotorName, OriginalMotor in pairs(OriginalMotors) do
-			local OverlayMotor = OverlayMotors[MotorName]
+		--// SYNC CURRENT ANIMATION
+		SyncAnimations()
+	end)
 
-			if OverlayMotor then
-				pcall(function()
-					OverlayMotor.Transform = OriginalMotor.Transform
-				end)
-			end
+	--// INITIAL ANIMATION SYNC
+	task.defer(function()
+		if OverlayModel and CurrentCharacter then
+			SyncAnimations()
 		end
 	end)
 end
 
---// CHANGE CLICK
+--// CHANGE BUTTON
 ChangeButton.MouseButton1Click:Connect(function()
 	ChangeAvatar()
 end)
 
---// REMOVE CLICK
+--// REMOVE BUTTON
 RemoveButton.MouseButton1Click:Connect(function()
 	RemoveAvatar()
 end)
@@ -411,7 +521,7 @@ end)
 Minimize.MouseButton1Click:Connect(function()
 	task.wait()
 
-	if not MainWasDragged() then
+	if not MainDragged() then
 		Main.Visible = false
 		Mini.Visible = true
 	end
@@ -421,7 +531,7 @@ end)
 Mini.MouseButton1Click:Connect(function()
 	task.wait()
 
-	if not MiniWasDragged() then
+	if not MiniDragged() then
 		Mini.Visible = false
 		Main.Visible = true
 	end
@@ -433,12 +543,13 @@ Close.MouseButton1Click:Connect(function()
 
 	if CharacterConnection then
 		CharacterConnection:Disconnect()
+		CharacterConnection = nil
 	end
 
 	ScreenGui:Destroy()
 end)
 
---// HANDLE RESPAWN
+--// RESPAWN
 CharacterConnection = LocalPlayer.CharacterAdded:Connect(function(Character)
 	RemoveAvatar()
 	CurrentCharacter = Character
