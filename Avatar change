@@ -1,29 +1,24 @@
---// CHRIS AVATAR CHANGER
---// BeeHub-style visual avatar overlay
---// Made by Chris
+--==================================================
+-- CHRIS AVATAR OVERLAY
+-- BeeHub-style avatar overlay method
+-- Real character = movement + animation source
+-- Visual character = welded overlay
+--==================================================
 
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-local IMAGE_ID = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
-
---==================================================
--- OVERLAY
---==================================================
 
 local Overlay = {
-	model = nil,
-	hrp = nil,
-	weld = nil,
-	renderConn = nil,
-	motorPairs = {},
-	lastUserId = nil,
-	lastUsername = nil,
-	hiddenParts = {}
+    model = nil,
+    hrp = nil,
+    weld = nil,
+    renderConn = nil,
+    motorPairs = {},
+    hiddenParts = {},
+    lastUserId = nil,
+    lastUsername = nil
 }
 
 --==================================================
@@ -31,11 +26,13 @@ local Overlay = {
 --==================================================
 
 local function getCharacter()
-	return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    return LocalPlayer.Character
+        or LocalPlayer.CharacterAdded:Wait()
 end
 
 local function getHRP(character)
-	return character and character:FindFirstChild("HumanoidRootPart")
+    return character
+        and character:FindFirstChild("HumanoidRootPart")
 end
 
 --==================================================
@@ -43,35 +40,40 @@ end
 --==================================================
 
 local function getOverlayFolder()
-	local camera = workspace.CurrentCamera
-	if not camera then
-		return nil
-	end
+    local camera = workspace.CurrentCamera
 
-	local folder = camera:FindFirstChild("_ChrisAvatarOverlay")
+    if not camera then
+        return nil
+    end
 
-	if not folder then
-		folder = Instance.new("Folder")
-		folder.Name = "_ChrisAvatarOverlay"
-		folder.Parent = camera
-	end
+    local folder = camera:FindFirstChild("_ChrisAvatarOverlay")
 
-	return folder
+    if not folder then
+        folder = Instance.new("Folder")
+        folder.Name = "_ChrisAvatarOverlay"
+        folder.Parent = camera
+    end
+
+    return folder
 end
 
 --==================================================
 -- STOP MIRROR
 --==================================================
 
-local function stopRender()
-	if Overlay.renderConn then
-		Overlay.renderConn:Disconnect()
-		Overlay.renderConn = nil
-	end
+local function stopMirror()
+    if Overlay.renderConn then
+        Overlay.renderConn:Disconnect()
+        Overlay.renderConn = nil
+    end
 end
 
+--==================================================
+-- CLEAR MOTOR PAIRS
+--==================================================
+
 local function clearMotorPairs()
-	table.clear(Overlay.motorPairs)
+    table.clear(Overlay.motorPairs)
 end
 
 --==================================================
@@ -79,92 +81,104 @@ end
 --==================================================
 
 local function restoreRealAvatar()
-	for instance, oldTransparency in pairs(Overlay.hiddenParts) do
-		if instance and instance.Parent then
-			if instance:IsA("BasePart") then
-				instance.LocalTransparencyModifier = oldTransparency
 
-			elseif instance:IsA("Decal") or instance:IsA("Texture") then
-				instance.Transparency = oldTransparency
-			end
-		end
-	end
+    for instance, previousTransparency in pairs(
+        Overlay.hiddenParts
+    ) do
 
-	table.clear(Overlay.hiddenParts)
+        if instance and instance.Parent then
+
+            if instance:IsA("BasePart") then
+                instance.LocalTransparencyModifier =
+                    previousTransparency
+
+            elseif instance:IsA("Decal")
+                or instance:IsA("Texture") then
+
+                instance.Transparency =
+                    previousTransparency
+            end
+        end
+    end
+
+    table.clear(Overlay.hiddenParts)
 end
 
 --==================================================
--- HIDE REAL AVATAR LOCALLY
+-- HIDE REAL AVATAR
 --==================================================
 
 local function hideRealAvatar(character)
-	if not character then
-		return
-	end
 
-	table.clear(Overlay.hiddenParts)
+    if not character then
+        return
+    end
 
-	for _, instance in ipairs(character:GetDescendants()) do
+    table.clear(Overlay.hiddenParts)
 
-		if instance:IsA("BasePart") then
-			if Overlay.hiddenParts[instance] == nil then
-				Overlay.hiddenParts[instance] =
-					instance.LocalTransparencyModifier
-			end
+    for _, instance in ipairs(
+        character:GetDescendants()
+    ) do
 
-			instance.LocalTransparencyModifier = 1
+        if instance:IsA("BasePart") then
 
-		elseif instance:IsA("Decal") or instance:IsA("Texture") then
-			if Overlay.hiddenParts[instance] == nil then
-				Overlay.hiddenParts[instance] =
-					instance.Transparency
-			end
+            Overlay.hiddenParts[instance] =
+                instance.LocalTransparencyModifier
 
-			instance.Transparency = 1
-		end
-	end
+            instance.LocalTransparencyModifier = 1
+
+        elseif instance:IsA("Decal")
+            or instance:IsA("Texture") then
+
+            Overlay.hiddenParts[instance] =
+                instance.Transparency
+
+            instance.Transparency = 1
+        end
+    end
 end
 
 --==================================================
--- PREPARE TARGET AVATAR
+-- PREPARE VISUAL AVATAR
 --==================================================
 
 local function prepareModel(model)
 
-	for _, instance in ipairs(model:GetDescendants()) do
+    for _, instance in ipairs(
+        model:GetDescendants()
+    ) do
 
-		-- Prevent the target avatar from running its own scripts
-		if instance:IsA("Script")
-			or instance:IsA("LocalScript")
-			or instance:IsA("ModuleScript") then
+        if instance:IsA("Script")
+            or instance:IsA("LocalScript") then
 
-			instance:Destroy()
+            instance.Disabled = true
 
-		elseif instance:IsA("BasePart") then
+        elseif instance:IsA("BasePart") then
 
-			instance.CanCollide = false
-			instance.CanTouch = false
-			instance.CanQuery = false
-			instance.Massless = true
-			instance.CastShadow = false
-		end
-	end
+            instance.CanCollide = false
+            instance.CanTouch = false
+            instance.CanQuery = false
+            instance.Massless = true
+        end
+    end
 
-	-- Disable independent humanoid movement
-	local humanoid = model:FindFirstChildOfClass("Humanoid")
+    local humanoid =
+        model:FindFirstChildOfClass("Humanoid")
 
-	if humanoid then
-		humanoid.PlatformStand = true
-		humanoid.AutoRotate = false
-		humanoid.Sit = true
+    if humanoid then
 
-		humanoid:SetStateEnabled(
-			Enum.HumanoidStateType.Physics,
-			false
-		)
-	end
+        -- The visual avatar must NOT control movement.
+        humanoid.PlatformStand = true
+        humanoid.AutoRotate = false
+        humanoid.Sit = true
 
-	return model
+        humanoid:SetStateEnabled(
+            Enum.HumanoidStateType.Physics,
+            false
+        )
+    end
+
+    return model
 end
 
 --==================================================
@@ -173,143 +187,141 @@ end
 
 local function motorKey(motor)
 
-	local part0 =
-		(motor.Part0 and motor.Part0.Name)
-		or "nil"
+    local part0 =
+        motor.Part0
+        and motor.Part0.Name
+        or "nil"
 
-	local part1 =
-		(motor.Part1 and motor.Part1.Name)
-		or "nil"
+    local part1 =
+        motor.Part1
+        and motor.Part1.Name
+        or "nil"
 
-	return motor.Name .. "|" .. part0 .. ">" .. part1
+    return motor.Name
+        .. "|"
+        .. part0
+        .. ">"
+        .. part1
 end
 
 --==================================================
 -- BUILD MOTOR PAIRS
 --==================================================
 
-local function buildMotorPairs(sourceCharacter, targetModel)
+local function buildMotorPairs(
+    sourceCharacter,
+    targetModel
+)
 
-	clearMotorPairs()
+    clearMotorPairs()
 
-	local sourceMotors = {}
-	local targetMotors = {}
+    local sourceMotors = {}
+    local targetMotors = {}
 
-	for _, instance in ipairs(sourceCharacter:GetDescendants()) do
-		if instance:IsA("Motor6D") then
-			sourceMotors[motorKey(instance)] = instance
-		end
-	end
+    for _, instance in ipairs(
+        sourceCharacter:GetDescendants()
+    ) do
 
-	for _, instance in ipairs(targetModel:GetDescendants()) do
-		if instance:IsA("Motor6D") then
-			targetMotors[motorKey(instance)] = instance
-		end
-	end
+        if instance:IsA("Motor6D") then
+            sourceMotors[motorKey(instance)] =
+                instance
+        end
+    end
 
-	for key, sourceMotor in pairs(sourceMotors) do
+    for _, instance in ipairs(
+        targetModel:GetDescendants()
+    ) do
 
-		local targetMotor = targetMotors[key]
+        if instance:IsA("Motor6D") then
+            targetMotors[motorKey(instance)] =
+                instance
+        end
+    end
 
-		if targetMotor then
-			table.insert(
-				Overlay.motorPairs,
-				{
-					src = sourceMotor,
-					tgt = targetMotor
-				}
-			)
-		end
-	end
+    for key, sourceMotor in pairs(sourceMotors) do
+
+        local targetMotor =
+            targetMotors[key]
+
+        if targetMotor then
+
+            table.insert(
+                Overlay.motorPairs,
+                {
+                    src = sourceMotor,
+                    tgt = targetMotor
+                }
+            )
+        end
+    end
 end
 
 --==================================================
--- POSE MIRROR
+-- MIRROR REAL PLAYER POSE
 --==================================================
 
-local function startPoseMirror()
+local function startMirror()
 
-	stopRender()
+    stopMirror()
 
-	Overlay.renderConn =
-		RunService.RenderStepped:Connect(function()
+    Overlay.renderConn =
+        RunService.RenderStepped:Connect(
+        function()
 
-			if not Overlay.model
-				or not Overlay.hrp then
-				return
-			end
+            if not Overlay.model
+                or not Overlay.hrp then
+                return
+            end
 
-			for _, pair in ipairs(Overlay.motorPairs) do
+            for _, pair in ipairs(
+                Overlay.motorPairs
+            ) do
 
-				local source = pair.src
-				local target = pair.tgt
+                local source = pair.src
+                local target = pair.tgt
 
-				if source
-					and target
-					and source.Parent
-					and target.Parent then
+                if source
+                    and target
+                    and source.Parent
+                    and target.Parent then
 
-					target.Transform = source.Transform
-				end
-			end
-		end)
+                    target.Transform =
+                        source.Transform
+                end
+            end
+        end
+    )
 end
 
 --==================================================
--- DESTROY AVATAR
+-- REMOVE AVATAR
 --==================================================
 
-local function destroyOverlay()
+local function removeAvatar()
 
-	-- Stop pose mirror FIRST
-	stopRender()
+    -- STOP MOVEMENT MIRROR FIRST
+    stopMirror()
 
-	-- Stop motor references
-	clearMotorPairs()
+    -- CLEAR JOINT REFERENCES
+    clearMotorPairs()
 
-	-- Destroy visual avatar
-	if Overlay.model then
-		pcall(function()
-			Overlay.model:Destroy()
-		end)
-	end
+    -- REMOVE VISUAL AVATAR
+    if Overlay.model then
 
-	Overlay.model = nil
-	Overlay.hrp = nil
-	Overlay.weld = nil
+        pcall(function()
+            Overlay.model:Destroy()
+        end)
+    end
 
-	-- IMPORTANT:
-	-- Restore the REAL avatar
-	restoreRealAvatar()
+    Overlay.model = nil
+    Overlay.hrp = nil
+    Overlay.weld = nil
 
-	Overlay.lastUserId = nil
-	Overlay.lastUsername = nil
-end
+    -- RESTORE REAL ROBLOX AVATAR
+    restoreRealAvatar()
 
---==================================================
--- RESOLVE USERNAME
---==================================================
-
-local function resolveUsername(text)
-
-	text = tostring(text or "")
-	text = text:gsub("^%s+", "")
-	text = text:gsub("%s+$", "")
-
-	if text == "" then
-		return false, nil, "Enter a username."
-	end
-
-	local success, userId =
-		pcall(function()
-			return Players:GetUserIdFromNameAsync(text)
-		end)
-
-	if not success or not userId then
-		return false, nil, "Username not found."
-	end
-
-	return true, userId, text
+    Overlay.lastUserId = nil
+    Overlay.lastUsername = nil
 end
 
 --==================================================
@@ -318,436 +330,216 @@ end
 
 local function changeAvatar(username)
 
-	-- Remove previous avatar first
-	destroyOverlay()
+    username = tostring(username or "")
+    username = username:gsub("^%s+", "")
+    username = username:gsub("%s+$", "")
 
-	local character = getCharacter()
-	local realHRP = getHRP(character)
+    if username == "" then
+        return false, "Enter username."
+    end
 
-	if not realHRP then
-		return false, "Your character is not ready."
-	end
+    local success, userId =
+        pcall(function()
+            return Players:GetUserIdFromNameAsync(
+                username
+            )
+        end)
 
-	-- Resolve username
-	local success, userId, result =
-		resolveUsername(username)
+    if not success or not userId then
+        return false, "Username not found."
+    end
 
-	if not success then
-		return false, result
-	end
+    local realCharacter = getCharacter()
+    local realHRP = getHRP(realCharacter)
 
-	-- Create target avatar
-	local modelSuccess, targetModel =
-		pcall(function()
-			return Players:CreateHumanoidModelFromUserIdAsync(userId)
-		end)
+    if not realHRP then
+        return false, "Character not ready."
+    end
 
-	if not modelSuccess
-		or typeof(targetModel) ~= "Instance" then
+    -- REMOVE OLD AVATAR FIRST
+    removeAvatar()
 
-		return false, "Failed to create avatar."
-	end
+    -- CREATE TARGET AVATAR
+    local modelSuccess, targetModel =
+        pcall(function()
 
-	-- Prepare visual model
-	local model = prepareModel(targetModel)
+            return Players:
+                CreateHumanoidModelFromUserIdAsync(
+                    userId
+                )
+        end)
 
-	model.Name = "ChrisAvatarOverlay_" .. tostring(userId)
+    if not modelSuccess
+        or not targetModel then
 
-	-- Put model under camera
-	local folder = getOverlayFolder()
+        return false, "Failed to create avatar."
+    end
 
-	if not folder then
-		model:Destroy()
-		return false, "Camera not ready."
-	end
+    -- PREPARE VISUAL MODEL
+    prepareModel(targetModel)
 
-	model.Parent = folder
+    targetModel.Name =
+        "ChrisAvatarOverlay"
 
-	-- Target HRP
-	local targetHRP =
-		model:FindFirstChild("HumanoidRootPart")
+    -- CAMERA FOLDER
+    local folder =
+        getOverlayFolder()
 
-	if not targetHRP
-		or not targetHRP:IsA("BasePart") then
+    if not folder then
+        targetModel:Destroy()
+        return false, "Camera not ready."
+    end
 
-		model:Destroy()
-		return false, "Target avatar has no HumanoidRootPart."
-	end
+    targetModel.Parent = folder
 
-	-- Position target on real player
-	model:PivotTo(realHRP.CFrame)
+    -- TARGET ROOT
+    local targetHRP =
+        targetModel:FindFirstChild(
+            "HumanoidRootPart"
+        )
 
-	--==================================================
-	-- BEEHUB-STYLE WELD
-	--==================================================
+    if not targetHRP then
 
-	local weld = Instance.new("WeldConstraint")
+        targetModel:Destroy()
 
-	weld.Part0 = targetHRP
-	weld.Part1 = realHRP
-	weld.Parent = targetHRP
+        return false,
+            "Target avatar has no HumanoidRootPart."
+    end
 
-	-- Save overlay
-	Overlay.model = model
-	Overlay.hrp = targetHRP
-	Overlay.weld = weld
+    --==================================================
+    -- IMPORTANT:
+    -- PUT TARGET EXACTLY ON REAL CHARACTER
+    --==================================================
 
-	Overlay.lastUserId = userId
-	Overlay.lastUsername = result
+    targetModel:PivotTo(
+        realHRP.CFrame
+    )
 
-	-- Build matching Motor6D pairs
-	buildMotorPairs(character, model)
+    --==================================================
+    -- WELD TARGET TO REAL CHARACTER
+    --==================================================
 
-	-- Start pose mirroring
-	startPoseMirror()
+    local weld =
+        Instance.new("WeldConstraint")
 
-	-- Hide real avatar locally
-	hideRealAvatar(character)
+    weld.Name = "ChrisAvatarWeld"
+    weld.Part0 = targetHRP
+    weld.Part1 = realHRP
+    weld.Parent = targetHRP
 
-	return true, "Avatar changed to " .. tostring(result)
+    Overlay.model = targetModel
+    Overlay.hrp = targetHRP
+    Overlay.weld = weld
+
+    Overlay.lastUserId = userId
+    Overlay.lastUsername = username
+
+    --==================================================
+    -- COPY MOTOR6D POSES
+    --==================================================
+
+    buildMotorPairs(
+        realCharacter,
+        targetModel
+    )
+
+    startMirror()
+
+    --==================================================
+    -- HIDE REAL AVATAR LOCALLY
+    --==================================================
+
+    hideRealAvatar(
+        realCharacter
+    )
+
+    return true,
+        "Avatar changed: " .. username
 end
 
 --==================================================
--- GUI
+-- BUTTON CONNECTIONS
 --==================================================
 
-local OldGui =
-	PlayerGui:FindFirstChild("ChrisAvatarChanger")
+-- CHANGE BUTTON
+ChangeButton.MouseButton1Click:Connect(
+    function()
 
-if OldGui then
-	OldGui:Destroy()
-end
+        local success, message =
+            changeAvatar(
+                UsernameBox.Text
+            )
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ChrisAvatarChanger"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = PlayerGui
+        if success then
+            UsernameBox.PlaceholderText =
+                "Avatar active"
+        else
+            UsernameBox.PlaceholderText =
+                message
+        end
+    end
+)
 
---==================================================
--- MAIN
---==================================================
+-- REMOVE BUTTON
+RemoveButton.MouseButton1Click:Connect(
+    function()
 
-local Main = Instance.new("Frame")
-Main.Size = UDim2.fromOffset(320, 180)
-Main.Position = UDim2.new(0.5, -160, 0.5, -90)
-Main.BackgroundColor3 = Color3.fromRGB(25, 105, 180)
-Main.BorderSizePixel = 0
-Main.Active = true
-Main.Parent = ScreenGui
+        removeAvatar()
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = Main
+        -- EXTRA SAFETY:
+        -- make sure the current real avatar
+        -- is visible again.
+        local character =
+            LocalPlayer.Character
 
---==================================================
--- TITLE
---==================================================
+        if character then
 
-local Title = Instance.new("TextLabel")
-Title.BackgroundTransparency = 1
-Title.Position = UDim2.fromOffset(15, 7)
-Title.Size = UDim2.new(1, -105, 0, 28)
-Title.Font = Enum.Font.GothamBold
-Title.Text = "AVATAR CHANGER"
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.TextSize = 17
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Main
+            for _, instance in ipairs(
+                character:GetDescendants()
+            ) do
 
---==================================================
--- MINIMIZE
---==================================================
+                if instance:IsA("BasePart") then
+                    instance.LocalTransparencyModifier = 0
 
-local Minimize = Instance.new("TextButton")
-Minimize.Size = UDim2.fromOffset(27, 27)
-Minimize.Position = UDim2.new(1, -58, 0, 4)
-Minimize.BackgroundColor3 = Color3.fromRGB(40, 120, 200)
-Minimize.BorderSizePixel = 0
-Minimize.Font = Enum.Font.GothamBold
-Minimize.Text = "−"
-Minimize.TextColor3 = Color3.new(1, 1, 1)
-Minimize.TextSize = 18
-Minimize.Parent = Main
+                elseif instance:IsA("Decal")
+                    or instance:IsA("Texture") then
 
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 7)
-MinCorner.Parent = Minimize
+                    instance.Transparency = 0
+                end
+            end
+        end
+
+        UsernameBox.Text = ""
+        UsernameBox.PlaceholderText =
+            "Enter username..."
+    end
+)
 
 --==================================================
--- CLOSE
+-- RESPAWN SAFETY
 --==================================================
 
-local Close = Instance.new("TextButton")
-Close.Size = UDim2.fromOffset(27, 27)
-Close.Position = UDim2.new(1, -31, 0, 4)
-Close.BackgroundColor3 = Color3.fromRGB(200, 55, 55)
-Close.BorderSizePixel = 0
-Close.Font = Enum.Font.GothamBold
-Close.Text = "X"
-Close.TextColor3 = Color3.new(1, 1, 1)
-Close.TextSize = 14
-Close.Parent = Main
+LocalPlayer.CharacterAdded:Connect(
+    function(newCharacter)
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 7)
-CloseCorner.Parent = Close
+        -- Completely remove old overlay
+        removeAvatar()
 
---==================================================
--- CREDIT
---==================================================
+        -- Make new Roblox avatar visible
+        task.wait(0.15)
 
-local Credit = Instance.new("TextLabel")
-Credit.BackgroundTransparency = 1
-Credit.Position = UDim2.fromOffset(15, 35)
-Credit.Size = UDim2.new(1, -30, 0, 20)
-Credit.Font = Enum.Font.Gotham
-Credit.Text = "Made by Chris"
-Credit.TextColor3 = Color3.fromRGB(220, 235, 255)
-Credit.TextSize = 12
-Credit.TextXAlignment = Enum.TextXAlignment.Left
-Credit.Parent = Main
+        for _, instance in ipairs(
+            newCharacter:GetDescendants()
+        ) do
 
---==================================================
--- USERNAME
---==================================================
+            if instance:IsA("BasePart") then
+                instance.LocalTransparencyModifier = 0
 
-local UsernameBox = Instance.new("TextBox")
-UsernameBox.Position = UDim2.fromOffset(15, 63)
-UsernameBox.Size = UDim2.new(1, -30, 0, 38)
-UsernameBox.BackgroundColor3 = Color3.fromRGB(15, 70, 130)
-UsernameBox.BorderSizePixel = 0
-UsernameBox.ClearTextOnFocus = false
-UsernameBox.Font = Enum.Font.Gotham
-UsernameBox.PlaceholderText = "Enter username..."
-UsernameBox.PlaceholderColor3 = Color3.fromRGB(180, 205, 230)
-UsernameBox.Text = ""
-UsernameBox.TextColor3 = Color3.new(1, 1, 1)
-UsernameBox.TextSize = 14
-UsernameBox.Parent = Main
+            elseif instance:IsA("Decal")
+                or instance:IsA("Texture") then
 
-local BoxCorner = Instance.new("UICorner")
-BoxCorner.CornerRadius = UDim.new(0, 8)
-BoxCorner.Parent = UsernameBox
-
---==================================================
--- CHANGE
---==================================================
-
-local ChangeButton = Instance.new("TextButton")
-ChangeButton.Position = UDim2.fromOffset(15, 112)
-ChangeButton.Size = UDim2.new(0.5, -20, 0, 38)
-ChangeButton.BackgroundColor3 = Color3.fromRGB(35, 145, 220)
-ChangeButton.BorderSizePixel = 0
-ChangeButton.Font = Enum.Font.GothamBold
-ChangeButton.Text = "CHANGE AVATAR"
-ChangeButton.TextColor3 = Color3.new(1, 1, 1)
-ChangeButton.TextSize = 12
-ChangeButton.Parent = Main
-
-local ChangeCorner = Instance.new("UICorner")
-ChangeCorner.CornerRadius = UDim.new(0, 8)
-ChangeCorner.Parent = ChangeButton
-
---==================================================
--- REMOVE
---==================================================
-
-local RemoveButton = Instance.new("TextButton")
-RemoveButton.Position = UDim2.new(0.5, 5, 0, 112)
-RemoveButton.Size = UDim2.new(0.5, -20, 0, 38)
-RemoveButton.BackgroundColor3 = Color3.fromRGB(175, 65, 65)
-RemoveButton.BorderSizePixel = 0
-RemoveButton.Font = Enum.Font.GothamBold
-RemoveButton.Text = "REMOVE"
-RemoveButton.TextColor3 = Color3.new(1, 1, 1)
-RemoveButton.TextSize = 12
-RemoveButton.Parent = Main
-
-local RemoveCorner = Instance.new("UICorner")
-RemoveCorner.CornerRadius = UDim.new(0, 8)
-RemoveCorner.Parent = RemoveButton
-
---==================================================
--- MINI
---==================================================
-
-local Mini = Instance.new("ImageButton")
-Mini.Size = UDim2.fromOffset(58, 58)
-Mini.Position = UDim2.new(0.5, -29, 0, 20)
-Mini.BackgroundColor3 = Color3.fromRGB(25, 105, 180)
-Mini.BorderSizePixel = 0
-Mini.Image = IMAGE_ID
-Mini.Visible = false
-Mini.Parent = ScreenGui
-
-local MiniCorner = Instance.new("UICorner")
-MiniCorner.CornerRadius = UDim.new(1, 0)
-MiniCorner.Parent = Mini
-
-local MiniStroke = Instance.new("UIStroke")
-MiniStroke.Thickness = 2
-MiniStroke.Color = Color3.new(1, 1, 1)
-MiniStroke.Parent = Mini
-
---==================================================
--- DRAG
---==================================================
-
-local function MakeDraggable(object)
-
-	local dragging = false
-	local dragStart
-	local startPosition
-	local wasDragged = false
-
-	object.InputBegan:Connect(function(input)
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
-
-			dragging = true
-			wasDragged = false
-
-			dragStart = input.Position
-			startPosition = object.Position
-
-			input.Changed:Connect(function()
-
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
-		end
-	end)
-
-	UserInputService.InputChanged:Connect(function(input)
-
-		if not dragging then
-			return
-		end
-
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
-
-			local delta = input.Position - dragStart
-
-			if math.abs(delta.X) > 4
-				or math.abs(delta.Y) > 4 then
-
-				wasDragged = true
-			end
-
-			object.Position = UDim2.new(
-				startPosition.X.Scale,
-				startPosition.X.Offset + delta.X,
-
-				startPosition.Y.Scale,
-				startPosition.Y.Offset + delta.Y
-			)
-		end
-	end)
-
-	return function()
-		return wasDragged
-	end
-end
-
-local MainDragged = MakeDraggable(Main)
-local MiniDragged = MakeDraggable(Mini)
-
---==================================================
--- BUTTONS
---==================================================
-
-ChangeButton.MouseButton1Click:Connect(function()
-
-	local username = UsernameBox.Text
-
-	local success, message =
-		changeAvatar(username)
-
-	if success then
-		UsernameBox.PlaceholderText = "Avatar active"
-	else
-		UsernameBox.PlaceholderText = message
-	end
-end)
-
-RemoveButton.MouseButton1Click:Connect(function()
-
-	-- FULL RESET
-	destroyOverlay()
-
-	-- Make absolutely sure real avatar is visible
-	local character = LocalPlayer.Character
-
-	if character then
-		restoreRealAvatar()
-	end
-
-	UsernameBox.PlaceholderText = "Enter username..."
-end)
-
---==================================================
--- MINIMIZE
---==================================================
-
-Minimize.MouseButton1Click:Connect(function()
-
-	task.wait()
-
-	if not MainDragged() then
-		Main.Visible = false
-		Mini.Visible = true
-	end
-end)
-
---==================================================
--- RESTORE GUI
---==================================================
-
-Mini.MouseButton1Click:Connect(function()
-
-	task.wait()
-
-	if not MiniDragged() then
-		Mini.Visible = false
-		Main.Visible = true
-	end
-end)
-
---==================================================
--- CLOSE
---==================================================
-
-Close.MouseButton1Click:Connect(function()
-
-	destroyOverlay()
-
-	if CharacterConnection then
-		CharacterConnection:Disconnect()
-		CharacterConnection = nil
-	end
-
-	ScreenGui:Destroy()
-end)
-
---==================================================
--- RESPAWN
---==================================================
-
-CharacterConnection =
-	LocalPlayer.CharacterAdded:Connect(function(character)
-
-		-- Remove old overlay
-		destroyOverlay()
-
-		-- New character is naturally visible
-		task.defer(function()
-
-			if character and character.Parent then
-				restoreRealAvatar()
-			end
-		end)
-	end)
+                instance.Transparency = 0
+            end
+        end
+    end
+)
