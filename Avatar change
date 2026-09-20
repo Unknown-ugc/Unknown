@@ -1,0 +1,393 @@
+--// Avatar Changer - Made by Chris
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+--// Cleanup old GUI
+local oldGui = PlayerGui:FindFirstChild("ChrisAvatarChanger")
+if oldGui then
+    oldGui:Destroy()
+end
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ChrisAvatarChanger"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = PlayerGui
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.fromOffset(310, 175)
+Main.Position = UDim2.new(0.5, -155, 0.5, -87)
+Main.BackgroundColor3 = Color3.fromRGB(25, 105, 190)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = Main
+
+--// Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 0, 30)
+Title.Position = UDim2.fromOffset(10, 8)
+Title.BackgroundTransparency = 1
+Title.Text = "AVATAR CHANGER"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 19
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Center
+Title.Parent = Main
+
+--// Made by Chris - left
+local Credit = Instance.new("TextLabel")
+Credit.Size = UDim2.new(1, -20, 0, 18)
+Credit.Position = UDim2.fromOffset(10, 38)
+Credit.BackgroundTransparency = 1
+Credit.Text = "Made by Chris"
+Credit.TextColor3 = Color3.fromRGB(220, 235, 255)
+Credit.TextSize = 12
+Credit.Font = Enum.Font.Gotham
+Credit.TextXAlignment = Enum.TextXAlignment.Left
+Credit.Parent = Main
+
+--// Username box
+local UsernameBox = Instance.new("TextBox")
+UsernameBox.Size = UDim2.new(1, -20, 0, 35)
+UsernameBox.Position = UDim2.fromOffset(10, 62)
+UsernameBox.BackgroundColor3 = Color3.fromRGB(15, 75, 145)
+UsernameBox.BorderSizePixel = 0
+UsernameBox.PlaceholderText = "Roblox Username"
+UsernameBox.Text = ""
+UsernameBox.TextColor3 = Color3.new(1, 1, 1)
+UsernameBox.PlaceholderColor3 = Color3.fromRGB(190, 210, 235)
+UsernameBox.TextSize = 13
+UsernameBox.Font = Enum.Font.Gotham
+UsernameBox.ClearTextOnFocus = false
+UsernameBox.Parent = Main
+
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 8)
+BoxCorner.Parent = UsernameBox
+
+--// Change button
+local ChangeButton = Instance.new("TextButton")
+ChangeButton.Size = UDim2.new(0.56, -15, 0, 35)
+ChangeButton.Position = UDim2.fromOffset(10, 105)
+ChangeButton.BackgroundColor3 = Color3.fromRGB(15, 75, 145)
+ChangeButton.BorderSizePixel = 0
+ChangeButton.Text = "CHANGE AVATAR"
+ChangeButton.TextColor3 = Color3.new(1, 1, 1)
+ChangeButton.TextSize = 12
+ChangeButton.Font = Enum.Font.GothamBold
+ChangeButton.Parent = Main
+
+local ChangeCorner = Instance.new("UICorner")
+ChangeCorner.CornerRadius = UDim.new(0, 8)
+ChangeCorner.Parent = ChangeButton
+
+--// Remove button
+local RemoveButton = Instance.new("TextButton")
+RemoveButton.Size = UDim2.new(0.44, -15, 0, 35)
+RemoveButton.Position = UDim2.new(0.56, 5, 0, 105)
+RemoveButton.BackgroundColor3 = Color3.fromRGB(15, 75, 145)
+RemoveButton.BorderSizePixel = 0
+RemoveButton.Text = "REMOVE"
+RemoveButton.TextColor3 = Color3.new(1, 1, 1)
+RemoveButton.TextSize = 12
+RemoveButton.Font = Enum.Font.GothamBold
+RemoveButton.Parent = Main
+
+local RemoveCorner = Instance.new("UICorner")
+RemoveCorner.CornerRadius = UDim.new(0, 8)
+RemoveCorner.Parent = RemoveButton
+
+--// Status
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, -20, 0, 20)
+Status.Position = UDim2.fromOffset(10, 143)
+Status.BackgroundTransparency = 1
+Status.Text = ""
+Status.TextColor3 = Color3.fromRGB(220, 235, 255)
+Status.TextSize = 11
+Status.Font = Enum.Font.Gotham
+Status.TextXAlignment = Enum.TextXAlignment.Center
+Status.Parent = Main
+
+--// Variables
+local OverlayModel = nil
+local RenderConnection = nil
+local OriginalTransparency = {}
+
+--// Save original avatar transparency
+local function saveOriginalCharacter()
+    OriginalTransparency = {}
+
+    local character = LocalPlayer.Character
+    if not character then
+        return
+    end
+
+    for _, obj in ipairs(character:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            OriginalTransparency[obj] = obj.LocalTransparencyModifier
+        end
+    end
+end
+
+--// Hide original avatar
+local function hideOriginalCharacter()
+    local character = LocalPlayer.Character
+    if not character then
+        return
+    end
+
+    for _, obj in ipairs(character:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            obj.LocalTransparencyModifier = 1
+        end
+    end
+end
+
+--// Restore original avatar
+local function restoreOriginalCharacter()
+    local character = LocalPlayer.Character
+
+    if character then
+        for _, obj in ipairs(character:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                obj.LocalTransparencyModifier = OriginalTransparency[obj] or 0
+            end
+        end
+    end
+
+    OriginalTransparency = {}
+end
+
+--// Remove current overlay
+local function removeAvatar()
+    if RenderConnection then
+        RenderConnection:Disconnect()
+        RenderConnection = nil
+    end
+
+    if OverlayModel then
+        OverlayModel:Destroy()
+        OverlayModel = nil
+    end
+
+    restoreOriginalCharacter()
+
+    Status.Text = "Original avatar restored"
+end
+
+--// Get player by username
+local function getUserId(username)
+    username = username:gsub("^%s+", ""):gsub("%s+$", "")
+
+    if username == "" then
+        return nil
+    end
+
+    local success, userId = pcall(function()
+        return Players:GetUserIdFromNameAsync(username)
+    end)
+
+    if success then
+        return userId
+    end
+
+    return nil
+end
+
+--// Build avatar
+local function changeAvatar()
+    local username = UsernameBox.Text
+
+    if username == "" then
+        Status.Text = "Enter a Roblox username"
+        return
+    end
+
+    Status.Text = "Loading avatar..."
+
+    local userId = getUserId(username)
+
+    if not userId then
+        Status.Text = "Username not found"
+        return
+    end
+
+    removeAvatar()
+
+    local success, model = pcall(function()
+        return Players:CreateHumanoidModelFromUserIdAsync(userId)
+    end)
+
+    if not success or not model then
+        Status.Text = "Could not load avatar"
+        return
+    end
+
+    OverlayModel = model
+    OverlayModel.Name = "_ChrisAvatarOverlay"
+
+    local camera = workspace.CurrentCamera
+    OverlayModel.Parent = camera
+
+    local character = LocalPlayer.Character
+    if not character then
+        OverlayModel:Destroy()
+        OverlayModel = nil
+        Status.Text = "Character not found"
+        return
+    end
+
+    local root = character:FindFirstChild("HumanoidRootPart")
+    local overlayRoot = OverlayModel:FindFirstChild("HumanoidRootPart")
+
+    if not root or not overlayRoot then
+        OverlayModel:Destroy()
+        OverlayModel = nil
+        Status.Text = "Avatar rig error"
+        return
+    end
+
+    saveOriginalCharacter()
+
+    -- Match position
+    OverlayModel:PivotTo(root.CFrame)
+
+    -- Hide original
+    hideOriginalCharacter()
+
+    -- Keep overlay attached to player
+    RenderConnection = RunService.RenderStepped:Connect(function()
+        if not OverlayModel or not OverlayModel.Parent then
+            return
+        end
+
+        local currentCharacter = LocalPlayer.Character
+        if not currentCharacter then
+            return
+        end
+
+        local currentRoot = currentCharacter:FindFirstChild("HumanoidRootPart")
+        if not currentRoot then
+            return
+        end
+
+        OverlayModel:PivotTo(currentRoot.CFrame)
+    end)
+
+    Status.Text = "Avatar changed"
+end
+
+--// Buttons
+ChangeButton.MouseButton1Click:Connect(changeAvatar)
+RemoveButton.MouseButton1Click:Connect(removeAvatar)
+
+--// Enter key
+UsernameBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        changeAvatar()
+    end
+end)
+
+--// Restore original avatar if character respawns
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+
+    if OverlayModel then
+        removeAvatar()
+    end
+end)
+
+--// Dragging
+local dragging = false
+local dragStart
+local startPos
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+
+    Main.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        updateDrag(input)
+    end
+end)
+
+--// Minimize button
+local Minimized = false
+
+local MiniButton = Instance.new("ImageButton")
+MiniButton.Size = UDim2.fromOffset(55, 55)
+MiniButton.Position = UDim2.new(0.5, -27, 0, 20)
+MiniButton.BackgroundColor3 = Color3.fromRGB(25, 105, 190)
+MiniButton.BorderSizePixel = 0
+MiniButton.Image = "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
+MiniButton.Visible = false
+MiniButton.Parent = ScreenGui
+
+local MiniCorner = Instance.new("UICorner")
+MiniCorner.CornerRadius = UDim.new(1, 0)
+MiniCorner.Parent = MiniButton
+
+local MiniStroke = Instance.new("UIStroke")
+MiniStroke.Thickness = 2
+MiniStroke.Color = Color3.new(1, 1, 1)
+MiniStroke.Parent = MiniButton
+
+--// Small minimize button
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.fromOffset(25, 25)
+Minimize.Position = UDim2.new(1, -32, 0, 5)
+Minimize.BackgroundTransparency = 1
+Minimize.Text = "−"
+Minimize.TextColor3 = Color3.new(1, 1, 1)
+Minimize.TextSize = 22
+Minimize.Font = Enum.Font.GothamBold
+Minimize.Parent = Main
+
+Minimize.MouseButton1Click:Connect(function()
+    Minimized = true
+    Main.Visible = false
+    MiniButton.Visible = true
+end)
+
+MiniButton.MouseButton1Click:Connect(function()
+    Minimized = false
+    MiniButton.Visible = false
+    Main.Visible = true
+end)
