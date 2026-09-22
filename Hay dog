@@ -1,3 +1,6 @@
+-- ============================================================
+-- StealAnEggAllScript V1.5  (FULLY FIXED)
+-- ============================================================
 local Players   = game:GetService("Players")
 local UIS       = game:GetService("UserInputService")
 local SoundSvc  = game:GetService("SoundService")
@@ -21,6 +24,7 @@ local Theme = {
     Muted = Color3.fromRGB(150,165,185),
 }
 
+-- ============ GUI SHELL ============
 local gui = Instance.new("ScreenGui")
 gui.Name = "StealAnEggAllScript"
 gui.ResetOnSpawn = false
@@ -47,13 +51,11 @@ local header = Instance.new("Frame")
 header.Size = UDim2.new(1,0,0,44)
 header.BackgroundColor3 = Theme.Card
 header.BorderSizePixel = 0
-header.Active = true
-header.ZIndex = 5
+header.Active = false
 header.Parent = main
--- Mobile fix: InputSink para tumanggap ng touch
-pcall(function() header.InputSink = Enum.InputSink.All end)
 Instance.new("UICorner",header).CornerRadius = UDim.new(0,12)
 
+-- ============ HELPERS ============
 local function lbl(parent,text,pos,size,font,tsize,color,yAlign)
     local l = Instance.new("TextLabel")
     l.BackgroundTransparency = 1
@@ -81,44 +83,46 @@ local function btn(parent,text,pos,size,bg,tc,tsize)
     return b
 end
 
+-- ============ HEADER CONTENT ============
 local title = lbl(header,"🐱CAT HUB🐱",UDim2.fromOffset(12,6),
     UDim2.new(1,-100,0,20),Enum.Font.GothamBold,13,Theme.Text)
 title.Active = true
-title.ZIndex = 6
-pcall(function() title.InputSink = Enum.InputSink.All end)
 
 local subtitle = lbl(header,"All scripts in one place",UDim2.fromOffset(12,25),
     UDim2.new(1,-100,0,13),Enum.Font.Gotham,7,Theme.Muted)
 subtitle.Active = true
-subtitle.ZIndex = 6
-pcall(function() subtitle.InputSink = Enum.InputSink.All end)
 
 local minimize = Instance.new("TextButton")
 minimize.Position = UDim2.new(1,-62,0,5)
-minimize.Size = UDim2.fromOffset(30,30)
+minimize.Size = UDim2.fromOffset(28,28)
 minimize.BackgroundTransparency = 1
 minimize.Text = "-"; minimize.TextSize = 20
 minimize.TextColor3 = Theme.Text
 minimize.Font = Enum.Font.GothamBold
-minimize.ZIndex = 100
-minimize.Active = true
-minimize.Selectable = true
-pcall(function() minimize.InputSink = Enum.InputSink.Activate end)
+minimize.ZIndex = 20; minimize.Active = true
 minimize.Parent = header
 
 local close = Instance.new("TextButton")
 close.Position = UDim2.new(1,-32,0,5)
-close.Size = UDim2.fromOffset(30,30)
+close.Size = UDim2.fromOffset(28,28)
 close.BackgroundTransparency = 1
 close.Text = "X"; close.TextSize = 15
 close.TextColor3 = Theme.Text
 close.Font = Enum.Font.GothamBold
-close.ZIndex = 100
-close.Active = true
-close.Selectable = true
-pcall(function() close.InputSink = Enum.InputSink.Activate end)
+close.ZIndex = 20; close.Active = true
 close.Parent = header
 
+-- Backup drag bar (mobile-safe)
+local dragBar = Instance.new("TextButton")
+dragBar.Size = UDim2.new(1,-120,0,44)
+dragBar.Position = UDim2.fromOffset(0,0)
+dragBar.BackgroundTransparency = 1
+dragBar.Text = ""
+dragBar.Active = true
+dragBar.ZIndex = 15
+dragBar.Parent = header
+
+-- ============ NAV ============
 local nav = Instance.new("Frame")
 nav.Position = UDim2.fromOffset(8,50)
 nav.Size = UDim2.fromOffset(50,240)
@@ -131,20 +135,18 @@ content.Position = UDim2.fromOffset(65,50)
 content.Size = UDim2.new(1,-75,1,-58)
 content.BackgroundTransparency = 1; content.Parent = main
 
+-- ============ PAGES ============
 local function newPage(class, scrollY)
     local p = Instance.new(class or "Frame")
     p.Size = UDim2.fromScale(1,1)
     p.BackgroundTransparency = 1
     p.BorderSizePixel = 0
     p.Visible = false
-    p.ZIndex = 5
-    p.Active = true
     p.Parent = content
     if class == "ScrollingFrame" then
         p.ScrollBarThickness = 3
         p.CanvasSize = UDim2.fromOffset(0, scrollY or 400)
-        p.Active = true
-        p.ZIndex = 5
+        p.AutomaticCanvasSize = Enum.AutomaticSize.Y
     end
     return p
 end
@@ -152,15 +154,15 @@ end
 local home         = newPage("Frame")
 local scriptsPage  = newPage("Frame")
 local settingsPage = newPage("ScrollingFrame",400)
-local serverPage   = newPage("ScrollingFrame",0)
+local serverPage   = newPage("ScrollingFrame",400)
 local aboutPage    = newPage("ScrollingFrame",620)
 local creditsPage  = newPage("ScrollingFrame",370)
 
 home.Visible = true
 scriptsPage.ClipsDescendants = true
 creditsPage.ClipsDescendants = true
-serverPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
+-- ============ NAV BUTTONS ============
 local navBtns = {}
 local function makeNav(name,y)
     local b = Instance.new("TextButton")
@@ -202,7 +204,6 @@ local function bindNav(b,page)
         selectNav(b); showPage(page)
     end)
 end
-
 bindNav(homeBtn,home)
 bindNav(scriptBtn,scriptsPage)
 bindNav(serverBtn,serverPage)
@@ -210,7 +211,6 @@ bindNav(settingsBtn,settingsPage)
 bindNav(creditBtn,creditsPage)
 bindNav(aboutBtn,aboutPage)
 selectNav(homeBtn)
-
 
 -- ============ HOME PAGE ============
 local discord = Instance.new("ImageButton")
@@ -386,7 +386,7 @@ local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0,5)
 layout.Parent = scriptList
 
--- ============ HUB URL TABLES (no "RECOMMENDED" tags) ============
+-- ============ HUB TABLES ============
 local KEY_HUBS = {
     {"Clover Hub",       "https://cloverhub.app/clover.lua"},
     {"Ajjans Hub",       "https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"},
@@ -488,6 +488,7 @@ local KEYLESS_HUBS = {
     {"TOKINU",           "https://raw.githubusercontent.com/Tokinu-Scripts/Steal-An-Egg/refs/heads/main/Instant/Tp"},
     {"NEVA HUB",         "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2"},
     {"LEVON HUB",        "https://pastefy.app/nasHhfko/raw"},
+    {"PET SPAWNER TERBAGUS","https://raw.githubusercontent.com/bugxiefun/roblox-scripts/refs/heads/main/rblxscripts-stealanegg-spawner"},
     {"ZERO POINT HUB",   "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem"},
     {"VALINC HUB",       "https://api.valincsyndicate.com/v1/releases/5502cba03703f4a3628d522d396b80d8.lua"},
     {"LUMIN HUB",        "http://luminon.top/loader.lua"},
@@ -506,17 +507,16 @@ local KEYLESS_HUBS = {
 }
 
 local VISUAL_HUBS = {
-    {"Animation",        "https://rawscripts.net/raw/Universal-Script-Free-animations-112111"},
-    {"Spawner",          "https://raw.githubusercontent.com/bugxiefun/roblox-scripts/refs/heads/main/rblxscripts-stealanegg-spawner"},
-    {"Admin Panel",      "https://api.jnkie.com/api/v1/luascripts/public/f6851ba0a3fc126430592a97d523d7c05b632f607eefb582f11353b9ef77a38f/download"},
-    {"UNIVERS GRAPHICS", "https://raw.githubusercontent.com/Uranus197/-Univers-Hub-Graphics-Script-/refs/heads/main/UniversHub"},
-    {"Shader",           "https://pastebin.com/raw/Zpaf00Nu"},
-    {"Shader1",          "https://raw.githubusercontent.com/randomstring0/pshade-ultimate/refs/heads/main/src/cd.lua"},
-    {"Shader2",          "https://rawscripts.net/raw/Universal-Script-Simple-Shader-37434"},
-    {"Avatar Changer",   "https://raw.githubusercontent.com/Unknown-ugc/Unknown/refs/heads/main/Avatar%20change"},
-    {"DUPE EGG + PET",   "https://raw.githubusercontent.com/INF-Hub-PL/StealAEggScript/refs/heads/main/Pet_SpawnerV1"},
-    {"PET/EGG SPAWNER",  "https://api.luarmor.net/files/v4/loaders/d8f1c691a58edb11ef782849f80e9b61.lua"},
-    
+    {"Animation",            "https://rawscripts.net/raw/Universal-Script-Free-animations-112111"},
+    {"Spawner",              "https://raw.githubusercontent.com/bugxiefun/roblox-scripts/refs/heads/main/rblxscripts-stealanegg-spawner"},
+    {"Admin Panel",          "https://api.jnkie.com/api/v1/luascripts/public/f6851ba0a3fc126430592a97d523d7c05b632f607eefb582f11353b9ef77a38f/download"},
+    {"UNIVERS GRAPHICS",     "https://raw.githubusercontent.com/Uranus197/-Univers-Hub-Graphics-Script-/refs/heads/main/UniversHub"},
+    {"Shader",               "https://pastebin.com/raw/Zpaf00Nu"},
+    {"Shader1",              "https://raw.githubusercontent.com/randomstring0/pshade-ultimate/refs/heads/main/src/cd.lua"},
+    {"Shader2",              "https://rawscripts.net/raw/Universal-Script-Simple-Shader-37434"},
+    {"Avatar Changer",       "https://raw.githubusercontent.com/Unknown-ugc/Unknown/refs/heads/main/Posaa"},
+    {"Dupe Egg + Pet Spawner","https://raw.githubusercontent.com/INF-Hub-PL/StealAEggScript/refs/heads/main/Pet_SpawnerV1"},
+    {"Pet/Egg Spawner",      "https://api.luarmor.net/files/v4/loaders/d8f1c691a58edb11ef782849f80e9b61.lua"},
 }
 
 local function runHub(url)
@@ -704,106 +704,7 @@ UIS.InputEnded:Connect(function(i)
     end
 end)
 
--- ============ DRAG MAIN GUI (via title & subtitle) ============
-local dragging, dragStart, startPos = false, nil, nil
-
-local function startDrag(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = main.Position
-    end
-end
-
-title.InputBegan:Connect(startDrag)
-subtitle.InputBegan:Connect(startDrag)
-header.InputBegan:Connect(startDrag)
-
-UIS.InputChanged:Connect(function(i)
-    if dragging and (i.UserInputType == Enum.UserInputType.Touch
-    or i.UserInputType == Enum.UserInputType.MouseMovement) then
-        local d = i.Position - dragStart
-        main.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + d.X,
-            startPos.Y.Scale, startPos.Y.Offset + d.Y)
-    end
-end)
-
-UIS.InputEnded:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1
-    or i.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
-
--- ============ MINIMIZE CIRCLE ============
-local mini = Instance.new("ImageButton")
-mini.Size = UDim2.fromOffset(50,50)
-mini.Position = UDim2.new(.5,-25,0,10)
-mini.BackgroundColor3 = Theme.BG
-mini.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=85422381974829&width=420&height=420&format=png"
-mini.Visible = false
-mini.Active = true
-mini.Parent = gui
-Instance.new("UICorner",mini).CornerRadius = UDim.new(1,0)
-
-local miniStroke = Instance.new("UIStroke")
-miniStroke.Color = Theme.Main
-miniStroke.Thickness = 2
-miniStroke.Parent = mini
-
--- MINIMIZE BUTTON → show circle
-minimize.Activated:Connect(function()
-    main.Visible = false
-    mini.Visible = true
-end)
-
--- Make circle draggable AND tappable
-local mDrag, mMoved, mStart, mPos = false, false, nil, nil
-
-mini.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.Touch
-    or i.UserInputType == Enum.UserInputType.MouseButton1 then
-        mDrag = true
-        mMoved = false
-        mStart = i.Position
-        mPos = mini.Position
-    end
-end)
-
-UIS.InputChanged:Connect(function(i)
-    if mDrag and (i.UserInputType == Enum.UserInputType.Touch
-    or i.UserInputType == Enum.UserInputType.MouseMovement) then
-        local d = i.Position - mStart
-        if math.abs(d.X) > 5 or math.abs(d.Y) > 5 then
-            mMoved = true
-        end
-        mini.Position = UDim2.new(
-            mPos.X.Scale, mPos.X.Offset + d.X,
-            mPos.Y.Scale, mPos.Y.Offset + d.Y)
-    end
-end)
-
-UIS.InputEnded:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1
-    or i.UserInputType == Enum.UserInputType.Touch then
-        if mDrag and not mMoved then
-            -- Tapped (not dragged) → restore GUI
-            main.Visible = true
-            mini.Visible = false
-        end
-        mDrag = false
-        mMoved = false
-    end
-end)
-
--- ============ CLOSE ============
-close.Activated:Connect(function()
-    gui:Destroy()
-end)
-
--- ============ SERVER PAGE CONTENT ============
+-- ============ SERVER PAGE ============
 lbl(serverPage,"SERVER • V1.2",UDim2.fromOffset(0,0),UDim2.fromOffset(270,24),
     Enum.Font.GothamBold,12,Theme.Text,Enum.TextYAlignment.Center)
 lbl(serverPage,
@@ -894,7 +795,7 @@ checkServers.Activated:Connect(function()
     end)
 end)
 
--- ============ ABOUT PAGE CONTENT ============
+-- ============ ABOUT PAGE ============
 lbl(aboutPage,"ABOUT • 1.5",UDim2.fromOffset(10,8),UDim2.new(1,-20,0,24),
     Enum.Font.GothamBold,12,Theme.Text)
 lbl(aboutPage,
@@ -918,7 +819,7 @@ lbl(aboutPage,
     UDim2.fromOffset(10,38),UDim2.new(1,-20,0,560),
     Enum.Font.Gotham,9,Theme.Text)
 
--- ============ CREDITS PAGE CONTENT ============
+-- ============ CREDITS PAGE ============
 lbl(creditsPage,"CREDITS",UDim2.fromOffset(8,8),UDim2.fromOffset(250,22),
     Enum.Font.GothamBold,13,Theme.Text)
 lbl(creditsPage,"THANK YOU\nThank you for using Steal an Egg All Script!",
@@ -962,8 +863,103 @@ Instance.new("UICorner",ownerImg).CornerRadius = UDim.new(1,0)
 lbl(creditsPage,"CHRIS",UDim2.fromOffset(63,315),UDim2.fromOffset(190,25),
     Enum.Font.GothamBold,11,Theme.Text)
 
-warn("[StealAnEggAllScript] V1.5 loaded successfully.")
+-- ============ DRAG MAIN GUI ============
+local dragging, dragStart, startPos = false, nil, nil
 
+local function startDrag(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+    end
+end
+
+title.InputBegan:Connect(startDrag)
+subtitle.InputBegan:Connect(startDrag)
+dragBar.InputBegan:Connect(startDrag)
+
+UIS.InputChanged:Connect(function(i)
+    if dragging and (i.UserInputType == Enum.UserInputType.Touch
+    or i.UserInputType == Enum.UserInputType.MouseMovement) then
+        local d = i.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + d.X,
+            startPos.Y.Scale, startPos.Y.Offset + d.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+    or i.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- ============ MINIMIZE CIRCLE ============
+local mini = Instance.new("ImageButton")
+mini.Size = UDim2.fromOffset(50,50)
+mini.Position = UDim2.new(.5,-25,0,10)
+mini.BackgroundColor3 = Theme.BG
+mini.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=85422381974829&width=420&height=420&format=png"
+mini.Visible = false
+mini.Active = true
+mini.Parent = gui
+Instance.new("UICorner",mini).CornerRadius = UDim.new(1,0)
+
+local miniStroke = Instance.new("UIStroke")
+miniStroke.Color = Theme.Main
+miniStroke.Thickness = 2
+miniStroke.Parent = mini
+
+-- MINIMIZE BUTTON → show circle
+minimize.Activated:Connect(function()
+    main.Visible = false
+    mini.Visible = true
+end)
+
+-- Make circle draggable AND tappable
+local mDrag, mMoved, mStart, mPos = false, false, nil, nil
+
+mini.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.Touch
+    or i.UserInputType == Enum.UserInputType.MouseButton1 then
+        mDrag = true
+        mMoved = false
+        mStart = i.Position
+        mPos = mini.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(i)
+    if mDrag and (i.UserInputType == Enum.UserInputType.Touch
+    or i.UserInputType == Enum.UserInputType.MouseMovement) then
+        local d = i.Position - mStart
+        if math.abs(d.X) > 5 or math.abs(d.Y) > 5 then
+            mMoved = true
+        end
+        mini.Position = UDim2.new(
+            mPos.X.Scale, mPos.X.Offset + d.X,
+            mPos.Y.Scale, mPos.Y.Offset + d.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+    or i.UserInputType == Enum.UserInputType.Touch then
+        if mDrag and not mMoved then
+            -- Tapped → restore GUI
+            main.Visible = true
+            mini.Visible = false
+        end
+        mDrag = false
+        mMoved = false
+    end
+end)
+
+-- ============ CLOSE ============
 close.Activated:Connect(function()
     gui:Destroy()
 end)
+
+warn("[StealAnEggAllScript] V1.5 loaded successfully.")
