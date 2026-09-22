@@ -5,6 +5,11 @@ local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
 
 local player = Players.LocalPlayer
+while not player do task.wait() player = Players.LocalPlayer end
+
+local pg = player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("PlayerGui", 10)
+if not pg then warn("PlayerGui missing!") return end
+gui.Parent = pg
 
 local function showStatus(message)
     warn("[StealAnEggAllScript] "..tostring(message))
@@ -618,11 +623,15 @@ avatar.Parent = home
 
 Instance.new("UICorner",avatar).CornerRadius = UDim.new(1,0)
 
-local avatarImage = Players:GetUserThumbnailAsync(
-	player.UserId,
-	Enum.ThumbnailType.HeadShot,
-	Enum.ThumbnailSize.Size100x100
-)
+local avatarImage = "rbxassetid://0"
+pcall(function()
+    avatarImage = Players:GetUserThumbnailAsync(
+        player.UserId,
+        Enum.ThumbnailType.HeadShot,
+        Enum.ThumbnailSize.Size100x100
+    )
+end)
+avatar.Image = avatarImage
 
 avatar.Image = avatarImage
 
