@@ -161,6 +161,25 @@ scriptsPage.ClipsDescendants = true
 creditsPage.ClipsDescendants = true
 serverPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
+local navBtns = {}
+local function makeNav(name,y)
+    local b = Instance.new("TextButton")
+    b.Position = UDim2.fromOffset(4,y)
+    b.Size = UDim2.fromOffset(42,38)
+    b.BackgroundTransparency = 1
+    b.BorderSizePixel = 0
+    b.Text = name; b.TextSize = 7
+    b.Font = Enum.Font.GothamBold
+    b.TextColor3 = Theme.Muted
+    b.Parent = nav
+    Instance.new("UICorner",b).CornerRadius = UDim.new(0,7)
+    table.insert(navBtns,b)
+    return b
+end
+
+local homeBtn     = makeNav("HOME",6)
+local scriptBtn   = makeNav("SCRIPT",44)
+local serverBtn   = makeNav("SERVER",82)
 local settingsBtn = makeNav("SETTINGS",120)
 local creditBtn   = makeNav("CREDIT",158)
 local aboutBtn    = makeNav("ABOUT",196)
@@ -183,6 +202,7 @@ local function bindNav(b,page)
         selectNav(b); showPage(page)
     end)
 end
+
 bindNav(homeBtn,home)
 bindNav(scriptBtn,scriptsPage)
 bindNav(serverBtn,serverPage)
@@ -190,6 +210,7 @@ bindNav(settingsBtn,settingsPage)
 bindNav(creditBtn,creditsPage)
 bindNav(aboutBtn,aboutPage)
 selectNav(homeBtn)
+
 
 -- ============ HOME PAGE ============
 local discord = Instance.new("ImageButton")
