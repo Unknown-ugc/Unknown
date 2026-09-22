@@ -47,8 +47,11 @@ local header = Instance.new("Frame")
 header.Size = UDim2.new(1,0,0,44)
 header.BackgroundColor3 = Theme.Card
 header.BorderSizePixel = 0
-header.Active = false
+header.Active = true
+header.ZIndex = 5
 header.Parent = main
+-- Mobile fix: InputSink para tumanggap ng touch
+pcall(function() header.InputSink = Enum.InputSink.All end)
 Instance.new("UICorner",header).CornerRadius = UDim.new(0,12)
 
 local function lbl(parent,text,pos,size,font,tsize,color,yAlign)
@@ -81,29 +84,39 @@ end
 local title = lbl(header,"🐱CAT HUB🐱",UDim2.fromOffset(12,6),
     UDim2.new(1,-100,0,20),Enum.Font.GothamBold,13,Theme.Text)
 title.Active = true
+title.ZIndex = 6
+pcall(function() title.InputSink = Enum.InputSink.All end)
 
 local subtitle = lbl(header,"All scripts in one place",UDim2.fromOffset(12,25),
     UDim2.new(1,-100,0,13),Enum.Font.Gotham,7,Theme.Muted)
 subtitle.Active = true
+subtitle.ZIndex = 6
+pcall(function() subtitle.InputSink = Enum.InputSink.All end)
 
 local minimize = Instance.new("TextButton")
 minimize.Position = UDim2.new(1,-62,0,5)
-minimize.Size = UDim2.fromOffset(28,28)
+minimize.Size = UDim2.fromOffset(30,30)
 minimize.BackgroundTransparency = 1
 minimize.Text = "-"; minimize.TextSize = 20
 minimize.TextColor3 = Theme.Text
 minimize.Font = Enum.Font.GothamBold
-minimize.ZIndex = 20; minimize.Active = true
+minimize.ZIndex = 100
+minimize.Active = true
+minimize.Selectable = true
+pcall(function() minimize.InputSink = Enum.InputSink.Activate end)
 minimize.Parent = header
 
 local close = Instance.new("TextButton")
 close.Position = UDim2.new(1,-32,0,5)
-close.Size = UDim2.fromOffset(28,28)
+close.Size = UDim2.fromOffset(30,30)
 close.BackgroundTransparency = 1
 close.Text = "X"; close.TextSize = 15
 close.TextColor3 = Theme.Text
 close.Font = Enum.Font.GothamBold
-close.ZIndex = 20; close.Active = true
+close.ZIndex = 100
+close.Active = true
+close.Selectable = true
+pcall(function() close.InputSink = Enum.InputSink.Activate end)
 close.Parent = header
 
 local nav = Instance.new("Frame")
@@ -124,10 +137,14 @@ local function newPage(class, scrollY)
     p.BackgroundTransparency = 1
     p.BorderSizePixel = 0
     p.Visible = false
+    p.ZIndex = 5
+    p.Active = true
     p.Parent = content
     if class == "ScrollingFrame" then
         p.ScrollBarThickness = 3
         p.CanvasSize = UDim2.fromOffset(0, scrollY or 400)
+        p.Active = true
+        p.ZIndex = 5
     end
     return p
 end
