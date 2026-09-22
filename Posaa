@@ -1,0 +1,768 @@
+local Players   = game:GetService("Players")
+local UIS       = game:GetService("UserInputService")
+local SoundSvc  = game:GetService("SoundService")
+local TextSvc   = game:GetService("TextService")
+local HttpSvc   = game:GetService("HttpService")
+local TeleSvc   = game:GetService("TeleportService")
+
+local player = Players.LocalPlayer
+while not player do task.wait() player = Players.LocalPlayer end
+local pg = player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("PlayerGui", 15)
+if not pg then return warn("[SAE] PlayerGui missing") end
+
+local DISCORD_LINK = "https://discord.gg/FJK6QzNnf7"
+local TIKTOK_LINK  = "https://www.tiktok.com/@randomperson5142?_r=1&_t=ZS-99hbB7Iv7HU"
+
+local Theme = {
+    Main  = Color3.fromRGB(35,125,255),
+    BG    = Color3.fromRGB(10,16,28),
+    Card  = Color3.fromRGB(18,27,43),
+    Text  = Color3.fromRGB(225,235,250),
+    Muted = Color3.fromRGB(150,165,185),
+}
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "StealAnEggAllScript"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 999999
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = pg
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(350,320)
+main.Position = UDim2.new(.5,-175,.5,-160)
+main.BackgroundColor3 = Theme.BG
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = gui
+Instance.new("UICorner",main).CornerRadius = UDim.new(0,12)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Theme.Main
+stroke.Thickness = 1.5
+stroke.Parent = main
+
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1,0,0,44)
+header.BackgroundColor3 = Theme.Card
+header.BorderSizePixel = 0
+header.Active = false
+header.Parent = main
+Instance.new("UICorner",header).CornerRadius = UDim.new(0,12)
+
+local function lbl(parent,text,pos,size,font,tsize,color,yAlign)
+    local l = Instance.new("TextLabel")
+    l.BackgroundTransparency = 1
+    l.Position = pos; l.Size = size; l.Text = text
+    l.Font = font or Enum.Font.Gotham
+    l.TextSize = tsize or 8
+    l.TextColor3 = color or Theme.Text
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.TextYAlignment = yAlign or Enum.TextYAlignment.Top
+    l.TextWrapped = true
+    l.Parent = parent
+    return l
+end
+
+local function btn(parent,text,pos,size,bg,tc,tsize)
+    local b = Instance.new("TextButton")
+    b.Position = pos; b.Size = size
+    b.BackgroundColor3 = bg or Theme.Card
+    b.BorderSizePixel = 0; b.Text = text
+    b.TextSize = tsize or 8
+    b.Font = Enum.Font.GothamBold
+    b.TextColor3 = tc or Color3.new(1,1,1)
+    b.Parent = parent
+    Instance.new("UICorner",b).CornerRadius = UDim.new(0,8)
+    return b
+end
+
+local title = lbl(header,"🐱CAT HUB🐱",UDim2.fromOffset(12,6),
+    UDim2.new(1,-100,0,20),Enum.Font.GothamBold,13,Theme.Text)
+title.Active = true
+
+local subtitle = lbl(header,"All scripts in one place",UDim2.fromOffset(12,25),
+    UDim2.new(1,-100,0,13),Enum.Font.Gotham,7,Theme.Muted)
+subtitle.Active = true
+
+local minimize = Instance.new("TextButton")
+minimize.Position = UDim2.new(1,-62,0,5)
+minimize.Size = UDim2.fromOffset(28,28)
+minimize.BackgroundTransparency = 1
+minimize.Text = "-"; minimize.TextSize = 20
+minimize.TextColor3 = Theme.Text
+minimize.Font = Enum.Font.GothamBold
+minimize.ZIndex = 20; minimize.Active = true
+minimize.Parent = header
+
+local close = Instance.new("TextButton")
+close.Position = UDim2.new(1,-32,0,5)
+close.Size = UDim2.fromOffset(28,28)
+close.BackgroundTransparency = 1
+close.Text = "X"; close.TextSize = 15
+close.TextColor3 = Theme.Text
+close.Font = Enum.Font.GothamBold
+close.ZIndex = 20; close.Active = true
+close.Parent = header
+
+local nav = Instance.new("Frame")
+nav.Position = UDim2.fromOffset(8,50)
+nav.Size = UDim2.fromOffset(50,240)
+nav.BackgroundColor3 = Theme.Card
+nav.BorderSizePixel = 0; nav.Parent = main
+Instance.new("UICorner",nav).CornerRadius = UDim.new(0,10)
+
+local content = Instance.new("Frame")
+content.Position = UDim2.fromOffset(65,50)
+content.Size = UDim2.new(1,-75,1,-58)
+content.BackgroundTransparency = 1; content.Parent = main
+
+local function newPage(class, scrollY)
+    local p = Instance.new(class or "Frame")
+    p.Size = UDim2.fromScale(1,1)
+    p.BackgroundTransparency = 1
+    p.BorderSizePixel = 0
+    p.Visible = false
+    p.Parent = content
+    if class == "ScrollingFrame" then
+        p.ScrollBarThickness = 3
+        p.CanvasSize = UDim2.fromOffset(0, scrollY or 400)
+    end
+    return p
+end
+
+local home         = newPage("Frame")
+local scriptsPage  = newPage("Frame")
+local settingsPage = newPage("ScrollingFrame",400)
+local serverPage   = newPage("ScrollingFrame",0)
+local aboutPage    = newPage("ScrollingFrame",620)
+local creditsPage  = newPage("ScrollingFrame",370)
+
+home.Visible = true
+scriptsPage.ClipsDescendants = true
+creditsPage.ClipsDescendants = true
+serverPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local settingsBtn = makeNav("SETTINGS",120)
+local creditBtn   = makeNav("CREDIT",158)
+local aboutBtn    = makeNav("ABOUT",196)
+
+local function selectNav(sel)
+    for _,b in ipairs(navBtns) do b.BackgroundTransparency = 1 end
+    sel.BackgroundTransparency = 0
+    sel.BackgroundColor3 = Color3.fromRGB(25,40,65)
+end
+
+local function showPage(p)
+    for _,x in ipairs({home,scriptsPage,serverPage,settingsPage,creditsPage,aboutPage}) do
+        x.Visible = false
+    end
+    p.Visible = true
+end
+
+local function bindNav(b,page)
+    b.Activated:Connect(function()
+        selectNav(b); showPage(page)
+    end)
+end
+bindNav(homeBtn,home)
+bindNav(scriptBtn,scriptsPage)
+bindNav(serverBtn,serverPage)
+bindNav(settingsBtn,settingsPage)
+bindNav(creditBtn,creditsPage)
+bindNav(aboutBtn,aboutPage)
+selectNav(homeBtn)
+
+-- ============ HOME PAGE ============
+local discord = Instance.new("ImageButton")
+discord.Size = UDim2.fromOffset(34,34)
+discord.BackgroundTransparency = 1
+discord.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=10367063084&width=420&height=420&format=png"
+discord.Parent = home
+Instance.new("UICorner",discord).CornerRadius = UDim.new(1,0)
+discord.Activated:Connect(function()
+    if setclipboard then setclipboard(DISCORD_LINK) end
+end)
+
+lbl(home,"Tap the Discord icon to copy the link",
+    UDim2.fromOffset(0,30),UDim2.fromOffset(270,18),
+    Enum.Font.Gotham,8,Theme.Muted)
+
+local welcomeHeader = Instance.new("Frame")
+welcomeHeader.BackgroundTransparency = 1
+welcomeHeader.Position = UDim2.fromOffset(0,47)
+welcomeHeader.Size = UDim2.fromOffset(140,22)
+welcomeHeader.Parent = home
+
+lbl(welcomeHeader,"AntiDetect",UDim2.fromOffset(0,0),UDim2.fromOffset(65,22),
+    Enum.Font.GothamBold,9,Theme.Text,Enum.TextYAlignment.Center)
+
+local welcomeOn = btn(welcomeHeader,"ON",UDim2.fromOffset(70,3),
+    UDim2.fromOffset(38,16),Theme.Main,Color3.new(1,1,1),7)
+welcomeOn.AutoButtonColor = false
+local welcomeState = true
+welcomeOn.Activated:Connect(function()
+    welcomeState = not welcomeState
+    if welcomeState then
+        welcomeOn.Text = "ON"
+        welcomeOn.BackgroundColor3 = Theme.Main
+    else
+        welcomeOn.Text = "OFF"
+        welcomeOn.BackgroundColor3 = Color3.fromRGB(70,75,85)
+    end
+end)
+
+local avatar = Instance.new("ImageLabel")
+avatar.Position = UDim2.new(1,-36,0,0)
+avatar.Size = UDim2.fromOffset(34,34)
+avatar.BackgroundTransparency = 1
+avatar.Parent = home
+Instance.new("UICorner",avatar).CornerRadius = UDim.new(1,0)
+
+local avatarImage = "rbxassetid://0"
+pcall(function()
+    avatarImage = Players:GetUserThumbnailAsync(
+        player.UserId,
+        Enum.ThumbnailType.HeadShot,
+        Enum.ThumbnailSize.Size100x100
+    )
+end)
+avatar.Image = avatarImage
+
+lbl(home,"@"..player.Name,UDim2.new(1,-150,0,36),UDim2.fromOffset(145,18),
+    Enum.Font.GothamBold,8,Theme.Text).TextXAlignment = Enum.TextXAlignment.Right
+
+local welcome = Instance.new("Frame")
+welcome.Position = UDim2.fromOffset(0,70)
+welcome.Size = UDim2.fromOffset(270,150)
+welcome.BackgroundColor3 = Theme.Card
+welcome.BorderSizePixel = 0
+welcome.ClipsDescendants = true
+welcome.Parent = home
+Instance.new("UICorner",welcome).CornerRadius = UDim.new(0,10)
+
+local welcomeScroll = Instance.new("ScrollingFrame")
+welcomeScroll.Position = UDim2.fromOffset(8,8)
+welcomeScroll.Size = UDim2.new(1,-16,1,-16)
+welcomeScroll.BackgroundTransparency = 1
+welcomeScroll.BorderSizePixel = 0
+welcomeScroll.ScrollBarThickness = 4
+welcomeScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+welcomeScroll.CanvasSize = UDim2.fromOffset(0,0)
+welcomeScroll.Parent = welcome
+
+local scrollHint = lbl(welcomeScroll,"SWIPE TO SCROLL",
+    UDim2.new(1,-115,0,3),UDim2.fromOffset(105,18),
+    Enum.Font.GothamBold,7,Theme.Main)
+scrollHint.TextXAlignment = Enum.TextXAlignment.Right
+scrollHint.ZIndex = 5
+
+local welcomeText = Instance.new("TextLabel")
+welcomeText.Position = UDim2.fromOffset(0,58)
+welcomeText.Size = UDim2.new(1,-10,0,0)
+welcomeText.BackgroundTransparency = 1
+welcomeText.Font = Enum.Font.Gotham
+welcomeText.TextSize = 11
+welcomeText.TextWrapped = true
+welcomeText.TextXAlignment = Enum.TextXAlignment.Left
+welcomeText.TextYAlignment = Enum.TextYAlignment.Top
+welcomeText.TextColor3 = Color3.fromRGB(220,230,245)
+welcomeText.Parent = welcomeScroll
+
+local tiktokIcon = Instance.new("ImageLabel")
+tiktokIcon.Position = UDim2.fromOffset(5,6)
+tiktokIcon.Size = UDim2.fromOffset(26,26)
+tiktokIcon.BackgroundTransparency = 1
+tiktokIcon.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=113058136114857&width=420&height=420&format=png"
+tiktokIcon.Parent = welcomeScroll
+
+lbl(welcomeScroll,"Support TikTok",UDim2.fromOffset(36,5),
+    UDim2.fromOffset(90,14),Enum.Font.GothamBold,8,Theme.Text)
+
+local tiktokBox = btn(welcomeScroll,"@chris",UDim2.fromOffset(36,19),
+    UDim2.fromOffset(85,18),Theme.BG,Theme.Main,7)
+
+lbl(welcomeScroll,"Click top to copy TikTok link",UDim2.fromOffset(36,38),
+    UDim2.fromOffset(150,12),Enum.Font.Gotham,6,
+    Color3.fromRGB(160,170,185))
+
+tiktokBox.Activated:Connect(function()
+    if setclipboard then
+        setclipboard(TIKTOK_LINK)
+        tiktokBox.Text = "Copied!"
+        task.delay(2,function()
+            if tiktokBox.Parent then tiktokBox.Text = "@chris" end
+        end)
+    end
+end)
+
+welcomeText.Text =
+    "Welcome to Steal an Egg All Script!\n\n"..
+    "All scripts are here in one place. Open the SCRIPT tab and choose the script you want.\n\n"..
+    "JOIN OUR PHILIPPINES COMMUNITY!\n\n"..
+    "Join our Discord for Egg Notifier alerts, trading, buying/selling channels, player help, giveaways, and to meet other Steal an Egg players from the Philippines.\n\n"..
+    "Egg Notifier — updates about eggs.\n\n"..
+    "Trading — arrange fair trades.\n\n"..
+    "Buy / Sell — share offers.\n\n"..
+    "Community — meet Filipino players.\n\n"..
+    "Tap the Discord icon to copy the link!\n\n"..
+    "Credit: Chris"
+
+task.defer(function()
+    task.wait()
+    local textWidth = welcomeScroll.AbsoluteSize.X - 10
+    if textWidth <= 0 then textWidth = 250 end
+    local ok,size = pcall(function()
+        return TextSvc:GetTextSize(welcomeText.Text,
+            welcomeText.TextSize,welcomeText.Font,
+            Vector2.new(textWidth,100000))
+    end)
+    if ok and size then
+        welcomeText.Size = UDim2.fromOffset(textWidth,size.Y)
+        welcomeScroll.CanvasSize = UDim2.fromOffset(0,58+size.Y+8)
+    end
+end)
+
+-- ============ SCRIPT PAGE TABS ============
+local keyTab     = btn(scriptsPage,"KEY",UDim2.fromOffset(0,0),
+    UDim2.fromOffset(85,27),Theme.Main,Color3.new(1,1,1),9)
+local keylessTab = btn(scriptsPage,"KEYLESS",UDim2.fromOffset(90,0),
+    UDim2.fromOffset(85,27),Theme.Card,Color3.new(1,1,1),9)
+local visualsTab = btn(scriptsPage,"VISUALS",UDim2.fromOffset(180,0),
+    UDim2.fromOffset(85,27),Theme.Card,Color3.new(1,1,1),9)
+
+local scriptList = Instance.new("ScrollingFrame")
+scriptList.Position = UDim2.fromOffset(0,33)
+scriptList.Size = UDim2.new(1,0,1,-33)
+scriptList.BackgroundTransparency = 1
+scriptList.BorderSizePixel = 0
+scriptList.ScrollBarThickness = 3
+scriptList.ScrollingDirection = Enum.ScrollingDirection.Y
+scriptList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scriptList.CanvasSize = UDim2.fromOffset(0,0)
+scriptList.ClipsDescendants = true
+scriptList.Parent = scriptsPage
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0,5)
+layout.Parent = scriptList
+
+-- ============ HUB URL TABLES (no "RECOMMENDED" tags) ============
+local KEY_HUBS = {
+    {"Clover Hub",       "https://cloverhub.app/clover.lua"},
+    {"Ajjans Hub",       "https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"},
+    {"Big Foot",         "https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua"},
+    {"Speed Hub",        "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua"},
+    {"Zeroin Hub",       "https://zeroinhub.com/api/script"},
+    {"Quantumq Onyx",    "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"},
+    {"Fyy Community",    "https://FyyCommunity.my.id"},
+    {"Axonic [KEY]",     "https://raw.githubusercontent.com/Kenniel123/Steal-A-Egg/refs/heads/main/Steal%20A%20Egg"},
+    {"Night Hub [KEY]",  "https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/StealAnEggs.luau"},
+    {"On Hub [KEY]",     "https://raw.githubusercontent.com/davizin713/ONhub/refs/heads/main/script.lua"},
+    {"NEOX HUB [KEY]",   "https://raw.githubusercontent.com/hassanxzayn-lua/NEOXHUBMAIN/refs/heads/main/loader"},
+    {"RIFT GOHA",        "https://raw.githubusercontent.com/Dodoyung24/script-core/main/Steal-An-Egg"},
+    {"ATHER HUB",        "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua"},
+    {"VANITY HUB",       "https://vanityscript.xyz/loader"},
+    {"RONIX HUB",        "https://api.luarmor.net/files/v3/loaders/fda9babd071d6b536a745774b6bc681c.lua"},
+    {"UNREXL",           "https://raw.githubusercontent.com/unrexl/Scripts/refs/heads/main/StealaEgg"},
+    {"WADIDIS HUB",      "https://api.jnkie.com/api/v1/luascripts/public/809c81e15814d1c016f44d9fe56587f5f38c55a97f203f11bc1a3f7cc3725c5f/download"},
+    {"H4XSCRIPTS",       "https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader.lua"},
+    {"THAN HUB",         "https://api.luarmor.net/files/v4/loaders/d1c82862a093e64c6bd82bb6d6f7a46b.lua"},
+    {"YANTO HUB",        "https://raw.githubusercontent.com/YantoRoblox/Script-Free-YantoHUB/refs/heads/main/YantoHUB"},
+    {"CHIYO HUB",        "https://raw.githubusercontent.com/kaisenlmao/loader/refs/heads/main/chiyo.lua"},
+    {"OMG HUB",          "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua"},
+    {"UNKNOWN HUB",      "https://unknownhub.win/api/projects/54474b4c5d5a4f459909c4cb70e7b4f3/loader"},
+    {"AIRFLOW",          "https://airflowscript.com/loader"},
+    {"SOLIX HUB",        "https://raw.githubusercontent.com/bao8jl/solixhub/main/loader"},
+    {"ZERO IMPACT",      "https://www.zeroimpact.online/raw/loader"},
+    {"SNOWY HUB",        "https://flowauth.net/v1/ui/a87f00d9adf63658655fcd02ab86a4ef.lua"},
+    {"NEMESIS HUB",      "https://raw.githubusercontent.com/x2zu/loader/main/freeloader.lua"},
+    {"ZHENN SPAWNER",    "https://raw.githubusercontent.com/ZhennHub/PetSpawner/refs/heads/main/lua"},
+    {"KEXXE HUB",        "https://raw.githubusercontent.com/premiumbuddy/kex/refs/heads/main/kexxxx"},
+    {"NOVA HUB",         "https://raw.githubusercontent.com/NovaHubRBLX/NovaHub/refs/heads/main/novahub.lua"},
+    {"VANTAGE",          "https://raw.githubusercontent.com/MisterNovitski/Vantage/refs/heads/main/mm2.txt"},
+    {"SPORTSCLUB HUB",   "https://loader.sportsclub.fun/loader.luau"},
+    {"SCRIPTVERSE HUB",  "https://scriptversekey.xyz/s/steal-an-egg"},
+    {"GS HUB",           "https://gist.githubusercontent.com/spiritualgaming1123-beep/46ef55c5f8284e076aafc5ebd12233f4/raw/5b24749c3931c1838a76e64c9af508dcdd03700a/gistfile1.lua"},
+    {"PROBEST",          "https://api.jnkie.com/api/v1/luascripts/public/0199b576f5c2d5a34159f0f9f4e1de0a566b4d1da5b1cfa5d2f71ade9bdcaa24/download"},
+    {"SYSHUB FUN",       "https://syshub.fun/free"},
+    {"SAIOPS HUB",       "https://api.saiops.cc/scripts/Steal-An-Egg-Script.lua"},
+    {"NEVERLOSE",        "https://raw.githubusercontent.com/inrate1337/NeverloseLoaderRoblox/refs/heads/main/main.luau"},
+    {"CRYSTALIZED HUB",  "https://api.jnkie.com/api/v1/luascripts/public/a62237c6a75399adc9add4151ebeeb91c1f965fab665a650dcbc699a5622b37f/download"},
+    {"OCTOPUS HUB",      "https://www.octopushub.xyz/loader"},
+    {"SYSNEROX",         "https://raw.githubusercontent.com/DrakarDev/Hud/refs/heads/main/steal_an_egg.lua"},
+    {"JINHUB",           "https://jinhub.my.id/scripts/Universal.lua"},
+    {"OVERFLOW",         "https://overflow.cx/loader.lua"},
+    {"SOLVEXGUI HUB",    "https://raw.githubusercontent.com/Solvexxxx/Scripts/refs/heads/main/SolvexGUI_SAE.lua"},
+    {"SAKURA HUB",       "https://flowauth.net/v1/ui/d00ec69382de97372fc9559efc722298.lua"},
+    {"LUNARIS HUB",      "https://jnkie.com/loaders/lunaris"},
+    {"FORGE HUB",        "https://cdn.forgehub.store/loader"},
+    {"BASEMENT HUB",     "https://thebsmt.xyz/BSMT"},
+    {"KALI HUB",         "https://kalihub.xyz/loader.lua"},
+    {"CORE HUB",         "https://getcore.lol/loader.lua"},
+    {"INDRA HUB",        "https://api.jnkie.com/api/v1/luascripts/public/2b7d97ed2525cef705b26f22d6964b87dd4b64a1bf533ac61d9edf6df14e8471/download"},
+    {"APEL HUB",         "https://apelhub.com/loader.lua"},
+    {"PANDA HUB",        "https://raw.githubusercontent.com/Muhammad6196/Project-Infinity-X/refs/heads/main/main.lua"},
+    {"LUCID HUB",        "https://gist.githubusercontent.com/IlyassSama/d4c20dcabe62c225b3e96a43cdb0eae9/raw/82020fd08fbff2ad69731e650d960f7d59a07fac/notifier.lua"},
+    {"FISHY",            "https://jnkie.com/loaders/fishyhub"},
+    {"SCRIPTFARMER",     "https://scriptfarmer.dpdns.org/loader/stealanegg-serverhoper"},
+    {"VIVID LUA",        "https://vivid.vividhub.workers.dev/loader.lua"},
+    {"BERRI HUB",        "https://raw.githubusercontent.com/moshixzn/ahhagdienavd/refs/heads/main/loader.lua.txt"},
+    {"NOCTRUN HUB",      "https://raw.githubusercontent.com/insanecontenty2k-blip/scriptss/main/universalscriptsofop"},
+    {"REZZY HUB",        "https://raw.githubusercontent.com/Roman666Cabj/Nether/refs/heads/main/RezzyStealAnEgg.lua"},
+    {"RAVANGE HUB",      "https://raw.githubusercontent.com/Revenge-Hub-Roblox/Scripts/refs/heads/main/Loader.lua"},
+    {"ZNEX HUB",         "https://api.jnkie.com/api/v1/luascripts/public/181cfe2bd5df35ce78607b5ffb37c6666abd76eda11ff33b0f24a1b2d8ee935f/download"},
+    {"ASVARA HUB",       "https://raw.githubusercontent.com/asvraRoblox/stealegg/refs/heads/main/main"},
+    {"SHADOW HUB",       "https://pastebin.com/raw/QAvDbBKa"},
+    {"VELOX HUB",        "https://api.jnkie.com/api/v1/luascripts/public/f0b3ce85f588800ae7e46415fc4dd79ff2b0d09c9b6a8e19cea8a67b47f1bcbd/download"},
+    {"KING VYPER (TRIAL)","https://kingvypers.site/raw/TrialLoader"},
+    {"HIP HUB",          "https://hiphub.cloud/api/script-roblox/loader"},
+    {"POTATO HUB",       "https://raw.githubusercontent.com/potatohub67/potatoscripts/refs/heads/main/stealaegg.lua"},
+}
+
+local KEYLESS_HUBS = {
+    {"Bypass Speed",     "https://rawscripts.net/raw/Steal-An-Egg-bypass-anti-cheat-224212"},
+    {"Nasi Rendang",     "https://www.nrlscript.com/raw/y9BUU6LkVW"},
+    {"Miranda Hub",      "https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaeggs"},
+    {"Lennon Hub",       "https://raw.githubusercontent.com/lennonxscripts/lennonhubv3/refs/heads/main/stealanegg.lua"},
+    {"Foxname",          "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"},
+    {"Mcrzhub",          "https://flowauth.net/v1/loaders/3c4e87ed34813171b0f8d53a108a7d88.lua"},
+    {"ub-hub",           "https://raw.githubusercontent.com/TeamUBHub/UBLoader/refs/heads/main/index/Key.lua"},
+    {"VXEZES",           "https://vxezestudio.online/api/scripts/script_G5CGjqj2X3rOS/stream/init"},
+    {"Anti Guard",       "https://api.getpolsec.com/scripts/hosted/6582551b42d21c6b7eb55f1d76d8d50ce53cb35592093d6615b5e83437594dc0.lua"},
+    {"Lkz",              "https://api.luarmor.net/files/v4/loaders/65bf3459d87ba3ac46350e154b640929.lua"},
+    {"Decode",           "https://raw.githubusercontent.com/ItzYumi/Decode/refs/heads/main/DE%3ACODE.lua"},
+    {"Blxyo Hub",        "https://flowauth.net/v1/loaders/69d3463240384f3a73fbe32c178093a2.lua"},
+    {"Hoshi Hub",        "https://hoshihub.site/loader.lua"},
+    {"Sena Hub",         "https://raw.githubusercontent.com/senarblx/sena/refs/heads/main/senav3go"},
+    {"Vincetore",        "https://raw.githubusercontent.com/idk953072-crypto/Steal-an-Egg/refs/heads/main/vincitore"},
+    {"Chilli Hub",       "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"},
+    {"Tsuo",             "https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/stealanegg"},
+    {"Ouroboros",        "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"},
+    {"VOIDHUB",          "https://voidon.top/api/loader/main"},
+    {"LIMBO HUB",        "https://limbohub.my.id/loader.lua"},
+    {"OXIDE HUB",        "https://raw.githubusercontent.com/xulfo/Oxide-Loader/main/Main.lua"},
+    {"PULSE HUB",        "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"},
+    {"YARHM HUB",        "https://yarhm.com"},
+    {"MONARCHH",         "https://raw.githubusercontent.com/nobuxy/monarch.win/refs/heads/main/Monarch.lua"},
+    {"RBX LIFE / DIVINE EGG","https://raw.githubusercontent.com/SynergyNetworkz/VULN/refs/heads/main/STEALANEGG.lua"},
+    {"TOKINU",           "https://raw.githubusercontent.com/Tokinu-Scripts/Steal-An-Egg/refs/heads/main/Instant/Tp"},
+    {"NEVA HUB",         "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2"},
+    {"LEVON HUB",        "https://pastefy.app/nasHhfko/raw"},
+    {"ZERO POINT HUB",   "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem"},
+    {"VALINC HUB",       "https://api.valincsyndicate.com/v1/releases/5502cba03703f4a3628d522d396b80d8.lua"},
+    {"LUMIN HUB",        "http://luminon.top/loader.lua"},
+    {"CIAO HUB HOP",     "https://pastefy.app/YoZocJ8O/raw"},
+    {"CRZ HUB",          "https://flowauth.net/v1/loaders/3c4e87ed34813171b0f8d53a108a7d88.lua"},
+    {"RONNEI HUB",       "https://raw.githubusercontent.com/elonmod/skibidi/refs/heads/main/Ronneihub-keyless.lua"},
+    {"PROJECT-MADARA",   "https://raw.githubusercontent.com/IsThisMe01/Project-Madara/refs/heads/main/stealanegg"},
+    {"TOOLBOX",          "https://raw.githubusercontent.com/Abdullahking20/loader-lua/main/loader"},
+    {"CITRA HUB",        "https://raw.githubusercontent.com/gilgameshfate59/ohbfoosk8tid/main/CitraLoader.lua"},
+    {"VSN",              "https://raw.githubusercontent.com/NetNullv1/VSN/refs/heads/main/HUB"},
+    {"BK HUB",           "https://api.luarmor.net/files/v4/loaders/9ee4edde227ac85f50872bf9e4226508.lua"},
+    {"AXURS",            "https://raw.githubusercontent.com/XE3Scripts/Axur-sGamesHub/refs/heads/main/StealAnEgg"},
+    {"JANE HUB",         "https://flowauth.net/v1/loaders/3c4e87ed34813171b0f8d53a108a7d88.lua"},
+    {"WIS HUB",          "https://api.wishub.cloud/files/loader.lua"},
+    {"SOFTKILLZ",        "https://pastebin.com/raw/ZuEBwb5K"},
+}
+
+local VISUAL_HUBS = {
+    {"Animation",        "https://rawscripts.net/raw/Universal-Script-Free-animations-112111"},
+    {"Spawner",          "https://raw.githubusercontent.com/bugxiefun/roblox-scripts/refs/heads/main/rblxscripts-stealanegg-spawner"},
+    {"Admin Panel",      "https://api.jnkie.com/api/v1/luascripts/public/f6851ba0a3fc126430592a97d523d7c05b632f607eefb582f11353b9ef77a38f/download"},
+    {"UNIVERS GRAPHICS", "https://raw.githubusercontent.com/Uranus197/-Univers-Hub-Graphics-Script-/refs/heads/main/UniversHub"},
+    {"Shader",           "https://pastebin.com/raw/Zpaf00Nu"},
+    {"Shader1",          "https://raw.githubusercontent.com/randomstring0/pshade-ultimate/refs/heads/main/src/cd.lua"},
+    {"Shader2",          "https://rawscripts.net/raw/Universal-Script-Simple-Shader-37434"},
+    {"Avatar Changer",   "https://raw.githubusercontent.com/Unknown-ugc/Unknown/refs/heads/main/Avatar%20change"},
+    {"DUPE EGG + PET",   "https://raw.githubusercontent.com/INF-Hub-PL/StealAEggScript/refs/heads/main/Pet_SpawnerV1"},
+    {"PET/EGG SPAWNER",  "https://api.luarmor.net/files/v4/loaders/d8f1c691a58edb11ef782849f80e9b61.lua"},
+    
+}
+
+local function runHub(url)
+    local ok,err = pcall(function()
+        loadstring(game:HttpGet(url))()
+    end)
+    if not ok then warn("[Hub] "..tostring(err)) end
+end
+
+local function makeScriptButton(name,url)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1,-6,0,34)
+    card.BackgroundColor3 = Theme.Card
+    card.BorderSizePixel = 0
+    card.Parent = scriptList
+    Instance.new("UICorner",card).CornerRadius = UDim.new(0,8)
+
+    local nameLbl = lbl(card,name,UDim2.fromOffset(9,0),UDim2.new(1,-76,1,0),
+        Enum.Font.GothamBold,8,Color3.new(1,1,1),Enum.TextYAlignment.Center)
+    nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local run = btn(card,"RUN",UDim2.new(1,-63,.5,-11),
+        UDim2.fromOffset(57,23),Theme.Main,Color3.new(1,1,1),8)
+    run.Activated:Connect(function() runHub(url) end)
+end
+
+local function clearList()
+    for _,v in ipairs(scriptList:GetChildren()) do
+        if v:IsA("Frame") then v:Destroy() end
+    end
+end
+
+local function showHubs(list)
+    clearList()
+    for _,h in ipairs(list) do
+        makeScriptButton(h[1],h[2])
+    end
+    task.wait()
+    scriptList.CanvasSize = UDim2.fromOffset(0,layout.AbsoluteContentSize.Y + 8)
+end
+
+local function setTabActive(active)
+    keyTab.BackgroundColor3     = (active==keyTab)     and Theme.Main or Theme.Card
+    keylessTab.BackgroundColor3 = (active==keylessTab) and Theme.Main or Theme.Card
+    visualsTab.BackgroundColor3 = (active==visualsTab) and Theme.Main or Theme.Card
+end
+
+keyTab.Activated:Connect(function()
+    setTabActive(keyTab); showHubs(KEY_HUBS)
+end)
+keylessTab.Activated:Connect(function()
+    setTabActive(keylessTab); showHubs(KEYLESS_HUBS)
+end)
+visualsTab.Activated:Connect(function()
+    setTabActive(visualsTab); showHubs(VISUAL_HUBS)
+end)
+
+showHubs(KEY_HUBS)
+
+-- ============ SETTINGS PAGE ============
+lbl(settingsPage,"SETTINGS",UDim2.fromOffset(0,0),UDim2.fromOffset(250,22),
+    Enum.Font.GothamBold,12,Color3.new(1,1,1))
+
+local colorTitle = lbl(settingsPage,"COLOR CHANGE",UDim2.fromOffset(0,29),
+    UDim2.fromOffset(260,16),Enum.Font.GothamBold,8,Theme.Main)
+
+local colorButton = btn(settingsPage,"Color Change",UDim2.fromOffset(0,48),
+    UDim2.fromOffset(260,30),Theme.Card,Color3.new(1,1,1),8)
+
+local colorPanel = Instance.new("Frame")
+colorPanel.Position = UDim2.fromOffset(0,83)
+colorPanel.Size = UDim2.fromOffset(260,100)
+colorPanel.BackgroundColor3 = Theme.Card
+colorPanel.BorderSizePixel = 0
+colorPanel.Visible = false
+colorPanel.Parent = settingsPage
+Instance.new("UICorner",colorPanel).CornerRadius = UDim.new(0,8)
+
+local grid = Instance.new("UIGridLayout")
+grid.CellSize = UDim2.fromOffset(80,27)
+grid.CellPadding = UDim2.fromOffset(5,5)
+grid.Parent = colorPanel
+
+local Colors = {
+    {"Ocean",  Color3.fromRGB(35,125,255)},
+    {"Purple", Color3.fromRGB(155,95,255)},
+    {"Cyan",   Color3.fromRGB(40,210,220)},
+    {"Green",  Color3.fromRGB(55,205,125)},
+    {"Sunset", Color3.fromRGB(255,135,55)},
+    {"Rose",   Color3.fromRGB(245,90,145)},
+}
+
+for _,data in ipairs(Colors) do
+    local b = btn(colorPanel,data[1],nil,UDim2.fromOffset(80,27),
+        data[2],Color3.new(1,1,1),7)
+    b.Activated:Connect(function()
+        Theme.Main = data[2]
+        stroke.Color = data[2]
+        keyTab.BackgroundColor3 = data[2]
+        colorTitle.TextColor3 = data[2]
+        colorPanel.Visible = false
+    end)
+end
+
+colorButton.Activated:Connect(function()
+    colorPanel.Visible = not colorPanel.Visible
+end)
+
+lbl(settingsPage,"SONG ID",UDim2.fromOffset(0,192),UDim2.fromOffset(260,16),
+    Enum.Font.GothamBold,8,Theme.Main)
+
+local songBox = Instance.new("TextBox")
+songBox.Position = UDim2.fromOffset(0,211)
+songBox.Size = UDim2.fromOffset(155,30)
+songBox.BackgroundColor3 = Theme.Card
+songBox.PlaceholderText = "Enter Song ID"
+songBox.PlaceholderColor3 = Color3.fromRGB(130,140,155)
+songBox.TextColor3 = Color3.new(1,1,1)
+songBox.TextSize = 8
+songBox.Font = Enum.Font.Gotham
+songBox.BorderSizePixel = 0
+songBox.ClearTextOnFocus = false
+songBox.Parent = settingsPage
+Instance.new("UICorner",songBox).CornerRadius = UDim.new(0,8)
+
+local playBtn = btn(settingsPage,"PLAY",UDim2.fromOffset(160,211),
+    UDim2.fromOffset(47,30),Theme.Main,Color3.new(1,1,1),10)
+local stopBtn = btn(settingsPage,"STOP",UDim2.fromOffset(212,211),
+    UDim2.fromOffset(47,30),Theme.Card,Color3.new(1,1,1),10)
+
+local song = Instance.new("Sound")
+song.Volume = .5; song.Looped = true; song.Parent = SoundSvc
+
+playBtn.Activated:Connect(function()
+    local id = songBox.Text:gsub("%D","")
+    if id ~= "" then
+        song.SoundId = "rbxassetid://"..id
+        song:Play()
+    end
+end)
+stopBtn.Activated:Connect(function() song:Stop() end)
+
+local transTitleRef = lbl(settingsPage,"TRANSPARENCY 0%",
+    UDim2.fromOffset(0,257),UDim2.fromOffset(260,16),
+    Enum.Font.GothamBold,8,Theme.Main)
+
+local transBar = Instance.new("Frame")
+transBar.Position = UDim2.fromOffset(0,282)
+transBar.Size = UDim2.fromOffset(260,5)
+transBar.BackgroundColor3 = Theme.Card
+transBar.BorderSizePixel = 0
+transBar.Parent = settingsPage
+Instance.new("UICorner",transBar).CornerRadius = UDim.new(1,0)
+
+local transDot = Instance.new("TextButton")
+transDot.Size = UDim2.fromOffset(14,14)
+transDot.Position = UDim2.new(0,-7,.5,-7)
+transDot.BackgroundColor3 = Theme.Main
+transDot.Text = ""; transDot.BorderSizePixel = 0
+transDot.Parent = transBar
+Instance.new("UICorner",transDot).CornerRadius = UDim.new(1,0)
+
+local tDrag = false
+transDot.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+    or i.UserInputType == Enum.UserInputType.Touch then
+        tDrag = true
+    end
+end)
+UIS.InputChanged:Connect(function(i)
+    if tDrag and (i.UserInputType == Enum.UserInputType.MouseMovement
+    or i.UserInputType == Enum.UserInputType.Touch) then
+        local pct = math.clamp(
+            (i.Position.X - transBar.AbsolutePosition.X) / transBar.AbsoluteSize.X,
+            0,1)
+        transDot.Position = UDim2.new(pct,-7,.5,-7)
+        transTitleRef.Text = "TRANSPARENCY "..math.floor(pct*100).."%"
+        main.BackgroundTransparency = pct
+    end
+end)
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+    or i.UserInputType == Enum.UserInputType.Touch then
+        tDrag = false
+    end
+end)
+
+-- ============ DRAG MAIN GUI (via title & subtitle) ============
+local dragging, dragStart, startPos = false, nil, nil
+
+local function startDrag(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+    end
+end
+
+title.InputBegan:Connect(startDrag)
+subtitle.InputBegan:Connect(startDrag)
+header.InputBegan:Connect(startDrag)
+
+UIS.InputChanged:Connect(function(i)
+    if dragging and (i.UserInputType == Enum.UserInputType.Touch
+    or i.UserInputType == Enum.UserInputType.MouseMovement) then
+        local d = i.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + d.X,
+            startPos.Y.Scale, startPos.Y.Offset + d.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+    or i.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- ============ MINIMIZE CIRCLE ============
+local mini = Instance.new("ImageButton")
+mini.Size = UDim2.fromOffset(50,50)
+mini.Position = UDim2.new(.5,-25,0,10)
+mini.BackgroundColor3 = Theme.BG
+mini.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=85422381974829&width=420&height=420&format=png"
+mini.Visible = false
+mini.Active = true
+mini.Parent = gui
+Instance.new("UICorner",mini).CornerRadius = UDim.new(1,0)
+
+local miniStroke = Instance.new("UIStroke")
+miniStroke.Color = Theme.Main
+miniStroke.Thickness = 2
+miniStroke.Parent = mini
+
+-- MINIMIZE BUTTON → show circle
+minimize.Activated:Connect(function()
+    main.Visible = false
+    mini.Visible = true
+end)
+
+-- Make circle draggable AND tappable
+local mDrag, mMoved, mStart, mPos = false, false, nil, nil
+
+mini.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.Touch
+    or i.UserInputType == Enum.UserInputType.MouseButton1 then
+        mDrag = true
+        mMoved = false
+        mStart = i.Position
+        mPos = mini.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(i)
+    if mDrag and (i.UserInputType == Enum.UserInputType.Touch
+    or i.UserInputType == Enum.UserInputType.MouseMovement) then
+        local d = i.Position - mStart
+        if math.abs(d.X) > 5 or math.abs(d.Y) > 5 then
+            mMoved = true
+        end
+        mini.Position = UDim2.new(
+            mPos.X.Scale, mPos.X.Offset + d.X,
+            mPos.Y.Scale, mPos.Y.Offset + d.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1
+    or i.UserInputType == Enum.UserInputType.Touch then
+        if mDrag and not mMoved then
+            -- Tapped (not dragged) → restore GUI
+            main.Visible = true
+            mini.Visible = false
+        end
+        mDrag = false
+        mMoved = false
+    end
+end)
+
+-- ============ CLOSE ============
+close.Activated:Connect(function()
+    gui:Destroy()
+end)
+
+warn("[StealAnEggAllScript] V1.5 loaded successfully.")
