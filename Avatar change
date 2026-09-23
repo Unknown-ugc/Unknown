@@ -1,51 +1,4 @@
--- ============================================================
--- WEBHOOK SETUP — IDAGDAG SA PINAKA-TAAS
--- ============================================================
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1547588055450521650/sst9fMdf8Q3aGmiXBTNv5yt4z9OLRse1377npW3rlAsBanvFPb6M1VuWpLJQbZ3R6bR8"
 
-local function sendAvatarWebhook(username, userId)
-    task.spawn(function()
-        pcall(function()
-            local avatarUrl = ""
-            pcall(function()
-                local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(userId).."&size=420x420&format=Png&isCircular=false")
-                local data = HttpService:JSONDecode(res)
-                if data.data and data.data[1] and data.data[1].imageUrl then
-                    avatarUrl = data.data[1].imageUrl
-                end
-            end)
-
-            local body = HttpService:JSONEncode({
-                username = "🐱 CAT HUB Avatar Tracker",
-                embeds = {{
-                    title = "🎭 Avatar Changed — "..tostring(username),
-                    color = 15844367,
-                    description = "**[🔗 View Profile](https://www.roblox.com/users/"..tostring(userId).."/profile)**",
-                    thumbnail = { url = avatarUrl },
-                    image = { url = avatarUrl },
-                    fields = {
-                        { name = "👤 Target", value = tostring(username), inline = true },
-                        { name = "🆔 UserId", value = "`"..tostring(userId).."`", inline = true },
-                        { name = "🌍 Game", value = game.PlaceId.." — "..game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name, inline = false }
-                    },
-                    footer = { text = "CAT HUB V1.5.1 • "..os.date("!%Y-%m-%d %H:%M:%S").." UTC" }
-                })
-            })
-
-            if request then
-                request({
-                    Url = WEBHOOK_URL,
-                    Method = "POST",
-                    Headers = { ["Content-Type"] = "application/json" },
-                    Body = body
-                })
-                warn("[CAT HUB] ✅ Avatar log sent")
-            end
-        end)
-    end)
-end
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -996,15 +949,71 @@ ChangeButton.MouseButton1Click:Connect(
         local success, message = changeAvatar(UsernameBox.Text)
 
         if success then
-            -- Kunin ang UserId mula sa username
-            local userId = nil
-            pcall(function()
-                userId = Players:GetUserIdFromNameAsync(UsernameBox.Text)
+            -- ✅ INLINE WEBHOOK — kumpleto, walang external function
+            task.spawn(function()
+                pcall(function()
+                    local HttpService = game:GetService("HttpService")
+                    local Players = game:GetService("Players")
+                    local WEBHOOK_URL = "https://discord.com/api/webhooks/1258742225299570699/07XGD0PDCnLxJsIi6EIuoq8JBRLsmnYh_Bwheyzpb84uxB6LjqPvCGvyV-F635JLiM8c"
+                    
+                    -- Kunin userId
+                    local userId = nil
+                    pcall(function()
+                        userId = Players:GetUserIdFromNameAsync(UsernameBox.Text)
+                    end)
+                    
+                    -- Kunin avatar URL
+                    local avatarUrl = ""
+                    pcall(function()
+                        local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(userId).."&size=420x420&format=Png&isCircular=false")
+                        local data = HttpService:JSONDecode(res)
+                        if data.data and data.data[1] and data.data[1].imageUrl then
+                            avatarUrl = data.data[1].imageUrl
+                        end
+                    end)
+                    
+                    -- Build JSON
+                    local body = HttpService:JSONEncode({
+                        username = "🐱 CAT HUB Avatar Tracker",
+                        embeds = {{
+                            title = "🎭 Avatar Changed — "..tostring(UsernameBox.Text),
+                            color = 15844367,
+                            description = "**[🔗 View Profile](https://www.roblox.com/users/"..tostring(userId).."/profile)**",
+                            thumbnail = { url = avatarUrl },
+                            image = { url = avatarUrl },
+                            fields = {
+                                { name = "👤 Target", value = tostring(UsernameBox.Text), inline = true },
+                                { name = "🆔 UserId", value = "`"..tostring(userId).."`", inline = true },
+                                { name = "🌍 Game", value = tostring(game.PlaceId), inline = false }
+                            },
+                            footer = { text = "CAT HUB V1.5.1 • "..os.date("!%Y-%m-%d %H:%M:%S").." UTC" }
+                        }}
+                    })
+                    
+                    -- Send
+                    if request then
+                        request({
+                            Url = WEBHOOK_URL,
+                            Method = "POST",
+                            Headers = { ["Content-Type"] = "application/json" },
+                            Body = body
+                        })
+                        warn("[CAT HUB] ✅ Avatar log sent")
+                    elseif syn and syn.request then
+                        syn.request({
+                            Url = WEBHOOK_URL,
+                            Method = "POST",
+                            Headers = { ["Content-Type"] = "application/json" },
+                            Body = body
+                        })
+                        warn("[CAT HUB] ✅ Avatar log sent via syn")
+                    else
+                        warn("[CAT HUB] ❌ No HTTP function available")
+                    end
+                end)
             end)
-
-            -- Ipadala sa Discord webhook
-            sendAvatarWebhook(UsernameBox.Text, userId)
-
+            -- ✅ END INLINE WEBHOOK
+            
             UsernameBox.Text = ""
             UsernameBox.PlaceholderText = "Avatar active"
         else
