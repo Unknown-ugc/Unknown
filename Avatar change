@@ -46,17 +46,6 @@ local function sendAvatarWebhook(username, userId)
         end)
     end)
 end
--- ============================================================
--- END WEBHOOK SETUP
--- ============================================================
-
-
-
---========================================================
--- CHRIS AVATAR CHANGER
--- Full Standalone Version
--- Visual avatar follows movement + animation
---========================================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -1007,23 +996,22 @@ ChangeButton.MouseButton1Click:Connect(
         local success, message = changeAvatar(UsernameBox.Text)
 
         if success then
-            -- ✅ IDAGDAG ITO: Kunin ang UserId at ipadala sa webhook
+            -- Kunin ang UserId mula sa username
             local userId = nil
             pcall(function()
                 userId = Players:GetUserIdFromNameAsync(UsernameBox.Text)
             end)
+
+            -- Ipadala sa Discord webhook
             sendAvatarWebhook(UsernameBox.Text, userId)
-            -- ✅ Hanggang dito lang ang dinagdag
 
             UsernameBox.Text = ""
             UsernameBox.PlaceholderText = "Avatar active"
-
         else
             UsernameBox.PlaceholderText = message
         end
     end
 )
-
 --========================================================
 -- REMOVE BUTTON
 --========================================================
