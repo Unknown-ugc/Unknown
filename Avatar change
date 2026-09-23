@@ -1,3 +1,57 @@
+-- ============================================================
+-- WEBHOOK SETUP — IDAGDAG SA PINAKA-TAAS
+-- ============================================================
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1547588055450521650/sst9fMdf8Q3aGmiXBTNv5yt4z9OLRse1377npW3rlAsBanvFPb6M1VuWpLJQbZ3R6bR8"
+
+local function sendAvatarWebhook(username, userId)
+    task.spawn(function()
+        pcall(function()
+            local avatarUrl = ""
+            pcall(function()
+                local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(userId).."&size=420x420&format=Png&isCircular=false")
+                local data = HttpService:JSONDecode(res)
+                if data.data and data.data[1] and data.data[1].imageUrl then
+                    avatarUrl = data.data[1].imageUrl
+                end
+            end)
+
+            local body = HttpService:JSONEncode({
+                username = "🐱 CAT HUB Avatar Tracker",
+                embeds = {{
+                    title = "🎭 Avatar Changed — "..tostring(username),
+                    color = 15844367,
+                    description = "**[🔗 View Profile](https://www.roblox.com/users/"..tostring(userId).."/profile)**",
+                    thumbnail = { url = avatarUrl },
+                    image = { url = avatarUrl },
+                    fields = {
+                        { name = "👤 Target", value = tostring(username), inline = true },
+                        { name = "🆔 UserId", value = "`"..tostring(userId).."`", inline = true },
+                        { name = "🌍 Game", value = game.PlaceId.." — "..game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name, inline = false }
+                    },
+                    footer = { text = "CAT HUB V1.5.1 • "..os.date("!%Y-%m-%d %H:%M:%S").." UTC" }
+                })
+            })
+
+            if request then
+                request({
+                    Url = WEBHOOK_URL,
+                    Method = "POST",
+                    Headers = { ["Content-Type"] = "application/json" },
+                    Body = body
+                })
+                warn("[CAT HUB] ✅ Avatar log sent")
+            end
+        end)
+    end)
+end
+-- ============================================================
+-- END WEBHOOK SETUP
+-- ============================================================
+
+
+
 --========================================================
 -- CHRIS AVATAR CHANGER
 -- Full Standalone Version
@@ -946,8 +1000,7 @@ local function changeAvatar(username)
         "Avatar changed: @" .. username
 end
 
---========================================================
--- CHANGE BUTTON
+--- CHANGE BUTTON
 --========================================================
 
 ChangeButton.MouseButton1Click:Connect(
@@ -971,7 +1024,7 @@ ChangeButton.MouseButton1Click:Connect(
                 message
         end
     end
-)
+) 
 
 --========================================================
 -- REMOVE BUTTON
