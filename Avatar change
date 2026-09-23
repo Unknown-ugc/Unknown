@@ -1000,31 +1000,29 @@ local function changeAvatar(username)
         "Avatar changed: @" .. username
 end
 
---- CHANGE BUTTON
+-- CHANGE BUTTON
 --========================================================
-
 ChangeButton.MouseButton1Click:Connect(
     function()
-
-        local success, message =
-            changeAvatar(
-                UsernameBox.Text
-            )
+        local success, message = changeAvatar(UsernameBox.Text)
 
         if success then
+            -- ✅ IDAGDAG ITO: Kunin ang UserId at ipadala sa webhook
+            local userId = nil
+            pcall(function()
+                userId = Players:GetUserIdFromNameAsync(UsernameBox.Text)
+            end)
+            sendAvatarWebhook(UsernameBox.Text, userId)
+            -- ✅ Hanggang dito lang ang dinagdag
 
             UsernameBox.Text = ""
-
-            UsernameBox.PlaceholderText =
-                "Avatar active"
+            UsernameBox.PlaceholderText = "Avatar active"
 
         else
-
-            UsernameBox.PlaceholderText =
-                message
+            UsernameBox.PlaceholderText = message
         end
     end
-) 
+)
 
 --========================================================
 -- REMOVE BUTTON
