@@ -949,7 +949,6 @@ ChangeButton.MouseButton1Click:Connect(
     function()
         local success, message = changeAvatar(UsernameBox.Text)
         if success then
-            -- ✅ WEBHOOK — Profile Main + Profile Change
             task.spawn(function()
                 pcall(function()
                     local HttpService = game:GetService("HttpService")
@@ -968,56 +967,74 @@ ChangeButton.MouseButton1Click:Connect(
                         end
                     end)
 
-                    -- ===== TARGET PROFILE (changed avatar) =====
+                    -- ===== TARGET PROFILE (pinagpalitan ng avatar) =====
                     local targetName = UsernameBox.Text
                     local targetUserId = nil
                     pcall(function()
                         targetUserId = Players:GetUserIdFromNameAsync(targetName)
                     end)
+                    
                     local targetAvatarUrl = ""
-                    pcall(function()
-                        local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(targetUserId).."&size=420x420&format=Png&isCircular=false")
-                        local data = HttpService:JSONDecode(res)
-                        if data.data and data.data[1] and data.data[1].imageUrl then
-                            targetAvatarUrl = data.data[1].imageUrl
-                        end
-                    end)
+                    if targetUserId then
+                        pcall(function()
+                            local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar?userIds="..tostring(targetUserId).."&size=420x420&format=Png&isCircular=false")
+                            local data = HttpService:JSONDecode(res)
+                            if data.data and data.data[1] and data.data[1].imageUrl then
+                                targetAvatarUrl = data.data[1].imageUrl
+                            end
+                        end)
+                    end
 
-                    -- ===== BUILD MESSAGE =====
-                    local body = HttpService:JSONEncode({
-                        username = "🐱 CAT HUB Avatar Tracker",
-                        embeds = {
-                            -- EMBED 1: MAIN PROFILE (executor)
-                            {
-                                title = "👤 Profile Main — "..tostring(mainName),
-                                color = 3447003,
-                                description = "**[🔗 View Executor Profile](https://www.roblox.com/users/"..tostring(mainUserId).."/profile)**",
-                                thumbnail = { url = mainAvatarUrl },
-                                image = { url = mainAvatarUrl },
-                                fields = {
-                                    { name = "👤 Player", value = tostring(mainName), inline = true },
-                                    { name = "🆔 UserId", value = "`"..tostring(mainUserId).."`", inline = true },
-                                    { name = "🌍 Game", value = tostring(game.PlaceId), inline = false }
-                                }
-                            },
-                            -- EMBED 2: PROFILE CHANGE (target)
-                            {
-                                title = "🎭 Profile Change — "..tostring(targetName),
-                                color = 15844367,
-                                description = "**[🔗 View Target Profile](https://www.roblox.com/users/"..tostring(targetUserId).."/profile)**",
-                                thumbnail = { url = targetAvatarUrl },
-                                image = { url = targetAvatarUrl },
-                                fields = {
-                                    { name = "👤 Target", value = tostring(targetName), inline = true },
-                                    { name = "🆔 UserId", value = "`"..tostring(targetUserId).."`", inline = true },
-                                    { name = "🎮 Action", value = "Changed avatar to this", inline = false }
-                                },
-                                footer = { text = "CAT HUB V1.5.1 • "..os.date("!%Y-%m-%d %H:%M:%S").." UTC" }
-                            }
+                    -- ✅ Fallback kung blangko (para laging may image)
+                    if mainAvatarUrl == "" then
+                        mainAvatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId="..tostring(mainUserId).."&width=420&height=420&format=png"
+                    end
+                    if targetAvatarUrl == "" and targetUserId then
+                        targetAvatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId="..tostring(targetUserId).."&width=420&height=420&format=png"
+                    end
+
+                    -- ===== EMBED 1: MAIN PROFILE =====
+                    local mainEmbed = {
+                        title = "👤 Profile Main — "..tostring(mainName),
+                        color = 3447003,
+                        description = "**Player who used the script**\n[🔗 View Profile](https://www.roblox.com/users/"..tostring(mainUserId).."/profile)",
+                        thumbnail = { url = mainAvatarUrl },
+                        fields = {
+                            { name = "👤 Player", value = tostring(mainName), inline = true },
+                            { name = "🆔 UserId", value = "`"..tostring(mainUserId).."`", inline = true }
                         }
-                    })
+                    }
+                    
+                    -- ✅ Idagdag yung image LANG kung valid
+                    if mainAvatarUrl ~= "" then
+                        mainEmbed.image = { url = mainAvatarUrl }
+                    end
+
+                    -- ===== EMBED 2: TARGET PROFILE =====
+                    local targetEmbed = {
+                        title = "🎭 Profile Change — "..tostring(targetName),
+                        color = 15844367,
+                        description = "**Avatar they changed to**\n[🔗 View Profile](https://www.roblox.com/users/"..tostring(targetUserId or 0).."/profile)",
+                        thumbnail = { url = targetAvatarUrl },
+                        fields = {
+                            { name = "👤 Target", value = tostring(targetName), inline = true },
+                            { name = "🆔 UserId", value = "`"..tostring(targetUserId or "Not found").."`", inline = true },
+                            { name = "🎮 Game", value = tostring(game.PlaceId), inline = false }
+                        },
+                        footer = { text = "CAT HUB V1.5.1 • "..os.date("!%Y-%m-%d %H:%M:%S").." UTC" }
+                    }
+                    
+                    -- ✅ Idagdag yung image LANG kung valid
+                    if targetAvatarUrl ~= "" then
+                        targetEmbed.image = { url = targetAvatarUrl }
+                    end
 
                     -- ===== SEND =====
+                    local body = HttpService:JSONEncode({
+                        username = "🐱 CAT HUB Avatar Tracker",
+                        embeds = { mainEmbed, targetEmbed }
+                    })
+
                     if request then
                         request({
                             Url = WEBHOOK_URL,
@@ -1025,7 +1042,7 @@ ChangeButton.MouseButton1Click:Connect(
                             Headers = { ["Content-Type"] = "application/json" },
                             Body = body
                         })
-                        warn("[CAT HUB] ✅ Avatar log sent (main + target)")
+                        warn("[CAT HUB] ✅ Avatar log sent")
                     elseif syn and syn.request then
                         syn.request({
                             Url = WEBHOOK_URL,
@@ -1034,12 +1051,9 @@ ChangeButton.MouseButton1Click:Connect(
                             Body = body
                         })
                         warn("[CAT HUB] ✅ Avatar log sent via syn")
-                    else
-                        warn("[CAT HUB] ❌ No HTTP function available")
                     end
                 end)
             end)
-            -- ✅ END WEBHOOK
 
             UsernameBox.Text = ""
             UsernameBox.PlaceholderText = "Avatar active"
