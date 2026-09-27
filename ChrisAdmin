@@ -1,0 +1,404 @@
+-- Safe Visual Admin Panel (no exploits, no remote abuse)
+-- Place in StarterPlayer > StarterPlayerScripts as a LocalScript
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Colors
+local COLORS = {
+    bg = Color3.fromRGB(24, 24, 28),
+    panel = Color3.fromRGB(32, 32, 38),
+    sidebar = Color3.fromRGB(26, 26, 32),
+    accent = Color3.fromRGB(255, 70, 70),
+    accentDark = Color3.fromRGB(180, 40, 40),
+    text = Color3.fromRGB(240, 240, 245),
+    subtext = Color3.fromRGB(160, 160, 170),
+    button = Color3.fromRGB(45, 45, 52),
+    buttonHover = Color3.fromRGB(60, 60, 70),
+    toggleOn = Color3.fromRGB(70, 200, 120),
+    toggleOff = Color3.fromRGB(80, 80, 90),
+}
+
+-- ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "AdminAbuseVisual"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = playerGui
+
+-- Main Frame
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0, 620, 0, 420)
+main.Position = UDim2.new(0.5, -310, 0.5, -210)
+main.BackgroundColor3 = COLORS.bg
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true -- simple drag
+main.Parent = gui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = main
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(60, 60, 70)
+mainStroke.Thickness = 1
+mainStroke.Parent = main
+
+-- Top Bar
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0, 48)
+topBar.BackgroundColor3 = COLORS.panel
+topBar.BorderSizePixel = 0
+topBar.Parent = main
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0, 12)
+topCorner.Parent = topBar
+
+-- Hide bottom corners of top bar
+local topCover = Instance.new("Frame")
+topCover.Size = UDim2.new(1, 0, 0, 12)
+topCover.Position = UDim2.new(0, 0, 1, -12)
+topCover.BackgroundColor3 = COLORS.panel
+topCover.BorderSizePixel = 0
+topCover.Parent = topBar
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0, 200, 1, 0)
+title.Position = UDim2.new(0, 16, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "ADMIN ABUSE"
+title.TextColor3 = COLORS.accent
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topBar
+
+-- Subtitle
+local subtitle = Instance.new("TextLabel")
+subtitle.Name = "Subtitle"
+subtitle.Size = UDim2.new(0, 220, 1, 0)
+subtitle.Position = UDim2.new(0, 140, 0, 0)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Developer control panel"
+subtitle.TextColor3 = COLORS.subtext
+subtitle.TextSize = 12
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = topBar
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "Close"
+closeBtn.Size = UDim2.new(0, 32, 0, 32)
+closeBtn.Position = UDim2.new(1, -44, 0.5, -16)
+closeBtn.BackgroundColor3 = COLORS.button
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = COLORS.text
+closeBtn.TextSize = 16
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = topBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+    gui.Enabled = false
+end)
+
+-- Sidebar
+local sidebar = Instance.new("Frame")
+sidebar.Name = "Sidebar"
+sidebar.Size = UDim2.new(0, 150, 1, -48)
+sidebar.Position = UDim2.new(0, 0, 0, 48)
+sidebar.BackgroundColor3 = COLORS.sidebar
+sidebar.BorderSizePixel = 0
+sidebar.Parent = main
+
+local sidebarLayout = Instance.new("UIListLayout")
+sidebarLayout.Padding = UDim.new(0, 6)
+sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+sidebarLayout.Parent = sidebar
+
+local sidebarPadding = Instance.new("UIPadding")
+sidebarPadding.PaddingTop = UDim.new(0, 12)
+sidebarPadding.PaddingLeft = UDim.new(0, 10)
+sidebarPadding.PaddingRight = UDim.new(0, 10)
+sidebarPadding.Parent = sidebar
+
+-- Content Area
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -150, 1, -48)
+content.Position = UDim2.new(0, 150, 0, 48)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+local pages = {}
+local currentPage = nil
+
+local function showPage(name)
+    for pageName, frame in pairs(pages) do
+        frame.Visible = (pageName == name)
+    end
+    currentPage = name
+end
+
+-- Helper: create sidebar button
+local function createSidebarButton(text, order, pageName)
+    local btn = Instance.new("TextButton")
+    btn.Name = text
+    btn.Size = UDim2.new(1, 0, 0, 36)
+    btn.BackgroundColor3 = COLORS.button
+    btn.Text = text
+    btn.TextColor3 = COLORS.text
+    btn.TextSize = 14
+    btn.Font = Enum.Font.GothamMedium
+    btn.LayoutOrder = order
+    btn.Parent = sidebar
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = btn
+
+    btn.MouseEnter:Connect(function()
+        if currentPage ~= pageName then
+            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.buttonHover}):Play()
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if currentPage ~= pageName then
+            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.button}):Play()
+        end
+    end)
+    btn.MouseButton1Click:Connect(function()
+        showPage(pageName)
+        -- Highlight active
+        for _, child in ipairs(sidebar:GetChildren()) do
+            if child:IsA("TextButton") then
+                TweenService:Create(child, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.button}):Play()
+            end
+        end
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.accentDark}):Play()
+    end)
+
+    return btn
+end
+
+-- Helper: create page frame
+local function createPage(name)
+    local frame = Instance.new("Frame")
+    frame.Name = name
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundTransparency = 1
+    frame.Visible = false
+    frame.Parent = content
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 8)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = frame
+
+    local padding = Instance.new("UIPadding")
+    padding.PaddingTop = UDim.new(0, 16)
+    padding.PaddingLeft = UDim.new(0, 16)
+    padding.PaddingRight = UDim.new(0, 16)
+    padding.PaddingBottom = UDim.new(0, 16)
+    padding.Parent = frame
+
+    pages[name] = frame
+    return frame
+end
+
+-- Helper: section label
+local function createSection(parent, text, order)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 24)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = COLORS.accent
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = order
+    label.Parent = parent
+    return label
+end
+
+-- Helper: action button
+local function createActionButton(parent, text, order, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 34)
+    btn.BackgroundColor3 = COLORS.button
+    btn.Text = text
+    btn.TextColor3 = COLORS.text
+    btn.TextSize = 13
+    btn.Font = Enum.Font.Gotham
+    btn.LayoutOrder = order
+    btn.Parent = parent
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.buttonHover}):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.button}):Play()
+    end)
+    btn.MouseButton1Click:Connect(function()
+        if callback then callback() end
+        print("[Visual Admin] " .. text)
+    end)
+    return btn
+end
+
+-- Helper: toggle
+local function createToggle(parent, text, order, default)
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.new(1, 0, 0, 30)
+    holder.BackgroundTransparency = 1
+    holder.LayoutOrder = order
+    holder.Parent = parent
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = COLORS.text
+    label.TextSize = 13
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = holder
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 40, 0, 22)
+    toggle.Position = UDim2.new(1, -40, 0.5, -11)
+    toggle.BackgroundColor3 = default and COLORS.toggleOn or COLORS.toggleOff
+    toggle.Text = ""
+    toggle.Parent = holder
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = toggle
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 18, 0, 18)
+    knob.Position = default and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    knob.Parent = toggle
+
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(1, 0)
+    knobCorner.Parent = knob
+
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        local targetColor = state and COLORS.toggleOn or COLORS.toggleOff
+        local targetPos = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+        TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(knob, TweenInfo.new(0.2), {Position = targetPos}):Play()
+        print("[Visual Admin] " .. text .. ": " .. tostring(state))
+    end)
+    return holder
+end
+
+-- Build pages
+createSidebarButton("Eggs", 1, "Eggs")
+createSidebarButton("Players", 2, "Players")
+createSidebarButton("Bots", 3, "Bots")
+createSidebarButton("Auto", 4, "Auto")
+createSidebarButton("Console", 5, "Console")
+
+-- Eggs Page
+local eggsPage = createPage("Eggs")
+createSection(eggsPage, "EGG CONTROLS", 1)
+createActionButton(eggsPage, "Spawn Egg", 2)
+createActionButton(eggsPage, "Spawn Rare Egg", 3)
+createActionButton(eggsPage, "Spawn Eternal Lunar Dragon Egg", 4)
+createActionButton(eggsPage, "Spawn Void Dragon Egg", 5)
+createSection(eggsPage, "AUTOMATION", 6)
+createToggle(eggsPage, "Auto Hatch", 7, false)
+createToggle(eggsPage, "Auto Sell Pets", 8, false)
+
+-- Players Page
+local playersPage = createPage("Players")
+createSection(playersPage, "PLAYER ACTIONS", 1)
+createActionButton(playersPage, "Morph into Player", 2)
+createActionButton(playersPage, "Teleport To Player", 3)
+createActionButton(playersPage, "Bring Player", 4)
+createActionButton(playersPage, "Freeze Player", 5)
+
+-- Bots Page
+local botsPage = createPage("Bots")
+createSection(botsPage, "COLLECTOR BOTS", 1)
+createActionButton(botsPage, "Spawn Collector", 2)
+createActionButton(botsPage, "Spawn Auto Collector", 3)
+createActionButton(botsPage, "Clear All Bots", 4)
+
+-- Auto Page
+local autoPage = createPage("Auto")
+createSection(autoPage, "AUTO FARM", 1)
+createToggle(autoPage, "Auto Steal Eggs", 2, false)
+createToggle(autoPage, "Auto Place Eggs", 3, false)
+createToggle(autoPage, "Auto Upgrade Treadmill", 4, false)
+createToggle(autoPage, "Auto Upgrade Pen", 5, false)
+createToggle(autoPage, "Auto Farm Money", 6, false)
+
+-- Console Page
+local consolePage = createPage("Console")
+createSection(consolePage, "SERVER CONSOLE", 1)
+
+local consoleBox = Instance.new("TextBox")
+consoleBox.Size = UDim2.new(1, 0, 0, 120)
+consoleBox.BackgroundColor3 = COLORS.sidebar
+consoleBox.TextColor3 = COLORS.text
+consoleBox.PlaceholderText = "Enter command..."
+consoleBox.Text = ""
+consoleBox.TextSize = 13
+consoleBox.Font = Enum.Font.Code
+consoleBox.TextXAlignment = Enum.TextXAlignment.Left
+consoleBox.TextYAlignment = Enum.TextYAlignment.Top
+consoleBox.ClearTextOnFocus = false
+consoleBox.MultiLine = true
+consoleBox.LayoutOrder = 2
+consoleBox.Parent = consolePage
+
+local consoleCorner = Instance.new("UICorner")
+consoleCorner.CornerRadius = UDim.new(0, 6)
+consoleCorner.Parent = consoleBox
+
+local consolePadding = Instance.new("UIPadding")
+consolePadding.PaddingTop = UDim.new(0, 8)
+consolePadding.PaddingLeft = UDim.new(0, 8)
+consolePadding.PaddingRight = UDim.new(0, 8)
+consolePadding.PaddingBottom = UDim.new(0, 8)
+consolePadding.Parent = consoleBox
+
+createActionButton(consolePage, "Execute Command", 3, function()
+    print("[Visual Admin] Command: " .. consoleBox.Text)
+    consoleBox.Text = ""
+end)
+
+-- Show first page
+showPage("Eggs")
+-- Highlight first sidebar button
+for _, child in ipairs(sidebar:GetChildren()) do
+    if child:IsA("TextButton") and child.Name == "Eggs" then
+        child.BackgroundColor3 = COLORS.accentDark
+    end
+end
+
+print("[Visual Admin] GUI loaded. This is a visual-only recreation.")
