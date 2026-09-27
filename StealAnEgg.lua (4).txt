@@ -137,11 +137,16 @@ local function window(name,title,sub,w,h,pos)
     drag(hd,f); return f
 end
 
--- Create every important panel immediately before any game scan.
 local Main=window("MainPanel","⚡ ADMIN ABUSE","Developer control panel",380,500,UDim2.new(.22,0,.52,0))
 local Morph=window("MorphPanel","Avatar Morpher","Physics-safe client visual morph",390,300,UDim2.new(.74,0,.28,0))
 local BotsPanel=window("BotPanel","NPC COLLECTORS","Collectors, avatars and Sammy",400,505,UDim2.new(.74,0,.68,0))
 local Console=window("ConsolePanel","SERVER CONSOLE","TAB opens or closes this window",710,410,UDim2.new(.5,0,.5,0)); Console.Visible=false
+
+-- ⬇️ IDAGDAG MO ITO
+for _, panel in ipairs({Main, Morph, BotsPanel, Console}) do
+    local drag = Instance.new("UIDragDetector")
+    drag.Parent = panel
+end
 
 -- Permanent launchers so closed panels never disappear permanently.
 local Launch=Instance.new("Frame"); Launch.Position=UDim2.new(0,12,.5,-58); Launch.Size=UDim2.fromOffset(106,108); Launch.BackgroundTransparency=1; Launch.Parent=Gui
