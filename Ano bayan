@@ -1,0 +1,401 @@
+print("✅ FIXED SCRIPT LOADED")
+
+-- ⚠️ CONFIGURATION
+local Config = {
+    -- [1] PlatoBoost Settings
+    ServiceId       = 33535, 
+    PlatoSecret     = "f8d2871b-dfaa-4556-b307-bc507155130f", 
+
+    -- [2] Scripts & Links
+    MainScriptURL   = "https://obfuscatorhub.lol/api/5xN6FToK", 
+
+    -- [3] Key Management
+    KeyFileName     = "Mykey.txt", 
+
+    -- [4] Hub Information & UI Text
+    HubName         = "Admin Panel", 
+    HubDescription  = "Welcome to the,",
+    
+    -- [5] Discord Link
+    DiscordURL      = "https://discord.gg/FJK6QzNnf7"
+}
+
+local HttpService = game:GetService("HttpService")
+
+local function lDigest(str)
+    str = tostring(str)
+    if syn and syn.crypt and syn.crypt.hash then
+        return syn.crypt.hash("sha256", str)
+    elseif crypt and crypt.hash then
+        return crypt.hash("sha256", str)
+    elseif Krypt and Krypt.hash then
+        return Krypt.hash("sha256", str)
+    else
+        return "NO_HASH_LIBRARY"
+    end
+end
+
+-- ⚠️ PLATOBOOST API FUNCTIONS
+local useNonce = true 
+
+local function safeRequest(options)
+    local req = request or http_request or syn_request or (http and http.request )
+    if not req then return nil, "HTTP requests not supported by your executor!" end
+    local success, response = pcall(function() return req(options) end)
+    if success and type(response) == "table" then 
+        return response 
+    else 
+        return nil, "Connection Error: " .. tostring(response or "Unknown") 
+    end
+end
+
+local fSetClipboard = setclipboard or toclipboard or function() end
+local fStringChar, fToString, fOsTime, fMathRandom, fMathFloor = string.char, tostring, os.time, math.random, math.floor
+local fGetHwid = gethwid or function() return game:GetService("RbxAnalyticsService"):GetClientId() end
+
+local cachedLink, cachedTime = "", 0
+local host = "https://api.platoboost.com"
+
+local function checkConnectivity( )
+    local response, err = safeRequest({Url = host .. "/public/connectivity", Method = "GET"})
+    if not response or (response.StatusCode ~= 200 and response.StatusCode ~= 429) then
+        host = "https://api.platoboost.net"
+        local fallbackResponse, fallbackErr = safeRequest({Url = host .. "/public/connectivity", Method = "GET"})
+        if not fallbackResponse then
+            return false 
+        end
+    end
+    return true
+end
+
+local function generateNonce()
+    local str = ""
+    for _ = 1, 16 do str = str .. fStringChar(fMathFloor(fMathRandom() * (122 - 97 + 1)) + 97) end
+    return str
+end
+
+local function cacheLink()
+    local isConnected = checkConnectivity()
+    if not isConnected then
+        return false, "Delta/Network Error! Use VPN or change Executor."
+    end
+    
+    if cachedTime + (10*60) < fOsTime() then
+        -- ⚠️ FIXED: Using colon (:) directly on HttpService
+        local response, err = safeRequest({
+            Url = host .. "/public/start",
+            Method = "POST",
+            Body = HttpService:JSONEncode({service = Config.ServiceId, identifier = lDigest(fGetHwid())}),
+            Headers = {["Content-Type"] = "application/json"}
+        })
+        if response and response.StatusCode == 200 then
+            local decoded = HttpService:JSONDecode(response.Body)
+            if decoded.success then
+                cachedLink = decoded.data.url
+                cachedTime = fOsTime()
+                return true, cachedLink
+            else
+                return false, "API Error: " .. tostring(decoded.message or "Unknown response")
+            end
+        end
+        return false, err or "Server Unreachable (Status: " .. tostring(response and response.StatusCode or "No Response") .. ")"
+    end
+    return true, cachedLink
+end
+
+local function redeemKey(key)
+    local nonce = generateNonce()
+    local body = {identifier = lDigest(fGetHwid()), key = key}
+    if useNonce then body.nonce = nonce end
+    
+    -- ⚠️ FIXED: Using colon (:) directly on HttpService
+    local response, err = safeRequest({
+        Url = host .. "/public/redeem/" .. fToString(Config.ServiceId),
+        Method = "POST",
+        Body = HttpService:JSONEncode(body),
+        Headers = {["Content-Type"] = "application/json"}
+    })
+    
+    if response and response.StatusCode == 200 then
+        local decoded = HttpService:JSONDecode(response.Body)
+        if decoded.success and decoded.data.valid then
+            if useNonce then
+                if decoded.data.hash == lDigest("true" .. "-" .. nonce .. "-" .. Config.PlatoSecret) then 
+                    if writefile then writefile(Config.KeyFileName, key) end
+                    return true, "Success" 
+                end
+                return false, "Integrity Check Failed"
+            end
+            if writefile then writefile(Config.KeyFileName, key) end
+            return true, "Success"
+        end
+        return false, decoded.message or "Invalid Key"
+    end
+    return false, err or "Server Error"
+end
+
+local function StartMainScript()
+    loadstring(game:HttpGet(Config.MainScriptURL))()
+end
+
+-- ⚠️ GUI CREATION
+local function CreateGUI()
+    local player = game:GetService("Players").LocalPlayer
+    local coreGui = game:GetService("CoreGui")
+    local targetParent = pcall(function() return coreGui end) and coreGui or player:WaitForChild("PlayerGui")
+    
+    if targetParent:FindFirstChild("AdminPanel_GUI") then targetParent.AdminPanel_GUI:Destroy() end
+
+    local ScreenGui = Instance.new("ScreenGui", targetParent)
+    ScreenGui.Name = "AdminPanel_GUI"
+    ScreenGui.ResetOnSpawn = false
+
+    local MainFrame = Instance.new("Frame", ScreenGui)
+    MainFrame.Size = UDim2.new(0, 450, 0, 380)
+    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -190)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    MainFrame.BackgroundTransparency = 0.1
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+    
+    local mainStroke = Instance.new("UIStroke", MainFrame)
+    mainStroke.Thickness = 1
+    mainStroke.Color = Color3.fromRGB(40, 40, 40)
+
+    local Header = Instance.new("Frame", MainFrame)
+    Header.Size = UDim2.new(1, 0, 0, 45)
+    Header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
+    local headerCover = Instance.new("Frame", Header)
+    headerCover.Size = UDim2.new(1, 0, 0, 15)
+    headerCover.Position = UDim2.new(0, 0, 1, -15)
+    headerCover.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    headerCover.BorderSizePixel = 0
+
+    local Title = Instance.new("TextLabel", Header)
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.Position = UDim2.new(0, 20, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = string.upper(Config.HubName)
+    Title.TextColor3 = Color3.fromRGB(0, 150, 255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 16
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local CloseBtn = Instance.new("TextButton", Header)
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+    CloseBtn.Text = "X"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 14
+    Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+    CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+    local WelcomeLabel = Instance.new("TextLabel", MainFrame)
+    WelcomeLabel.Size = UDim2.new(1, -40, 0, 60)
+    WelcomeLabel.Position = UDim2.new(0, 20, 0, 60)
+    WelcomeLabel.BackgroundTransparency = 1
+    WelcomeLabel.Text = Config.HubDescription .. "\n<font color='#0096FF'>" .. Config.HubName .. "</font>"
+    WelcomeLabel.RichText = true
+    WelcomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    WelcomeLabel.Font = Enum.Font.GothamBold
+    WelcomeLabel.TextSize = 22
+    WelcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    WelcomeLabel.TextYAlignment = Enum.TextYAlignment.Top
+
+    local KeyLabel = Instance.new("TextLabel", MainFrame)
+    KeyLabel.Size = UDim2.new(1, -40, 0, 20)
+    KeyLabel.Position = UDim2.new(0, 20, 0, 130)
+    KeyLabel.BackgroundTransparency = 1
+    KeyLabel.Text = "Key"
+    KeyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    KeyLabel.Font = Enum.Font.Gotham
+    KeyLabel.TextSize = 14
+    KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local InputFrame = Instance.new("Frame", MainFrame)
+    InputFrame.Size = UDim2.new(1, -40, 0, 45)
+    InputFrame.Position = UDim2.new(0, 20, 0, 155)
+    InputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    InputFrame.BorderSizePixel = 0
+    Instance.new("UICorner", InputFrame).CornerRadius = UDim.new(0, 8)
+    local inputStroke = Instance.new("UIStroke", InputFrame)
+    inputStroke.Color = Color3.fromRGB(0, 150, 255)
+    inputStroke.Thickness = 1.5
+
+    local KeyInput = Instance.new("TextBox", InputFrame)
+    KeyInput.Size = UDim2.new(1, -80, 1, 0)
+    KeyInput.Position = UDim2.new(0, 10, 0, 0)
+    KeyInput.BackgroundTransparency = 1
+    KeyInput.PlaceholderText = "insert your key here"
+    KeyInput.Text = ""
+    KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeyInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+    KeyInput.Font = Enum.Font.Gotham
+    KeyInput.TextSize = 14
+    KeyInput.TextXAlignment = Enum.TextXAlignment.Left
+
+    local PasteBtn = Instance.new("TextButton", InputFrame)
+    PasteBtn.Size = UDim2.new(0, 70, 1, -10)
+    PasteBtn.Position = UDim2.new(1, -75, 0, 5)
+    PasteBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+    PasteBtn.Text = "Paste"
+    PasteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PasteBtn.Font = Enum.Font.GothamBold
+    PasteBtn.TextSize = 13
+    Instance.new("UICorner", PasteBtn).CornerRadius = UDim.new(0, 6)
+    
+    PasteBtn.MouseButton1Click:Connect(function()
+        local clipboard = getclipboard()
+        if clipboard and clipboard ~= "" then
+            KeyInput.Text = clipboard
+        end
+    end)
+
+    local SubmitBtn = Instance.new("TextButton", MainFrame)
+    SubmitBtn.Size = UDim2.new(1, -40, 0, 45)
+    SubmitBtn.Position = UDim2.new(0, 20, 0, 220)
+    SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+    SubmitBtn.Text = "Submit Key  >"
+    SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubmitBtn.Font = Enum.Font.GothamBold
+    SubmitBtn.TextSize = 16
+    Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
+
+    local DiscordBtn = Instance.new("TextButton", MainFrame)
+    DiscordBtn.Size = UDim2.new(1, -40, 0, 20)
+    DiscordBtn.Position = UDim2.new(0, 20, 0, 280)
+    DiscordBtn.BackgroundTransparency = 1
+    DiscordBtn.Text = "Need support? Join the Discord"
+    DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    DiscordBtn.Font = Enum.Font.Gotham
+    DiscordBtn.TextSize = 14
+    
+    DiscordBtn.MouseButton1Click:Connect(function()
+        fSetClipboard(Config.DiscordURL)
+        DiscordBtn.Text = "Discord link copied!"
+        DiscordBtn.TextColor3 = Color3.fromRGB(0, 150, 255)
+        task.wait(2)
+        DiscordBtn.Text = "Need support? Join the Discord"
+        DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    end)
+
+    local GetKeyBtn = Instance.new("TextButton", MainFrame)
+    GetKeyBtn.Size = UDim2.new(0, 200, 0, 40)
+    GetKeyBtn.Position = UDim2.new(0.5, -100, 0, 310)
+    GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+    GetKeyBtn.Text = "GET KEY"
+    GetKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    GetKeyBtn.Font = Enum.Font.GothamBold
+    GetKeyBtn.TextSize = 14
+    Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
+
+    local Status = Instance.new("TextLabel", MainFrame)
+    Status.Name = "StatusLabel"
+    Status.Size = UDim2.new(1, -40, 0, 20)
+    Status.Position = UDim2.new(0, 20, 0, 350)
+    Status.BackgroundTransparency = 1
+    Status.Text = ""
+    Status.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Status.Font = Enum.Font.Gotham
+    Status.TextSize = 12
+
+    GetKeyBtn.MouseButton1Click:Connect(function()
+        Status.Text = "Getting Link..."
+        Status.TextColor3 = Color3.fromRGB(0, 170, 255)
+        
+        local success, link, err = pcall(function()
+            return cacheLink()
+        end)
+        
+        if success and link then
+            fSetClipboard(link)
+            GetKeyBtn.Text = "Link Copied!"
+            GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+            Status.Text = "PlatoBoost link copied!"
+            Status.TextColor3 = Color3.fromRGB(0, 255, 100)
+        else
+            GetKeyBtn.Text = "GET KEY"
+            GetKeyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+            
+            local errorMsg = "Unknown Error"
+            if not success then
+                errorMsg = tostring(link)
+            elseif err then
+                errorMsg = tostring(err)
+            else
+                errorMsg = "Failed to generate link."
+            end
+            
+            Status.Text = errorMsg
+            Status.TextColor3 = Color3.fromRGB(255, 50, 50)
+        end
+        
+        task.wait(3)
+        GetKeyBtn.Text = "GET KEY"
+        GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+    end)
+
+    SubmitBtn.MouseButton1Click:Connect(function()
+        local key = KeyInput.Text
+        if key == "" then 
+            Status.Text = "Enter a key!"
+            Status.TextColor3 = Color3.fromRGB(255, 50, 50)
+            return 
+        end
+        
+        Status.Text = "Verifying..."
+        Status.TextColor3 = Color3.fromRGB(0, 170, 255)
+        SubmitBtn.Text = "Checking..."
+        
+        local success, msg = redeemKey(key)
+        if success then
+            Status.Text = "Success! Loading..."
+            Status.TextColor3 = Color3.fromRGB(0, 255, 100)
+            SubmitBtn.Text = "Loading..."
+            SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+            task.wait(0.5)
+            ScreenGui:Destroy()
+            StartMainScript()
+        else
+            Status.Text = msg
+            Status.TextColor3 = Color3.fromRGB(255, 50, 50)
+            SubmitBtn.Text = "Submit Key  >"
+            SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+        end
+    end)
+
+    if isfile and isfile(Config.KeyFileName) then
+        local savedKey = readfile(Config.KeyFileName)
+        if savedKey ~= "" then
+            Status.Text = "Found saved key, verifying..."
+            task.spawn(function()
+                local success, msg = redeemKey(savedKey)
+                if success then
+                    Status.Text = "Auto-login success!"
+                    Status.TextColor3 = Color3.fromRGB(0, 255, 100)
+                    task.wait(0.5)
+                    ScreenGui:Destroy()
+                    StartMainScript()
+                else
+                    Status.Text = "Saved key expired or invalid."
+                    Status.TextColor3 = Color3.fromRGB(255, 150, 0)
+                end
+            end)
+        end
+    end
+end
+
+-- ⚠️ EXECUTION
+local player = game:GetService("Players").LocalPlayer
+local pGui = player:WaitForChild("PlayerGui")
+
+if pGui:FindFirstChild("AdminPanel_GUI") then
+    StartMainScript() 
+    return
+end
+
+CreateGUI()
