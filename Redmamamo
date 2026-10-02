@@ -18,10 +18,16 @@ local Config = {
     DiscordURL      = "https://discord.gg/FJK6QzNnf7"
 }
 
--- ⚠️ MISSING FUNCTIONS (lEncode, lDecode, lDigest)
+-- ⚠️ FIXED JSON FUNCTIONS (Resolves the red error on your screen)
 local HttpService = game:GetService("HttpService")
-local lEncode = HttpService.JSONEncode
-local lDecode = HttpService.JSONDecode
+
+local function lEncode(t)
+    return HttpService:JSONEncode(t)
+end
+
+local function lDecode(s)
+    return HttpService:JSONDecode(s)
+end
 
 local function lDigest(str)
     str = tostring(str)
@@ -32,8 +38,8 @@ local function lDigest(str)
     elseif Krypt and Krypt.hash then
         return Krypt.hash("sha256", str)
     else
-        warn("❌ No SHA256 hashing library found! Please use an executor with syn.crypt or crypt.")
-        return str -- Fallback (will likely fail PlatoBoost verification)
+        warn("❌ No SHA256 hashing library found!")
+        return str -- Fallback
     end
 end
 
@@ -76,7 +82,6 @@ local function generateNonce()
     return str
 end
 
--- Generates the PlatoBoost link for the "GET KEY" button
 local function cacheLink()
     local isConnected = checkConnectivity()
     if not isConnected then
@@ -133,7 +138,6 @@ local function redeemKey(key)
     return false, err or "Server Error"
 end
 
--- ⚠️ MAIN SCRIPT EXECUTION
 local function StartMainScript()
     loadstring(game:HttpGet(Config.MainScriptURL))()
 end
@@ -150,7 +154,6 @@ local function CreateGUI()
     ScreenGui.Name = "AdminPanel_GUI"
     ScreenGui.ResetOnSpawn = false
 
-    -- Main Frame (Medium Size, Draggable)
     local MainFrame = Instance.new("Frame", ScreenGui)
     MainFrame.Size = UDim2.new(0, 450, 0, 380)
     MainFrame.Position = UDim2.new(0.5, -225, 0.5, -190)
@@ -164,7 +167,6 @@ local function CreateGUI()
     mainStroke.Thickness = 1
     mainStroke.Color = Color3.fromRGB(40, 40, 40)
 
-    -- Header
     local Header = Instance.new("Frame", MainFrame)
     Header.Size = UDim2.new(1, 0, 0, 45)
     Header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -179,8 +181,8 @@ local function CreateGUI()
     Title.Size = UDim2.new(1, -100, 1, 0)
     Title.Position = UDim2.new(0, 20, 0, 0)
     Title.BackgroundTransparency = 1
-    Title.Text = string.upper(Config.HubName) -- "ADMIN PANEL"
-    Title.TextColor3 = Color3.fromRGB(0, 150, 255) -- Blue
+    Title.Text = string.upper(Config.HubName)
+    Title.TextColor3 = Color3.fromRGB(0, 150, 255)
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 16
     Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -188,7 +190,7 @@ local function CreateGUI()
     local CloseBtn = Instance.new("TextButton", Header)
     CloseBtn.Size = UDim2.new(0, 30, 0, 30)
     CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
-    CloseBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
     CloseBtn.Text = "X"
     CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseBtn.Font = Enum.Font.GothamBold
@@ -196,7 +198,6 @@ local function CreateGUI()
     Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
     CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
-    -- Welcome Text
     local WelcomeLabel = Instance.new("TextLabel", MainFrame)
     WelcomeLabel.Size = UDim2.new(1, -40, 0, 60)
     WelcomeLabel.Position = UDim2.new(0, 20, 0, 60)
@@ -209,7 +210,6 @@ local function CreateGUI()
     WelcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
     WelcomeLabel.TextYAlignment = Enum.TextYAlignment.Top
 
-    -- Key Label
     local KeyLabel = Instance.new("TextLabel", MainFrame)
     KeyLabel.Size = UDim2.new(1, -40, 0, 20)
     KeyLabel.Position = UDim2.new(0, 20, 0, 130)
@@ -220,7 +220,6 @@ local function CreateGUI()
     KeyLabel.TextSize = 14
     KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Input Box
     local InputFrame = Instance.new("Frame", MainFrame)
     InputFrame.Size = UDim2.new(1, -40, 0, 45)
     InputFrame.Position = UDim2.new(0, 20, 0, 155)
@@ -228,7 +227,7 @@ local function CreateGUI()
     InputFrame.BorderSizePixel = 0
     Instance.new("UICorner", InputFrame).CornerRadius = UDim.new(0, 8)
     local inputStroke = Instance.new("UIStroke", InputFrame)
-    inputStroke.Color = Color3.fromRGB(0, 150, 255) -- Blue Border
+    inputStroke.Color = Color3.fromRGB(0, 150, 255)
     inputStroke.Thickness = 1.5
 
     local KeyInput = Instance.new("TextBox", InputFrame)
@@ -246,7 +245,7 @@ local function CreateGUI()
     local PasteBtn = Instance.new("TextButton", InputFrame)
     PasteBtn.Size = UDim2.new(0, 70, 1, -10)
     PasteBtn.Position = UDim2.new(1, -75, 0, 5)
-    PasteBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+    PasteBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
     PasteBtn.Text = "Paste"
     PasteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     PasteBtn.Font = Enum.Font.GothamBold
@@ -260,18 +259,16 @@ local function CreateGUI()
         end
     end)
 
-    -- Submit Button
     local SubmitBtn = Instance.new("TextButton", MainFrame)
     SubmitBtn.Size = UDim2.new(1, -40, 0, 45)
     SubmitBtn.Position = UDim2.new(0, 20, 0, 220)
-    SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+    SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
     SubmitBtn.Text = "Submit Key  >"
     SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     SubmitBtn.Font = Enum.Font.GothamBold
     SubmitBtn.TextSize = 16
     Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
 
-    -- Discord Button
     local DiscordBtn = Instance.new("TextButton", MainFrame)
     DiscordBtn.Size = UDim2.new(1, -40, 0, 20)
     DiscordBtn.Position = UDim2.new(0, 20, 0, 280)
@@ -290,11 +287,10 @@ local function CreateGUI()
         DiscordBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
     end)
 
-    -- GET KEY Button (PlatoBoost Link)
     local GetKeyBtn = Instance.new("TextButton", MainFrame)
     GetKeyBtn.Size = UDim2.new(0, 200, 0, 40)
     GetKeyBtn.Position = UDim2.new(0.5, -100, 0, 310)
-    GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200) -- Blue
+    GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
     GetKeyBtn.Text = "GET KEY"
     GetKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     GetKeyBtn.Font = Enum.Font.GothamBold
@@ -311,7 +307,6 @@ local function CreateGUI()
     Status.Font = Enum.Font.Gotham
     Status.TextSize = 12
 
-    -- GET KEY Logic (PlatoBoost Link Generation)
     GetKeyBtn.MouseButton1Click:Connect(function()
         Status.Text = "Getting Link..."
         Status.TextColor3 = Color3.fromRGB(0, 170, 255)
@@ -323,7 +318,7 @@ local function CreateGUI()
         if success and link then
             fSetClipboard(link)
             GetKeyBtn.Text = "Link Copied!"
-            GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- Green
+            GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
             Status.Text = "PlatoBoost link copied!"
             Status.TextColor3 = Color3.fromRGB(0, 255, 100)
         else
@@ -338,7 +333,6 @@ local function CreateGUI()
         GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
     end)
 
-    -- Verify Logic
     SubmitBtn.MouseButton1Click:Connect(function()
         local key = KeyInput.Text
         if key == "" then 
@@ -368,7 +362,6 @@ local function CreateGUI()
         end
     end)
 
-    -- Auto-Login Logic
     if isfile and isfile(Config.KeyFileName) then
         local savedKey = readfile(Config.KeyFileName)
         if savedKey ~= "" then
@@ -390,7 +383,6 @@ local function CreateGUI()
     end
 end
 
--- ⚠️ EXECUTION
 local player = game:GetService("Players").LocalPlayer
 local pGui = player:WaitForChild("PlayerGui")
 
