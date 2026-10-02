@@ -18,7 +18,7 @@ local Config = {
     DiscordURL      = "https://discord.gg/FJK6QzNnf7"
 }
 
--- ⚠️ FIXED JSON FUNCTIONS (Resolves the red error on your screen)
+-- ⚠️ FIXED JSON FUNCTIONS
 local HttpService = game:GetService("HttpService")
 
 local function lEncode(t)
@@ -38,8 +38,7 @@ local function lDigest(str)
     elseif Krypt and Krypt.hash then
         return Krypt.hash("sha256", str)
     else
-        warn("❌ No SHA256 hashing library found!")
-        return str -- Fallback
+        return "NO_HASH_LIBRARY" -- This will trigger an error in the status
     end
 end
 
@@ -48,7 +47,7 @@ local useNonce = true
 
 local function safeRequest(options)
     local req = request or http_request or syn_request or (http and http.request )
-    if not req then return nil, "HTTP requests not supported" end
+    if not req then return nil, "HTTP requests not supported by your executor!" end
     local success, response = pcall(function() return req(options) end)
     if success and type(response) == "table" then 
         return response 
@@ -101,9 +100,11 @@ local function cacheLink()
                 cachedLink = decoded.data.url
                 cachedTime = fOsTime()
                 return true, cachedLink
+            else
+                return false, "API Error: " .. tostring(decoded.message or "Unknown response")
             end
         end
-        return false, err or "Server Unreachable"
+        return false, err or "Server Unreachable (Status: " .. tostring(response and response.StatusCode or "No Response") .. ")"
     end
     return true, cachedLink
 end
@@ -307,24 +308,36 @@ local function CreateGUI()
     Status.Font = Enum.Font.Gotham
     Status.TextSize = 12
 
+    -- ⚠️ FIXED GET KEY LOGIC (Now shows the exact error)
     GetKeyBtn.MouseButton1Click:Connect(function()
         Status.Text = "Getting Link..."
         Status.TextColor3 = Color3.fromRGB(0, 170, 255)
         
-        local success, link = pcall(function()
+        local success, link, err = pcall(function()
             return cacheLink()
         end)
         
         if success and link then
             fSetClipboard(link)
             GetKeyBtn.Text = "Link Copied!"
-            GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+            GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- Green
             Status.Text = "PlatoBoost link copied!"
             Status.TextColor3 = Color3.fromRGB(0, 255, 100)
         else
             GetKeyBtn.Text = "GET KEY"
             GetKeyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-            Status.Text = tostring(link)
+            
+            -- Display the exact error message
+            local errorMsg = "Unknown Error"
+            if not success then
+                errorMsg = tostring(link)
+            elseif err then
+                errorMsg = tostring(err)
+            else
+                errorMsg = "Failed to generate link."
+            end
+            
+            Status.Text = errorMsg
             Status.TextColor3 = Color3.fromRGB(255, 50, 50)
         end
         
@@ -383,6 +396,7 @@ local function CreateGUI()
     end
 end
 
+-- ⚠️ EXECUTION
 local player = game:GetService("Players").LocalPlayer
 local pGui = player:WaitForChild("PlayerGui")
 
