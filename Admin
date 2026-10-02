@@ -1,0 +1,258 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local remoteFunction = ReplicatedStorage:WaitForChild("LootLabsRequest")
+
+-- Main ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AdminPanel_GUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Window Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 420)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -210)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(40, 40, 40)
+mainStroke.Thickness = 1
+mainStroke.Parent = mainFrame
+
+-- Header Bar
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 45)
+header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.Parent = header
+
+local headerCover = Instance.new("Frame")
+headerCover.Size = UDim2.new(1, 0, 0, 15)
+headerCover.Position = UDim2.new(0, 0, 1, -15)
+headerCover.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+headerCover.BorderSizePixel = 0
+headerCover.Parent = header
+
+-- Header Title (Blue)
+local headerTitle = Instance.new("TextLabel")
+headerTitle.Size = UDim2.new(1, -100, 1, 0)
+headerTitle.Position = UDim2.new(0, 20, 0, 0)
+headerTitle.BackgroundTransparency = 1
+headerTitle.Text = "ADMIN PANEL"
+headerTitle.TextColor3 = Color3.fromRGB(0, 150, 255) -- Blue
+headerTitle.Font = Enum.Font.GothamBold
+headerTitle.TextSize = 16
+headerTitle.TextXAlignment = Enum.TextXAlignment.Left
+headerTitle.Parent = header
+
+-- Close Button (Blue)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0.5, -15)
+closeBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.Parent = header
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+-- Welcome Text
+local welcomeLabel = Instance.new("TextLabel")
+welcomeLabel.Size = UDim2.new(1, -40, 0, 60)
+welcomeLabel.Position = UDim2.new(0, 20, 0, 60)
+welcomeLabel.BackgroundTransparency = 1
+welcomeLabel.Text = "Welcome to the,\n<font color='#0096FF'>Admin Panel</font>"
+welcomeLabel.RichText = true
+welcomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+welcomeLabel.Font = Enum.Font.GothamBold
+welcomeLabel.TextSize = 22
+welcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+welcomeLabel.TextYAlignment = Enum.TextYAlignment.Top
+welcomeLabel.Parent = mainFrame
+
+-- Key Label
+local keyLabel = Instance.new("TextLabel")
+keyLabel.Size = UDim2.new(1, -40, 0, 20)
+keyLabel.Position = UDim2.new(0, 20, 0, 130)
+keyLabel.BackgroundTransparency = 1
+keyLabel.Text = "Key"
+keyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+keyLabel.Font = Enum.Font.Gotham
+keyLabel.TextSize = 14
+keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+keyLabel.Parent = mainFrame
+
+-- Input Box Container (Blue Stroke)
+local inputFrame = Instance.new("Frame")
+inputFrame.Size = UDim2.new(1, -40, 0, 45)
+inputFrame.Position = UDim2.new(0, 20, 0, 155)
+inputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+inputFrame.BorderSizePixel = 0
+inputFrame.Parent = mainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 8)
+inputCorner.Parent = inputFrame
+
+local inputStroke = Instance.new("UIStroke")
+inputStroke.Color = Color3.fromRGB(0, 150, 255) -- Blue
+inputStroke.Thickness = 1.5
+inputStroke.Parent = inputFrame
+
+local keyBox = Instance.new("TextBox")
+keyBox.Size = UDim2.new(1, -80, 1, 0)
+keyBox.Position = UDim2.new(0, 10, 0, 0)
+keyBox.BackgroundTransparency = 1
+keyBox.PlaceholderText = "insert your key here"
+keyBox.Text = ""
+keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+keyBox.Font = Enum.Font.Gotham
+keyBox.TextSize = 14
+keyBox.TextXAlignment = Enum.TextXAlignment.Left
+keyBox.Parent = inputFrame
+
+-- Paste Button (Blue)
+local pasteBtn = Instance.new("TextButton")
+pasteBtn.Size = UDim2.new(0, 70, 1, -10)
+pasteBtn.Position = UDim2.new(1, -75, 0, 5)
+pasteBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+pasteBtn.Text = "Paste"
+pasteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+pasteBtn.Font = Enum.Font.GothamBold
+pasteBtn.TextSize = 13
+pasteBtn.Parent = inputFrame
+
+local pasteCorner = Instance.new("UICorner")
+pasteCorner.CornerRadius = UDim.new(0, 6)
+pasteCorner.Parent = pasteBtn
+
+pasteBtn.MouseButton1Click:Connect(function()
+	keyBox.Text = "Pasted_Key_Placeholder"
+end)
+
+-- Submit Button (Blue)
+local submitBtn = Instance.new("TextButton")
+submitBtn.Size = UDim2.new(1, -40, 0, 45)
+submitBtn.Position = UDim2.new(0, 20, 0, 220)
+submitBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+submitBtn.Text = "Submit Key  >"
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 16
+submitBtn.Parent = mainFrame
+
+local submitCorner = Instance.new("UICorner")
+submitCorner.CornerRadius = UDim.new(0, 8)
+submitCorner.Parent = submitBtn
+
+submitBtn.MouseButton1Click:Connect(function()
+	if keyBox.Text == "" then
+		submitBtn.Text = "Please enter a key!"
+		task.wait(2)
+		submitBtn.Text = "Submit Key  >"
+	else
+		submitBtn.Text = "Checking..."
+		task.wait(2)
+		submitBtn.Text = "Valid Key! Loading..."
+	end
+end)
+
+-- Discord Support Text (Click to Copy)
+local discordLabel = Instance.new("TextButton")
+discordLabel.Size = UDim2.new(1, -40, 0, 20)
+discordLabel.Position = UDim2.new(0, 20, 0, 280)
+discordLabel.BackgroundTransparency = 1
+discordLabel.Text = "Need support? Join the Discord"
+discordLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+discordLabel.Font = Enum.Font.Gotham
+discordLabel.TextSize = 14
+discordLabel.Parent = mainFrame
+
+discordLabel.MouseButton1Click:Connect(function()
+	setclipboard("https://discord.gg/FJK6QzNnf7")
+	discordLabel.Text = "Discord link copied!"
+	discordLabel.TextColor3 = Color3.fromRGB(0, 150, 255) -- Blue feedback
+	task.wait(2)
+	discordLabel.Text = "Need support? Join the Discord"
+	discordLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+end)
+
+-- LootLabs Button (Blue, Only one button as requested)
+local lootLabsBtn = Instance.new("TextButton")
+lootLabsBtn.Size = UDim2.new(0, 200, 0, 40)
+lootLabsBtn.Position = UDim2.new(0.5, -100, 0, 310)
+lootLabsBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200) -- Blue
+lootLabsBtn.Text = "LootLabs"
+lootLabsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+lootLabsBtn.Font = Enum.Font.GothamBold
+lootLabsBtn.TextSize = 14
+lootLabsBtn.Parent = mainFrame
+
+local lootCorner = Instance.new("UICorner")
+lootCorner.CornerRadius = UDim.new(0, 8)
+lootCorner.Parent = lootLabsBtn
+
+lootLabsBtn.MouseButton1Click:Connect(function()
+	lootLabsBtn.Text = "Generating link..."
+	lootLabsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	
+	local response = remoteFunction:InvokeServer()
+	
+	if response.success then
+		local success, decoded = pcall(function()
+			return HttpService:JSONDecode(response.data)
+		end)
+		
+		if success and decoded and decoded.message then
+			setclipboard(decoded.message)
+			lootLabsBtn.Text = "Link Copied!"
+			lootLabsBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- Green success
+		else
+			lootLabsBtn.Text = "Error parsing link"
+			lootLabsBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		end
+	else
+		lootLabsBtn.Text = "API Error"
+		lootLabsBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+	end
+	
+	task.wait(3)
+	lootLabsBtn.Text = "LootLabs"
+	lootLabsBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+end)
+
+-- Footer Text
+local footerLabel = Instance.new("TextLabel")
+footerLabel.Size = UDim2.new(1, -40, 0, 20)
+footerLabel.Position = UDim2.new(0, 20, 0, 370)
+footerLabel.BackgroundTransparency = 1
+footerLabel.Text = "1  Keyless will be enabled every weekend."
+footerLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+footerLabel.Font = Enum.Font.Gotham
+footerLabel.TextSize = 12
+footerLabel.TextXAlignment = Enum.TextXAlignment.Left
+footerLabel.Parent = mainFrame
