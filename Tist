@@ -1,0 +1,247 @@
+-- ============================================
+--  BLUE KEY SYSTEM GUI
+-- ============================================
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local player = Players.LocalPlayer
+
+-- CONFIG
+local KEY_LINK = "https://work.ink/32WN/key-admin-panel"
+local VALID_KEYS = {
+    ["02e28cc5-19b5-476c-b7bf-05b1817216b8"] = true,
+}
+
+-- COLORS (Blue theme)
+local COL_BG        = Color3.fromRGB(15, 23, 42)      -- deep navy
+local COL_PANEL     = Color3.fromRGB(30, 41, 59)      -- slate
+local COL_INPUT     = Color3.fromRGB(51, 65, 85)      -- light slate
+local COL_BLUE      = Color3.fromRGB(59, 130, 246)    -- main blue
+local COL_BLUE_HOV  = Color3.fromRGB(37, 99, 235)     -- darker blue
+local COL_GREEN     = Color3.fromRGB(34, 197, 94)
+local COL_TEXT      = Color3.fromRGB(255, 255, 255)
+local COL_MUTED     = Color3.fromRGB(148, 163, 184)
+
+-- ============================================
+-- GUI CREATION
+-- ============================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BlueKeySystem"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = CoreGui
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 360, 0, 260)
+Main.Position = UDim2.new(0.5, -180, 0.5, -130)
+Main.BackgroundColor3 = COL_BG
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = Main
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = COL_BLUE
+Stroke.Thickness = 1.5
+Stroke.Transparency = 0.3
+Stroke.Parent = Main
+
+-- Title bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 44)
+TitleBar.BackgroundColor3 = COL_PANEL
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = Main
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+-- Hide bottom corners of title bar to merge with body
+local TitleFix = Instance.new("Frame")
+TitleFix.Size = UDim2.new(1, 0, 0, 12)
+TitleFix.Position = UDim2.new(0, 0, 1, -12)
+TitleFix.BackgroundColor3 = COL_PANEL
+TitleFix.BorderSizePixel = 0
+TitleFix.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 1, 0)
+Title.Position = UDim2.new(0, 20, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🔑  KEY SYSTEM"
+Title.TextColor3 = COL_TEXT
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 17
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
+
+-- Close button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -38, 0, 7)
+CloseBtn.BackgroundColor3 = COL_INPUT
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = COL_TEXT
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 14
+CloseBtn.AutoButtonColor = false
+CloseBtn.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseEnter:Connect(function()
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+end)
+CloseBtn.MouseLeave:Connect(function()
+    CloseBtn.BackgroundColor3 = COL_INPUT
+end)
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- ============================================
+-- KEY INPUT
+-- ============================================
+local InputFrame = Instance.new("Frame")
+InputFrame.Size = UDim2.new(1, -40, 0, 42)
+InputFrame.Position = UDim2.new(0, 20, 0, 60)
+InputFrame.BackgroundColor3 = COL_INPUT
+InputFrame.BorderSizePixel = 0
+InputFrame.Parent = Main
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 8)
+InputCorner.Parent = InputFrame
+
+local InputStroke = Instance.new("UIStroke")
+InputStroke.Color = COL_BLUE
+InputStroke.Thickness = 1
+InputStroke.Transparency = 0.5
+InputStroke.Parent = InputFrame
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Size = UDim2.new(1, -20, 1, 0)
+KeyInput.Position = UDim2.new(0, 10, 0, 0)
+KeyInput.BackgroundTransparency = 1
+KeyInput.PlaceholderText = "Paste your key here..."
+KeyInput.PlaceholderColor3 = COL_MUTED
+KeyInput.Text = ""
+KeyInput.TextColor3 = COL_TEXT
+KeyInput.Font = Enum.Font.Gotham
+KeyInput.TextSize = 14
+KeyInput.TextXAlignment = Enum.TextXAlignment.Left
+KeyInput.ClearTextOnFocus = false
+KeyInput.Parent = InputFrame
+
+-- ============================================
+-- BUTTONS
+-- ============================================
+local function makeButton(name, text, xPos, color)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Size = UDim2.new(0.5, -25, 0, 40)
+    btn.Position = UDim2.new(0, xPos, 0, 118)
+    btn.BackgroundColor3 = color
+    btn.Text = text
+    btn.TextColor3 = COL_TEXT
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.AutoButtonColor = false
+    btn.Parent = Main
+
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 8)
+    c.Parent = btn
+    return btn
+end
+
+local CopyBtn = makeButton("CopyBtn", "📋 Copy Link", 20, COL_BLUE)
+local SubmitBtn = makeButton("SubmitBtn", "✓ Submit Key", 195, COL_GREEN)
+
+-- Hover effects
+CopyBtn.MouseEnter:Connect(function() CopyBtn.BackgroundColor3 = COL_BLUE_HOV end)
+CopyBtn.MouseLeave:Connect(function() CopyBtn.BackgroundColor3 = COL_BLUE end)
+
+SubmitBtn.MouseEnter:Connect(function() SubmitBtn.BackgroundColor3 = Color3.fromRGB(22, 163, 74) end)
+SubmitBtn.MouseLeave:Connect(function() SubmitBtn.BackgroundColor3 = COL_GREEN end)
+
+-- ============================================
+-- STATUS LABEL
+-- ============================================
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, -40, 0, 30)
+Status.Position = UDim2.new(0, 20, 0, 175)
+Status.BackgroundColor3 = COL_PANEL
+Status.Text = "Enter your key or copy the link to get one."
+Status.TextColor3 = COL_MUTED
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 12
+Status.Parent = Main
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0, 6)
+StatusCorner.Parent = Status
+
+-- ============================================
+-- FOOTER
+-- ============================================
+local Footer = Instance.new("TextLabel")
+Footer.Size = UDim2.new(1, -40, 0, 20)
+Footer.Position = UDim2.new(0, 20, 0, 215)
+Footer.BackgroundTransparency = 1
+Footer.Text = "Powered by Work.ink"
+Footer.TextColor3 = COL_MUTED
+Footer.Font = Enum.Font.Gotham
+Footer.TextSize = 11
+Footer.Parent = Main
+
+-- ============================================
+-- COPY LINK LOGIC
+-- ============================================
+CopyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(KEY_LINK)
+        Status.Text = "✓ Link copied! Paste it in your browser."
+        Status.TextColor3 = COL_BLUE
+    else
+        Status.Text = "Open: " .. KEY_LINK
+        Status.TextColor3 = COL_BLUE
+    end
+end)
+
+-- ============================================
+-- KEY VALIDATION (client-side demo)
+-- ============================================
+SubmitBtn.MouseButton1Click:Connect(function()
+    local entered = KeyInput.Text
+
+    if entered == "" then
+        Status.Text = "⚠ Please enter a key."
+        Status.TextColor3 = Color3.fromRGB(250, 204, 21)
+        return
+    end
+
+    if VALID_KEYS[entered] then
+        Status.Text = "✓ Access granted! Loading..."
+        Status.TextColor3 = COL_GREEN
+        task.wait(1.2)
+        ScreenGui:Destroy()
+
+        -- 🔽 RUN YOUR MAIN SCRIPT HERE
+        print("[KeySystem] Valid key — executing main script.")
+    else
+        Status.Text = "✕ Invalid or expired key."
+        Status.TextColor3 = Color3.fromRGB(248, 113, 113)
+        -- Shake animation on wrong key
+        local orig = Main.Position
+        for i = 1, 6 do
+            Main.Position = orig + UDim2.new(0, (i % 2 == 0 and 6 or -6), 0, 0)
+            task.wait(0.03)
+        end
+        Main.Position = orig
+    end
+end)
