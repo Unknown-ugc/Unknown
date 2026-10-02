@@ -1,0 +1,223 @@
+-- SINGLE SCRIPT - Place in ServerScriptService
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+-- ⚠️ YOUR SETTINGS
+local API_TOKEN = "98485d817aa31627b66bfe5414363c1006ab77916116d15c54c6efbd4ae2397c"
+local DESTINATION_URL = "https://obfuscatorhub.lol/api/9GmGJX9j"
+local DISCORD_LINK = "https://discord.gg/FJK6QzNnf7"
+
+local function createGUI(player)
+	local playerGui = player:WaitForChild("PlayerGui")
+	
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "AdminPanel_GUI"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = playerGui
+
+	-- Main Window Frame
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = UDim2.new(0, 500, 0, 420)
+	mainFrame.Position = UDim2.new(0.5, -250, 0.5, -210)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	mainFrame.BackgroundTransparency = 0.1
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Parent = screenGui
+
+	local mainCorner = Instance.new("UICorner")
+	mainCorner.CornerRadius = UDim.new(0, 12)
+	mainCorner.Parent = mainFrame
+
+	local mainStroke = Instance.new("UIStroke")
+	mainStroke.Color = Color3.fromRGB(40, 40, 40)
+	mainStroke.Thickness = 1
+	mainStroke.Parent = mainFrame
+
+	-- Header Bar
+	local header = Instance.new("Frame")
+	header.Size = UDim2.new(1, 0, 0, 45)
+	header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	header.BorderSizePixel = 0
+	header.Parent = mainFrame
+
+	local headerCorner = Instance.new("UICorner")
+	headerCorner.CornerRadius = UDim.new(0, 12)
+	headerCorner.Parent = header
+
+	local headerCover = Instance.new("Frame")
+	headerCover.Size = UDim2.new(1, 0, 0, 15)
+	headerCover.Position = UDim2.new(0, 0, 1, -15)
+	headerCover.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	headerCover.BorderSizePixel = 0
+	headerCover.Parent = header
+
+	-- Header Title (Blue)
+	local headerTitle = Instance.new("TextLabel")
+	headerTitle.Size = UDim2.new(1, -100, 1, 0)
+	headerTitle.Position = UDim2.new(0, 20, 0, 0)
+	headerTitle.BackgroundTransparency = 1
+	headerTitle.Text = "ADMIN PANEL"
+	headerTitle.TextColor3 = Color3.fromRGB(0, 150, 255) -- Blue
+	headerTitle.Font = Enum.Font.GothamBold
+	headerTitle.TextSize = 16
+	headerTitle.TextXAlignment = Enum.TextXAlignment.Left
+	headerTitle.Parent = header
+
+	-- Close Button (Blue)
+	local closeBtn = Instance.new("TextButton")
+	closeBtn.Size = UDim2.new(0, 30, 0, 30)
+	closeBtn.Position = UDim2.new(1, -40, 0.5, -15)
+	closeBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 200) -- Blue
+	closeBtn.Text = "X"
+	closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeBtn.Font = Enum.Font.GothamBold
+	closeBtn.TextSize = 14
+	closeBtn.Parent = header
+
+	local closeCorner = Instance.new("UICorner")
+	closeCorner.CornerRadius = UDim.new(0, 6)
+	closeCorner.Parent = closeBtn
+
+	closeBtn.MouseButton1Click:Connect(function()
+		screenGui:Destroy()
+	end)
+
+	-- Welcome Text
+	local welcomeLabel = Instance.new("TextLabel")
+	welcomeLabel.Size = UDim2.new(1, -40, 0, 60)
+	welcomeLabel.Position = UDim2.new(0, 20, 0, 60)
+	welcomeLabel.BackgroundTransparency = 1
+	welcomeLabel.Text = "Welcome to the,\n<font color='#0096FF'>Admin Panel</font>"
+	welcomeLabel.RichText = true
+	welcomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	welcomeLabel.Font = Enum.Font.GothamBold
+	welcomeLabel.TextSize = 22
+	welcomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+	welcomeLabel.TextYAlignment = Enum.TextYAlignment.Top
+	welcomeLabel.Parent = mainFrame
+
+	-- LootLabs Button (Blue)
+	local lootLabsBtn = Instance.new("TextButton")
+	lootLabsBtn.Size = UDim2.new(1, -40, 0, 45)
+	lootLabsBtn.Position = UDim2.new(0, 20, 0, 130)
+	lootLabsBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200) -- Blue
+	lootLabsBtn.Text = "Get Key via LootLabs"
+	lootLabsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lootLabsBtn.Font = Enum.Font.GothamBold
+	lootLabsBtn.TextSize = 16
+	lootLabsBtn.Parent = mainFrame
+
+	local lootCorner = Instance.new("UICorner")
+	lootCorner.CornerRadius = UDim.new(0, 8)
+	lootCorner.Parent = lootLabsBtn
+
+	-- Result Box (Auto-selects text for easy copying)
+	local resultBox = Instance.new("TextBox")
+	resultBox.Size = UDim2.new(1, -40, 0, 45)
+	resultBox.Position = UDim2.new(0, 20, 0, 190)
+	resultBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	resultBox.BorderSizePixel = 0
+	resultBox.Text = ""
+	resultBox.PlaceholderText = "Your key/link will appear here"
+	resultBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+	resultBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+	resultBox.Font = Enum.Font.Gotham
+	resultBox.TextSize = 14
+	resultBox.TextXAlignment = Enum.TextXAlignment.Left
+	resultBox.ClearTextOnFocus = false
+	resultBox.Parent = mainFrame
+
+	local resultCorner = Instance.new("UICorner")
+	resultCorner.CornerRadius = UDim.new(0, 8)
+	resultCorner.Parent = resultBox
+
+	-- Discord Support Button
+	local discordBtn = Instance.new("TextButton")
+	discordBtn.Size = UDim2.new(1, -40, 0, 20)
+	discordBtn.Position = UDim2.new(0, 20, 0, 260)
+	discordBtn.BackgroundTransparency = 1
+	discordBtn.Text = "Need support? Join the Discord"
+	discordBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+	discordBtn.Font = Enum.Font.Gotham
+	discordBtn.TextSize = 14
+	discordBtn.Parent = mainFrame
+
+	discordBtn.MouseButton1Click:Connect(function()
+		resultBox.Text = DISCORD_LINK
+		discordBtn.Text = "Discord link shown above! Copy it."
+		task.wait(3)
+		discordBtn.Text = "Need support? Join the Discord"
+	end)
+
+	-- Footer Text
+	local footerLabel = Instance.new("TextLabel")
+	footerLabel.Size = UDim2.new(1, -40, 0, 20)
+	footerLabel.Position = UDim2.new(0, 20, 0, 370)
+	footerLabel.BackgroundTransparency = 1
+	footerLabel.Text = "1  Keyless will be enabled every weekend."
+	footerLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+	footerLabel.Font = Enum.Font.Gotham
+	footerLabel.TextSize = 12
+	footerLabel.TextXAlignment = Enum.TextXAlignment.Left
+	footerLabel.Parent = mainFrame
+
+	-- LootLabs Button Logic
+	lootLabsBtn.MouseButton1Click:Connect(function()
+		lootLabsBtn.Text = "Generating link..."
+		lootLabsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		resultBox.Text = ""
+
+		local baseUrl = "https://creators.lootlabs.gg/api/public/content_locker"
+		local params = {
+			api_token = API_TOKEN,
+			title = "Admin Panel Key",
+			url = DESTINATION_URL,
+			tier_id = "3",
+			number_of_tasks = "3",
+			theme = "1",
+			thumbnail = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+		}
+		
+		local queryParts = {}
+		for key, value in pairs(params) do
+			table.insert(queryParts, key .. "=" .. HttpService:UrlEncode(value))
+		end
+		local fullUrl = baseUrl .. "?" .. table.concat(queryParts, "&")
+
+		local success, response = pcall(function()
+			return HttpService:GetAsync(fullUrl)
+		end)
+
+		if success then
+			local decodeSuccess, decoded = pcall(function()
+				return HttpService:JSONDecode(response)
+			end)
+			if decodeSuccess and decoded and decoded.message then
+				resultBox.Text = decoded.message
+				lootLabsBtn.Text = "Link ready! Copy from box above."
+				lootLabsBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+			else
+				resultBox.Text = "Error: Could not parse response."
+				lootLabsBtn.Text = "API Error"
+				lootLabsBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+			end
+		else
+			resultBox.Text = "Error: " .. tostring(response)
+			lootLabsBtn.Text = "API Error"
+			lootLabsBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		end
+		
+		task.wait(3)
+		lootLabsBtn.Text = "Get Key via LootLabs"
+		lootLabsBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+	end)
+end
+
+-- Player management
+Players.PlayerAdded:Connect(function(player)
+	createGUI(player)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+	createGUI(player)
+end
