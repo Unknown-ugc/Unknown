@@ -1,0 +1,3089 @@
+local roxyHubInstance = _G.RoxyHubInstance
+local destroy = roxyHubInstance
+
+if roxyHubInstance then
+
+  destroy = (typeof(_G.RoxyHubInstance)) == "table" and _G.RoxyHubInstance.Destroy
+end
+
+if destroy then
+  pcall(function()
+
+    _G.RoxyHubInstance:Destroy()
+    return
+  end)
+end
+
+if _G.RoxyHubConnections and (type(_G.RoxyHubConnections)) == "table" then
+  for index, value in ipairs(_G.RoxyHubConnections) do
+    local object = value
+
+    pcall(function()
+      object:Disconnect()
+      return
+    end)
+  end
+end
+
+_G.RoxyHubConnections = {}
+
+pcall(function()
+
+  local character = game:GetService("Players").LocalPlayer.Character
+
+  if character and character:FindFirstChild("HumanoidRootPart") then
+    character.HumanoidRootPart.Anchored = false
+  end
+
+  local roxyHubNinjaPlatform = workspace:FindFirstChild("RoxyHub_NinjaPlatform")
+
+  if roxyHubNinjaPlatform then
+    roxyHubNinjaPlatform:Destroy()
+  end
+
+  local roxyHubGlobalPlatform = workspace:FindFirstChild("RoxyHub_GlobalPlatform")
+
+  if roxyHubGlobalPlatform then
+    roxyHubGlobalPlatform:Destroy()
+  end
+
+  return
+end)
+
+pcall(function()
+  local val = gethui
+  local roxyHubMobileToggle = val
+
+  if val then
+
+    roxyHubMobileToggle = gethui():FindFirstChild("RoxyHub_MobileToggle")
+  end
+
+  if roxyHubMobileToggle then
+
+    gethui().RoxyHub_MobileToggle:Destroy()
+  end
+
+  local coreGui = game:GetService("CoreGui")
+
+  if (coreGui:FindFirstChild("RoxyHub_MobileToggle")) then
+
+    game:GetService("CoreGui").RoxyHub_MobileToggle:Destroy()
+  end
+
+  local localPlayer = game:GetService("Players").LocalPlayer
+  local val2 = localPlayer
+
+  if localPlayer then
+    local playerGui = localPlayer:FindFirstChild("PlayerGui")
+    local roxyHubMobileToggle2 = playerGui
+
+    if playerGui then
+
+      roxyHubMobileToggle2 = localPlayer.PlayerGui:FindFirstChild("RoxyHub_MobileToggle")
+    end
+
+    val2 = roxyHubMobileToggle2
+  end
+
+  if val2 then
+
+    localPlayer.PlayerGui.RoxyHub_MobileToggle:Destroy()
+  end
+
+  return
+end)
+
+local players = game:GetService("Players")
+
+local tweenService = game:GetService("TweenService")
+
+local coreGui2 = game:GetService("CoreGui")
+
+local runService = game:GetService("RunService")
+
+local userInputService = game:GetService("UserInputService")
+
+local httpService = game:GetService("HttpService")
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+local collectionService = game:GetService("CollectionService")
+
+local function helper(val3)
+
+  if val3 and _G.RoxyHubConnections then
+    table.insert(_G.RoxyHubConnections, val3)
+  end
+
+  return val3
+end
+
+local localPlayer2 = players.LocalPlayer
+local playerGui2
+
+if not playerGui2 then
+  playerGui2 = localPlayer2:WaitForChild("PlayerGui")
+end
+
+pcall(function()
+
+  local roxyHubLoadingScreen = playerGui2:FindFirstChild("RoxyHub_LoadingScreen")
+
+  if roxyHubLoadingScreen then
+    roxyHubLoadingScreen:Destroy()
+  end
+
+  return
+end)
+
+local roxyHubLoadingScreen2 = Instance.new("ScreenGui")
+roxyHubLoadingScreen2.Name = "CatHub_LoadingScreen"
+roxyHubLoadingScreen2.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+roxyHubLoadingScreen2.DisplayOrder = 99999
+roxyHubLoadingScreen2.IgnoreGuiInset = true
+roxyHubLoadingScreen2.ResetOnSpawn = false
+roxyHubLoadingScreen2.Parent = playerGui2
+
+local background = Instance.new("Frame")
+background.Name = "Background"
+background.Size = UDim2.new(1, 0, 1, 0)
+background.Position = UDim2.new(0, 0, 0, 0)
+background.BackgroundColor3 = Color3.fromHex("#0B0F19")
+background.BackgroundTransparency = 0.15
+background.BorderSizePixel = 0
+background.Parent = roxyHubLoadingScreen2
+
+local centerContainer = Instance.new("Frame")
+centerContainer.Name = "CenterContainer"
+centerContainer.Size = UDim2.new(0, 440, 0, 220)
+centerContainer.Position = UDim2.new(0.5, -220, 0.5, -110)
+centerContainer.BackgroundTransparency = 1
+centerContainer.Parent = background
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, 0, 0, 52)
+titleLabel.Position = UDim2.new(0, 0, 0, 15)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "RoxyHub"
+titleLabel.TextColor3 = Color3.fromHex("#3B82F6")
+titleLabel.TextSize = 44
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = centerContainer
+
+local subLabel = Instance.new("TextLabel")
+subLabel.Name = "SubLabel"
+subLabel.Size = UDim2.new(1, 0, 0, 24)
+subLabel.Position = UDim2.new(0, 0, 0, 70)
+subLabel.BackgroundTransparency = 1
+subLabel.Text = "Break and Steal an Egg"
+subLabel.TextColor3 = Color3.fromHex("#38BDF8")
+subLabel.TextSize = 19
+subLabel.Font = Enum.Font.GothamMedium
+subLabel.Parent = centerContainer
+
+local barBackground = Instance.new("Frame")
+barBackground.Name = "BarBackground"
+barBackground.Size = UDim2.new(1, -60, 0, 10)
+barBackground.Position = UDim2.new(0, 30, 0, 115)
+barBackground.BackgroundColor3 = Color3.fromHex("#1E293B")
+barBackground.BorderSizePixel = 0
+barBackground.ClipsDescendants = true
+barBackground.Parent = centerContainer
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(1, 0)
+uiCorner.Parent = barBackground
+
+local barFill = Instance.new("Frame")
+barFill.Name = "BarFill"
+barFill.Size = UDim2.new(0.05, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromHex("#38BDF8")
+barFill.BorderSizePixel = 0
+barFill.Parent = barBackground
+
+local uiCorner2 = Instance.new("UICorner")
+uiCorner2.CornerRadius = UDim.new(1, 0)
+uiCorner2.Parent = barFill
+
+local glow = Instance.new("Frame")
+glow.Name = "Glow"
+glow.Size = UDim2.new(0.3, 0, 1, 4)
+glow.Position = UDim2.new(-0.3, 0, 0, -2)
+glow.BackgroundColor3 = Color3.fromHex("#60A5FA")
+glow.BackgroundTransparency = 0.5
+glow.BorderSizePixel = 0
+glow.Parent = barFill
+
+local uiCorner3 = Instance.new("UICorner")
+uiCorner3.CornerRadius = UDim.new(1, 0)
+uiCorner3.Parent = glow
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, 0, 0, 20)
+statusLabel.Position = UDim2.new(0, 0, 0, 138)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Initializing..."
+statusLabel.TextColor3 = Color3.fromHex("#94A3B8")
+statusLabel.TextSize = 14
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Parent = centerContainer
+
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Name = "CreditLabel"
+creditLabel.Size = UDim2.new(1, 0, 0, 18)
+creditLabel.Position = UDim2.new(0, 0, 0, 172)
+creditLabel.BackgroundTransparency = 1
+creditLabel.Text = "by RoxyHub"
+creditLabel.TextColor3 = Color3.fromHex("#64748B")
+creditLabel.TextSize = 12
+creditLabel.Font = Enum.Font.Gotham
+creditLabel.Parent = centerContainer
+
+local particles = Instance.new("Frame")
+particles.Name = "Particles"
+particles.Size = UDim2.new(1, 0, 1, 0)
+particles.BackgroundTransparency = 1
+particles.ClipsDescendants = true
+particles.Parent = background
+
+local val4 = true
+
+task.spawn(function()
+
+  while true do
+    local val5 = val4
+    local parent = val5
+
+    if val5 then
+
+      parent = roxyHubLoadingScreen2 and roxyHubLoadingScreen2.Parent
+    end
+
+    if parent then
+      local frame = Instance.new("Frame")
+      frame.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+      frame.Position = UDim2.new((math.random()) * 0.95, 0, 1.05, 0)
+
+      frame.BackgroundColor3 = Color3.fromHex((math.random()) > 0.5 and "#3B82F6" or "#38BDF8")
+      frame.BackgroundTransparency = (math.random()) * 0.3 + 0.3
+      frame.BorderSizePixel = 0
+      frame.Parent = particles
+
+      local uiCorner4 = Instance.new("UICorner")
+      uiCorner4.CornerRadius = UDim.new(1, 0)
+      uiCorner4.Parent = frame
+
+      local randomVal = math.random(20, 35)
+
+      local create = tweenService:Create(frame, TweenInfo.new(randomVal / 10, Enum.EasingStyle.Linear), {
+        Position = (UDim2.new(
+          frame.Position.X.Scale + ((math.random()) - 0.5) * 0.15, 0, -0.05, 0
+        )), BackgroundTransparency = 1, })
+
+      create:Play()
+
+      create.Completed:Connect(function()
+        frame:Destroy()
+        return
+      end)
+
+      task.wait(0.1)
+    else
+      break
+    end
+  end
+
+  return
+end)
+
+task.spawn(function()
+
+  while true do
+    local val6 = val4
+    local parent2 = val6
+
+    if val6 then
+
+      parent2 = roxyHubLoadingScreen2 and roxyHubLoadingScreen2.Parent
+    end
+
+    if parent2 then
+      local create2 = tweenService:Create(glow, TweenInfo.new(1.1, Enum.EasingStyle.Linear), {
+        Position = (UDim2.new(1, 0, 0, -2)), })
+
+      create2:Play()
+
+      create2.Completed:Wait()
+      glow.Position = UDim2.new(-0.3, 0, 0, -2)
+    else
+      break
+    end
+  end
+
+  return
+end)
+
+local function safeCall(val7, val8)
+  pcall(function()
+
+    tweenService:Create(
+      barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = (UDim2.new(math.clamp(val7, 0, 1), 0, 1, 0)) }
+    ):Play()
+
+    if val8 then
+      statusLabel.Text = val8
+    end
+
+    return
+  end)
+
+  return
+end
+
+local function helper2(p4)
+  function v343()
+    if roxyHubLoadingScreen2 then
+      roxyHubLoadingScreen2.Enabled = false
+      roxyHubLoadingScreen2:Destroy()
+    end
+
+    return
+  end
+
+  val4 = false
+
+  pcall(function()
+    local val9 = { playerGui2, coreGui2 }
+    local playerGui3 = localPlayer2
+
+    if localPlayer2 then
+      playerGui3 = localPlayer2:FindFirstChild("PlayerGui")
+    end
+
+    local val10 = playerGui3
+
+    if val10 then
+      table.insert(val9, val10)
+    end
+
+    if gethui then
+      table.insert(val9, gethui())
+    end
+
+    for index2, value2 in ipairs(val9) do
+      if value2 then
+        for index3, value3 in ipairs(value2:GetChildren()) do
+          if value3.Name == "CatHub_LoadingScreen" then
+            value3.Enabled = false
+            value3:Destroy()
+          end
+        end
+      end
+    end
+
+    return
+  end)
+
+  return
+end
+
+task.delay(90, function()
+  if val4 then
+    helper2(true)
+  end
+
+  return
+end)
+
+local g = _G
+
+g.RoxyHubState = _G.RoxyHubState or {
+  NinjaSteal = false, UnderDepth = 2.8, TargetRarity = "Any Rarity", InstantReturn = true, AntiFall = true, NinjaStealthRun = true, AutoBreakUnder = false, AutoBreakAura = false, TargetEggType = "All Eggs", TargetWeight = "Any", UnderFarmDepth = 2.8, AutoEquipPickaxe = true, AutoTreadmill = false, TreadmillUnequip = true, AutoUpgradePlot = false, AutoUpgradeTreadmill = false, AutoBuyPickaxe = false, AutoBankAnimals = true, AutoBatAura = false, BatRange = 15, TargetPlayers = true, TargetGuards = true, EggESP = false, PickupESP = false, PlayerESP = false, RareNotifier = true, WalkSpeed = 16, JumpPower = 50, InfiniteJump = false, Noclip = false, Fly = false, FlySpeed = 50, }
+
+local roxyHubState = _G.RoxyHubState
+local val11 = isfile
+local windUICacheLua = val11
+
+if val11 then
+
+  windUICacheLua = readfile and isfile("WindUI_Cache.lua")
+end
+
+local val12
+
+if windUICacheLua then
+  local windUICacheLua2 = readfile("WindUI_Cache.lua")
+
+  if windUICacheLua2 and #windUICacheLua2 > 5000 then
+    val12 = windUICacheLua2
+  end
+end
+
+local val13 = not val12
+local val14 = val13
+
+if val13 then
+  local val15 = isfile
+  local windUISourceLua = val15
+
+  if val15 then
+
+    windUISourceLua = readfile and isfile("WindUI_Source.lua")
+  end
+
+  val14 = windUISourceLua
+end
+
+if val14 then
+  local windUISourceLua2 = readfile("WindUI_Source.lua")
+
+  if windUISourceLua2 and #windUISourceLua2 > 5000 then
+    val12 = windUISourceLua2
+  end
+end
+
+if not val12 then
+  local success, val16
+
+  val16, success = pcall(function()
+
+    return game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua")
+  end)
+
+  local val17 = val16
+
+  if val16 then
+
+    val17 = success and #success > 5000
+  end
+
+  if val17 then
+    val12 = success
+
+    if writefile then
+      pcall(function()
+        writefile("WindUI_Cache.lua", val12)
+        return
+      end)
+    end
+  end
+end
+
+if not val12 then
+  error("[RoxyHub] Failed to load WindUI engine. Check connection or WindUI_Cache.lua.", 0)
+end
+
+local val18, loader = loadstring(val12)
+
+if not val18 then
+  error("[RoxyHub] WindUI compile failed: " .. (tostring(loader)), 0)
+end
+
+local success2 = { pcall(val18) }
+local val19 = not success2[1]
+local val20 = success2[2]
+
+if val19 or (type(val20)) ~= "table" then
+  error("[RoxyHub] WindUI initialization failed: " .. (tostring(val20)), 0)
+end
+
+Color3.fromHex("#3B82F6")
+Color3.fromHex("#1D4ED8")
+Color3.fromHex("#60A5FA")
+Color3.fromHex("#1E3A8A")
+Color3.fromHex("#0B0F19")
+Color3.fromHex("#1E293B")
+Color3.fromHex("#3B82F6")
+Color3.fromHex("#0F172A")
+Color3.fromHex("#1E3A8A")
+Color3.fromHex("#1E293B")
+Color3.fromHex("#2563EB")
+Color3.fromHex("#F8FAFC")
+Color3.fromHex("#94A3B8")
+Color3.fromHex("#1E3A8A")
+Color3.fromHex("#1D4ED8")
+Color3.fromHex("#2563EB")
+Color3.fromHex("#0F172A")
+Color3.fromHex("#38BDF8")
+Color3.fromHex("#000000")
+Color3.fromHex("#38BDF8")
+Color3.fromHex("#1E3A8A")
+
+local function safeCall2(val21)
+
+  pcall(function()
+
+    if gethui then
+      robloxGui = gethui()
+    else
+
+      if syn and syn.protect_gui then
+
+        robloxGui = (coreGui2:FindFirstChild("RobloxGui")) or coreGui2
+      else
+
+        robloxGui = (coreGui2:FindFirstChild("RobloxGui")) or coreGui2
+      end
+    end
+
+    return
+  end)
+
+  if not robloxGui then
+    robloxGui = localPlayer2:WaitForChild("PlayerGui")
+  end
+
+  pcall(function()
+
+    local roxyHubMobileToggle3 = robloxGui:FindFirstChild("RoxyHub_MobileToggle")
+
+    if roxyHubMobileToggle3 then
+      roxyHubMobileToggle3:Destroy()
+    end
+
+    local roxyHubMobileToggle4 = localPlayer2.PlayerGui:FindFirstChild("RoxyHub_MobileToggle")
+
+    if roxyHubMobileToggle4 then
+      roxyHubMobileToggle4:Destroy()
+    end
+
+    local roxyHubMobileToggle5 = coreGui2:FindFirstChild("RoxyHub_MobileToggle")
+
+    if roxyHubMobileToggle5 then
+      roxyHubMobileToggle5:Destroy()
+    end
+
+    return
+  end)
+
+  local roxyHubMobileToggle6 = Instance.new("ScreenGui")
+  roxyHubMobileToggle6.Name = "RoxyHub_MobileToggle"
+  roxyHubMobileToggle6.ResetOnSpawn = false
+  roxyHubMobileToggle6.DisplayOrder = 999999
+  roxyHubMobileToggle6.IgnoreGuiInset = true
+  roxyHubMobileToggle6.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+  roxyHubMobileToggle6.Enabled = false
+  roxyHubMobileToggle6.Parent = robloxGui
+
+  local roxyToggleBtn = Instance.new("ImageButton")
+  roxyToggleBtn.Name = "RoxyToggleBtn"
+  roxyToggleBtn.Size = UDim2.new(0, 56, 0, 56)
+  roxyToggleBtn.Position = UDim2.new(0.35, 0, 0.15, 0)
+  roxyToggleBtn.BackgroundColor3 = Color3.fromHex("#0B0F19")
+  roxyToggleBtn.BackgroundTransparency = 0.2
+  roxyToggleBtn.Image = "rbxassetid://85047195026655"
+  roxyToggleBtn.ScaleType = Enum.ScaleType.Fit
+  roxyToggleBtn.AutoButtonColor = false
+  roxyToggleBtn.ZIndex = 99999
+  roxyToggleBtn.Parent = roxyHubMobileToggle6
+
+  local uiCorner5 = Instance.new("UICorner")
+  uiCorner5.CornerRadius = UDim.new(1, 0)
+  uiCorner5.Parent = roxyToggleBtn
+
+  local uiStroke = Instance.new("UIStroke")
+  uiStroke.Thickness = 2.5
+  uiStroke.Color = Color3.fromHex("#38BDF8")
+  uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+  uiStroke.Parent = roxyToggleBtn
+
+  local val22 = false
+  local val23 = 0
+  local val24 = false
+  local position, position2
+
+  local function helper3(val25)
+    local element = val25.Position - position2
+
+    local viewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+
+    local vector = viewportSize or Vector2.new(1920, 1080)
+    local val26 = math.clamp(position.X.Offset + element.X, 5, vector.X - 61)
+    local val27 = math.clamp(position.Y.Offset + element.Y, 5, vector.Y - 61)
+    roxyToggleBtn.Position = UDim2.new(0, val26, 0, val27)
+    return
+  end
+
+  roxyToggleBtn.InputBegan:Connect(function(input)
+
+    local val28 = input.UserInputType == Enum.UserInputType.MouseButton1
+      or input.UserInputType == Enum.UserInputType.Touch
+
+    if val28 then
+      val22 = true
+      val24 = false
+      position = roxyToggleBtn.Position
+      position2 = input.Position
+      val23 = tick()
+
+      tweenService:Create(
+        roxyToggleBtn, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = (UDim2.new(0, 50, 0, 50)) }
+      ):Play()
+
+      tweenService:Create(uiStroke, TweenInfo.new(0.12), {
+        Color = (Color3.fromHex("#60A5FA")), Thickness = 3, }):Play()
+
+      input.Changed:Connect(function()
+        if input.UserInputState == Enum.UserInputState.End then
+          val22 = false
+        end
+
+        return
+      end)
+    end
+
+    return
+  end)
+
+  roxyToggleBtn.InputChanged:Connect(function(input2)
+    local val29 = val22
+    local val30 = val29
+
+    if val29 then
+
+      val30 = input2.UserInputType == Enum.UserInputType.MouseMovement
+        or input2.UserInputType == Enum.UserInputType.Touch
+    end
+
+    if val30 then
+      if (input2.Position - position2).Magnitude > 6 then
+        val24 = true
+      end
+
+      if val24 then
+        helper3(input2)
+      end
+    end
+
+    return
+  end)
+
+  roxyToggleBtn.InputEnded:Connect(function(input3)
+
+    local val31 = input3.UserInputType == Enum.UserInputType.MouseButton1
+      or input3.UserInputType == Enum.UserInputType.Touch
+
+    if val31 then
+      val22 = false
+
+      tweenService:Create(
+        roxyToggleBtn, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = (UDim2.new(0, 56, 0, 56)) }
+      ):Play()
+
+      tweenService:Create(uiStroke, TweenInfo.new(0.15), {
+        Color = (Color3.fromHex("#38BDF8")), Thickness = 2.5, }):Play()
+
+      local val32 = (tick()) - val23
+
+      local magnitude = (input3.Position - (position2 or input3.Position)).Magnitude
+      local val33 = not val24
+      local val34 = val33
+
+      if val33 then
+
+        val34 = magnitude < 10 and val32 < 0.35
+      end
+
+      if val34 then
+        pcall(function()
+          if val21.Closed then
+            val21:Open()
+          else
+            val21:Close()
+          end
+
+          return
+        end)
+      end
+    end
+
+    return
+  end)
+
+  roxyToggleBtn.MouseEnter:Connect(function()
+
+    tweenService:Create(uiStroke, TweenInfo.new(0.2), {
+      Color = (Color3.fromHex("#93C5FD")), Thickness = 3.5, }):Play()
+
+    return
+  end)
+
+  roxyToggleBtn.MouseLeave:Connect(function()
+
+    tweenService:Create(uiStroke, TweenInfo.new(0.2), {
+      Color = (Color3.fromHex("#38BDF8")), Thickness = 2.5, }):Play()
+
+    return
+  end)
+
+  if _G.RoxyHubConnections then
+    table.insert(_G.RoxyHubConnections, {
+      Disconnect = function()
+        pcall(function()
+          roxyHubMobileToggle6:Destroy()
+          return
+        end)
+
+        return
+      end, })
+  end
+
+  return roxyHubMobileToggle6
+end
+
+local window = val20:CreateWindow({
+  Title = "RoxyHub - Break & Steal an Egg", Icon = "rbxassetid://85047195026655", IconSize = 44, Author = "by RoxyHub", Folder = "RoxyHub_BreakAndStealAnEgg", Size = (UDim2.fromOffset(630, 510)), Transparent = true, Theme = "RoxyHub", Resizable = true, OpenButton = { Enabled = false }, })
+
+_G.RoxyHubInstance = window
+
+pcall(function()
+  local val35 = window
+
+  if window then
+    local uiElements = window.UIElements
+    local main = uiElements
+
+    if uiElements then
+
+      main = window.UIElements.Main and window.UIElements.Main.Main
+    end
+
+    val35 = main
+  end
+
+  if val35 then
+
+    for index4, value4 in ipairs(window.UIElements.Main.Main.Topbar.Left:GetChildren()) do
+
+      if (value4:IsA("Frame")) and value4.Name == "Frame" then
+        value4.Size = UDim2.new(0, 44, 0, 44)
+
+        for index5, value5 in ipairs(value4:GetChildren()) do
+          if (value5:IsA("Frame")) then
+            value5.Size = UDim2.new(0, 44, 0, 44)
+            value5.AnchorPoint = Vector2.new(0.5, 0.5)
+            value5.Position = UDim2.new(0.5, 0, 0.5, 0)
+          end
+        end
+      end
+    end
+  end
+
+  return
+end)
+
+local val36 = safeCall2(window)
+
+window:Tag({
+  Title = "v1.0.0 [Release]", Icon = "shield-check", Color = (Color3.fromHex("#1E3A8A")), Border = true, })
+
+local function helper4()
+  local character2 = localPlayer2.Character
+
+  return character2 and character2:FindFirstChild("HumanoidRootPart")
+end
+
+local function helper5()
+  local character3 = localPlayer2.Character
+
+  return character3 and character3:FindFirstChildOfClass("Humanoid")
+end
+
+local function iterate()
+
+  local plots = workspace:FindFirstChild("Plots")
+
+  if not plots then
+    return nil
+  else
+    for index6, value6 in ipairs(plots:GetChildren()) do
+      if (value6:GetAttribute("OwnerUserId")) == localPlayer2.UserId then
+        return value6
+      end
+    end
+
+    return nil
+  end
+end
+
+local function helper6()
+  local object2 = iterate()
+
+  if not object2 then
+    val20:Notify({
+      Title = "Plot Not Found", Content = "Could not locate your base plot.", Duration = 3, Icon = "alert-triangle", })
+
+    return false
+  else
+    local hitbox = object2:FindFirstChild("Hitbox")
+
+    local spawnPoint = hitbox or object2:FindFirstChild("SpawnPoint")
+
+    if not spawnPoint then
+      return false
+    else
+      local element2 = helper4()
+
+      if element2 then
+        element2.CFrame = spawnPoint.CFrame + (Vector3.new(0, 3.5, 0))
+        element2.AssemblyLinearVelocity = Vector3.zero
+        return true
+      else
+        return false
+      end
+    end
+  end
+end
+
+local val37
+
+pcall(function()
+  val37 = require(localPlayer2.PlayerScripts.Client.Controllers.TreadmillHudController)
+  return
+end)
+
+local function safeCall3()
+  pcall(function()
+    runService:UnbindFromRenderStep("TreadmillFaceLock")
+    return
+  end)
+
+  local element3 = helper4()
+  local element4 = helper5()
+
+  if element3 then
+    element3.Anchored = false
+  end
+
+  if element4 then
+    element4.AutoRotate = true
+    element4.Jump = true
+    element4:ChangeState("Jumping")
+  end
+
+  task.wait(0.2)
+  return
+end
+
+local function helper7()
+  local object3 = iterate()
+local val38, val39
+
+  if not object3 then
+    return false
+  else
+    local ghostTreadmill = object3:FindFirstChild("Ghost Treadmill")
+    local basePart = ghostTreadmill
+
+    if ghostTreadmill then
+      local hitbox2 = ghostTreadmill:FindFirstChild("Hitbox")
+
+      basePart = hitbox2 or ghostTreadmill:FindFirstChildWhichIsA("BasePart")
+    end
+
+    local element5 = basePart
+    local element6 = helper4()
+
+    if element5 and element6 then
+      if (element6.Position - element5.Position).Magnitude > 8 then
+        return false
+      else
+        ::L8209066::
+        val38 = val37
+        val39 = val38
+
+        if val38 and val37.IsActive then
+          local val40, success3
+          val40, success3 = pcall(function() return val37.IsActive() end)
+
+          if val40 and success3 then
+            return true
+          else
+            ::L6566691::
+            return false
+          end
+        else
+          return false
+        end
+      end
+    else
+      goto L8209066
+    end
+  end
+end
+
+local function createFolder()
+
+  local roxyHubGlobalPlatform2 = workspace:FindFirstChild("RoxyHub_GlobalPlatform")
+
+  if roxyHubGlobalPlatform2 then
+    return roxyHubGlobalPlatform2
+  else
+    local roxyHubGlobalPlatform3 = Instance.new("Folder")
+    roxyHubGlobalPlatform3.Name = "RoxyHub_GlobalPlatform"
+    roxyHubGlobalPlatform3.Parent = workspace
+
+    local underHighwaySegment1 = Instance.new("Part")
+    underHighwaySegment1.Name = "UnderHighway_Segment1"
+    underHighwaySegment1.Size = Vector3.new(1600, 2, 320)
+    underHighwaySegment1.CFrame = CFrame.new(-700, -6, 0)
+    underHighwaySegment1.Anchored = true
+    underHighwaySegment1.CanCollide = true
+    underHighwaySegment1.Material = Enum.Material.Neon
+    underHighwaySegment1.Color = Color3.fromHex("#1E3A8A")
+    underHighwaySegment1.Transparency = 0.25
+    underHighwaySegment1.Parent = roxyHubGlobalPlatform3
+
+    local underHighwaySegment2 = Instance.new("Part")
+    underHighwaySegment2.Name = "UnderHighway_Segment2"
+    underHighwaySegment2.Size = Vector3.new(1600, 2, 320)
+    underHighwaySegment2.CFrame = CFrame.new(-2200, -6, 0)
+    underHighwaySegment2.Anchored = true
+    underHighwaySegment2.CanCollide = true
+    underHighwaySegment2.Material = Enum.Material.Neon
+    underHighwaySegment2.Color = Color3.fromHex("#1E3A8A")
+    underHighwaySegment2.Transparency = 0.25
+    underHighwaySegment2.Parent = roxyHubGlobalPlatform3
+
+    return roxyHubGlobalPlatform3
+  end
+end
+
+local function iterate2()
+  local character4 = localPlayer2.Character
+  local backpack = localPlayer2:FindFirstChild("Backpack")
+  local val41 = character4 and backpack
+
+  if val41 then
+    for index7, value7 in ipairs(character4:GetChildren()) do
+      local parent = value7
+
+      if (parent:IsA("Tool")) then
+        pcall(function()
+          parent.Parent = backpack
+          return
+        end)
+      end
+    end
+  end
+
+  local object4 = helper5()
+
+  if object4 then
+    pcall(function()
+      object4:UnequipTools()
+      return
+    end)
+  end
+
+  return
+end
+
+local function iterate3()
+  local object5 = iterate()
+
+  if not object5 then
+    return false
+  else
+    local ghostTreadmill2 = object5:FindFirstChild("Ghost Treadmill")
+
+    if not ghostTreadmill2 then
+      for index8, value8 in ipairs(object5:GetDescendants()) do
+
+        if (value8.Name:find("Treadmill")) then
+          ghostTreadmill2 = value8
+          break
+        end
+      end
+    end
+
+    local basePart2 = ghostTreadmill2
+
+    if ghostTreadmill2 then
+      local hitbox3 = ghostTreadmill2:FindFirstChild("Hitbox")
+
+      basePart2 = hitbox3 or ghostTreadmill2:FindFirstChildWhichIsA("BasePart")
+    end
+
+    if not basePart2 then
+      return false
+    else
+      local element7 = helper4()
+      local object6 = helper5()
+
+      if element7 and object6 then
+        element7.Anchored = false
+        element7.CFrame = basePart2.CFrame + (Vector3.new(0, 1.5, 0))
+        element7.AssemblyLinearVelocity = Vector3.zero
+
+        task.wait(0.2)
+        object6:Move(Vector3.new(0, 0, -1), true)
+        task.wait(0.35)
+        return true
+      else
+        return false
+      end
+    end
+  end
+end
+
+local function helper8()
+  local character5 = localPlayer2.Character
+
+  if not character5 then
+    return
+  else
+    if (character5:FindFirstChild("Bat")) then
+      return
+    else
+      local backpack2 = localPlayer2:FindFirstChild("Backpack")
+
+      if not backpack2 then
+        return
+      else
+        local bat = backpack2:FindFirstChild("Bat")
+        local object7 = helper5()
+
+        if object7 and bat then
+          object7:EquipTool(bat)
+        end
+
+        return
+      end
+    end
+  end
+end
+
+local function safeCall4()
+
+  local roxyHubGlobalPlatform4 = workspace:FindFirstChild("RoxyHub_GlobalPlatform")
+
+  if roxyHubGlobalPlatform4 then
+    pcall(function()
+      roxyHubGlobalPlatform4:Destroy()
+      return
+    end)
+  end
+
+  return
+end
+
+local function safeCall5()
+
+  local roxyHubNinjaPlatform2 = workspace:FindFirstChild("RoxyHub_NinjaPlatform")
+
+  if roxyHubNinjaPlatform2 then
+    pcall(function()
+      roxyHubNinjaPlatform2:Destroy()
+      return
+    end)
+  end
+
+  return
+end
+
+local function iterate4()
+  local character6 = localPlayer2.Character
+local val42
+
+  if not character6 then
+    return
+  else
+    if (character6:FindFirstChild("Pickaxe")) then
+      return
+    else
+      local backpack3 = localPlayer2:FindFirstChild("Backpack")
+
+      if not backpack3 then
+        return
+      else
+        pickaxe = backpack3:FindFirstChild("Pickaxe")
+
+        if not pickaxe then
+          for index9, value9 in ipairs(backpack3:GetChildren()) do
+            local tool = value9:IsA("Tool")
+            local pickaxeTier = tool
+
+            if tool then
+
+              local pickaxe2 = value9.Name:lower():find("pickaxe")
+
+              pickaxeTier = pickaxe2 or value9:GetAttribute("PickaxeTier")
+            end
+
+            if pickaxeTier then
+              pickaxe = value9
+              break
+            end
+          end
+        end
+
+        if pickaxe then
+          pickaxe.Parent = character6
+          val42 = helper5()
+
+          if val42 then
+            pcall(function()
+              val42:EquipTool(pickaxe)
+              return
+            end)
+          end
+        end
+
+        return
+      end
+    end
+  end
+end
+
+local val43
+
+local function helper9(val45, val44, val46)
+  local val47 = val43(val45, val44)
+  local val48 = math.clamp(val46 or 2.8, 1.5, 4)
+  return (Vector3.new(val45.X, val47 - val48, val45.Z)), val47
+end
+
+val43 = function(p10, p11)
+  local raycastParams = RaycastParams.new()
+  local val49 = {}
+
+  for index10, value10 in ipairs((collectionService:GetTagged("BreakableEgg"))) do
+    table.insert(val49, value10)
+    local parent3 = value10.Parent
+    local model = parent3
+
+    if parent3 then
+
+      model = value10.Parent:IsA("Model")
+    end
+
+    if model then
+      table.insert(val49, value10.Parent)
+    end
+  end
+
+  if localPlayer2.Character then
+    table.insert(val49, localPlayer2.Character)
+  end
+
+  local roxyHubGlobalPlatform5 = workspace:FindFirstChild("RoxyHub_GlobalPlatform")
+
+  if roxyHubGlobalPlatform5 then
+    table.insert(val49, roxyHubGlobalPlatform5)
+  end
+
+  local roxyHubNinjaPlatform3 = workspace:FindFirstChild("RoxyHub_NinjaPlatform")
+
+  if roxyHubNinjaPlatform3 then
+    table.insert(val49, roxyHubNinjaPlatform3)
+  end
+
+  raycastParams.FilterDescendantsInstances = val49
+  raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+
+  local val50 = (p10 and p10.Y or 3) + 2
+  local val51 = val50
+
+  if p11 and p11:IsA("BasePart") then
+    val51 = p11.Position.Y + 2
+  end
+
+  local raycast = workspace:Raycast(
+    Vector3.new(p10.X, val51, p10.Z), Vector3.new(0, -50, 0), raycastParams
+  )
+
+  if raycast then
+    return raycast.Position.Y
+  else
+
+    return p10 and p10.Y > 5 and p10.Y - 2 or 0.5
+  end
+end
+
+local val52 = {}
+
+local val53 = {
+  common = 1, uncommon = 2, rare = 3, epic = 4, legendary = 5, mythic = 6, divine = 7, cosmic = 8, secret = 9, celestial = 10, inferno = 11, }
+
+local val54 = {
+  ["Inferno and Above"] = 11, ["Celestial and Above"] = 10, ["Secret and Above"] = 9, ["Cosmic and Above"] = 8, ["Divine and Above"] = 7, ["Mythic and Above"] = 6, ["Legendary and Above"] = 5, ["Epic and Above"] = 4, ["Rare and Above"] = 3, ["Uncommon and Above"] = 2, ["Any Rarity"] = 1, }
+
+local function helper10(val55)
+
+  if not val55 then
+    return "Unknown", 0, "Common"
+  else
+    local dSKkGg = val55:match("%[([%d%.,]+)%s*[Kk][Gg]%]")
+    local numVal = 0
+
+    if dSKkGg then
+
+      numVal = (tonumber((dSKkGg.gsub(dSKkGg, ",", "")))) or 0
+    end
+
+    local sS = (val55:gsub("<[^>]+>", ""):gsub("%[[^%]]+%]%s*", ""):match("^%s*(.-)%s*$"))
+      or "Unknown"
+
+    return sS, numVal, val52[sS:lower():gsub("%s+", "")] or "Common"
+  end
+end
+
+  local val58 = not val57 or val57 == "Any Rarity"
+
+  if val58 then
+    return true
+  else
+    local val59, object8, val60
+    val59, val60, object8 = helper10(val56)
+    return (val53[object8:lower()] or 1) >= (val54[val57] or 1)
+  end
+end
+
+local ninjaStealTab = window:Tab({ Title = "Ninja Steal", Icon = "crosshair" })
+local autoFarmTab = window:Tab({ Title = "Auto Farm", Icon = "flame" })
+local combatTab = window:Tab({ Title = "Combat", Icon = "swords" })
+local teleportsTab = window:Tab({ Title = "Teleports", Icon = "map-pin" })
+local visualsTab = window:Tab({ Title = "Visuals", Icon = "eye" })
+local playerTab = window:Tab({ Title = "Player", Icon = "user" })
+local settingsTab = window:Tab({ Title = "Settings", Icon = "settings" })
+
+local function safeCall6(p16, val61, val62)
+  local val63 = os.clock()
+  safeCall(0.7, "Building " .. val61 .. " tab...")
+
+  local val64 = {
+    xpcall(val62, function(p19)
+
+      if debug and debug.traceback then
+        return debug.traceback(tostring(p19), 2)
+      else
+        return tostring(p19)
+      end
+    end), }
+
+  if not val64[1] then
+    warn(string.format("[RoxyHub %s Error]: %s", val61, tostring(val64[2])))
+  else
+    print(string.format("[RoxyHub] %s tab built in %.2fs", val61, (os.clock()) - val63))
+  end
+
+  task.wait()
+  return
+end
+
+safeCall6(ninjaStealTab, "Ninja Steal", function()
+  local section = ninjaStealTab:Section({ Title = "Under-Egg Ninja Snatcher", Opened = true })
+
+  section:Paragraph({
+    Title = "Ninja Snatch Strategy", Desc = "Hides under breaking eggs to steal pets, then runs back to base.", })
+
+  section:Toggle({
+    Title = "Enable Under-Egg Ninja Steal", Desc = "Wait under low HP eggs, snatch dropped pet and return to base", Value = roxyHubState.NinjaSteal, Callback = function(value11)
+      roxyHubState.NinjaSteal = value11
+
+      if value11 then
+        createFolder()
+      else
+        safeCall5()
+
+        if not roxyHubState.AutoBreakUnder then
+          safeCall4()
+        end
+
+        pcall(function()
+          local character7 = localPlayer2.Character
+
+          if character7 and character7:FindFirstChild("HumanoidRootPart") then
+            character7.HumanoidRootPart.Anchored = false
+          end
+
+          return
+        end)
+      end
+
+      return
+    end, })
+
+  section:Toggle({
+    Title = "Stealth Treadmill Run (When Idle)", Desc = "Runs on your base treadmill while waiting for eggs to reach low HP", Value = roxyHubState.NinjaStealthRun, Callback = function(value12)
+      roxyHubState.NinjaStealthRun = value12
+      return
+    end, })
+
+  section:Slider({
+    Title = "Under-Egg Depth", Desc = "Studs underground beneath the egg while waiting to steal", Step = 0.1, Value = { Min = 1.5, Max = 6, Default = roxyHubState.UnderDepth or 2.8 }, Callback = function(value13)
+
+      local val65 = (type(value13)) == "number" and value13
+      local underDepth = val65
+
+      if not val65 then
+        local val66 = (type(value13)) == "table"
+        local default = val66
+
+        if val66 then
+
+          default = value13.Default or value13.Value
+        end
+
+        underDepth = default or 2.8
+      end
+
+      roxyHubState.UnderDepth = underDepth
+      return
+    end, })
+
+  local values = {
+    "Any Rarity", "Inferno and Above", "Celestial and Above", "Secret and Above", "Cosmic and Above", "Divine and Above", "Mythic and Above", "Legendary and Above", "Epic and Above", "Rare and Above", "Uncommon and Above", }
+
+  section:Dropdown({
+    Title = "Rarity Target Filter", Desc = "Minimum animal rarity required to trigger ninja steal teleport", Values = values, Value = roxyHubState.TargetRarity or "Cosmic and Above", Callback = function(value14)
+      roxyHubState.TargetRarity = value14
+      return
+    end, })
+
+  section:Toggle({
+    Title = "Instant Base Return on Grab", Desc = "Teleport back to plot immediately upon collecting the stolen pet", Value = roxyHubState.InstantReturn, Callback = function(value15)
+      roxyHubState.InstantReturn = value15
+      return
+    end, })
+
+  section:Toggle({
+    Title = "Anti-Fall Safety Platform", Desc = "Keeps an invisible barrier beneath the map so you never fall into void", Value = roxyHubState.AntiFall, Callback = function(value16)
+      roxyHubState.AntiFall = value16
+
+      if value16 then
+        createFolder()
+      end
+
+      return
+    end, })
+
+  section:Button({
+    Title = "Manual Instant Escape to Base", Desc = "Instantly teleports your character back to your plot immediately", Callback = function()
+      if (helper6()) then
+        val20:Notify({
+          Title = "Teleported", Content = "Returned to base plot successfully!", Duration = 2, Icon = "check", })
+      end
+
+      return
+    end, })
+
+  return
+end)
+
+safeCall6(autoFarmTab, "Auto Farm", function()
+  local section2 = autoFarmTab:Section({ Title = "Under-Egg Breaker", Opened = true })
+
+  section2:Paragraph({
+    Title = "Under-Ground Hit Mechanic", Desc = "Attacks target eggs from underneath to avoid detection and damage.", })
+
+  section2:Toggle({
+    Title = "Auto Farm Eggs (Under-Egg Mode)", Desc = "Teleports beneath eggs and automatically swings your pickaxe", Value = roxyHubState.AutoBreakUnder, Callback = function(value17)
+      roxyHubState.AutoBreakUnder = value17
+
+      if value17 then
+        createFolder()
+        iterate4()
+      else
+        safeCall5()
+
+        if not roxyHubState.NinjaSteal then
+          safeCall4()
+        end
+
+        pcall(function()
+          local character8 = localPlayer2.Character
+
+          if character8 and character8:FindFirstChild("HumanoidRootPart") then
+            character8.HumanoidRootPart.Anchored = false
+          end
+
+          return
+        end)
+      end
+
+      return
+    end, })
+
+  section2:Toggle({
+    Title = "Egg Breaker Aura (No Movement)", Desc = "Attacks nearby eggs within reach without moving your character", Value = roxyHubState.AutoBreakAura, Callback = function(value18)
+      roxyHubState.AutoBreakAura = value18
+
+      if value18 then
+        iterate4()
+      end
+
+      return
+    end, })
+
+  section2:Dropdown({
+    Title = "Target Egg Type", Desc = "Select which egg type to target or choose All Eggs", Values = {
+      "All Eggs", "Fortune Egg", "Blossom Egg", "Bamboo Egg", "Sun Egg", "Starry Egg", "Sea Egg", "Angel Egg", "Tree Egg", "Cactus Egg", "Frozen Egg", }, Value = roxyHubState.TargetEggType, Callback = function(value19)
+      roxyHubState.TargetEggType = value19
+      return
+    end, })
+
+  section2:Dropdown({
+    Title = "Target Weight Bracket", Desc = "Filter eggs by weight bracket: Any, TITANIC, HUGE, or BIG", Values = { "Any", "TITANIC", "HUGE", "BIG", "Normal" }, Value = roxyHubState.TargetWeight, Callback = function(value20)
+      roxyHubState.TargetWeight = value20
+      return
+    end, })
+
+  section2:Slider({
+    Title = "Under-Egg Hit Depth", Desc = "Depth in studs below the egg surface while mining underground", Step = 0.1, Value = { Min = 1.5, Max = 6, Default = roxyHubState.UnderFarmDepth or 2.8 }, Callback = function(value21)
+
+      local val67 = (type(value21)) == "number" and value21
+      local underFarmDepth = val67
+
+      if not val67 then
+        local val68 = (type(value21)) == "table"
+        local default2 = val68
+
+        if val68 then
+
+          default2 = value21.Default or value21.Value
+        end
+
+        underFarmDepth = default2 or 2.8
+      end
+
+      roxyHubState.UnderFarmDepth = underFarmDepth
+      return
+    end, })
+
+  section2:Toggle({
+    Title = "Auto Equip Best Pickaxe", Desc = "Automatically equips your strongest available pickaxe", Value = roxyHubState.AutoEquipPickaxe, Callback = function(value22)
+      roxyHubState.AutoEquipPickaxe = value22
+
+      if value22 then
+        iterate4()
+      end
+
+      return
+    end, })
+
+  local treadmillRunnerSection = autoFarmTab:Section({
+    Title = "Treadmill Runner", Opened = true, })
+
+  treadmillRunnerSection:Toggle({
+    Title = "Auto Farm Treadmill (Run)", Desc = "Runs on your base plot treadmill to train speed continuously", Value = roxyHubState.AutoTreadmill, Callback = function(value23)
+      roxyHubState.AutoTreadmill = value23
+
+      if value23 then
+        if roxyHubState.TreadmillUnequip then
+          iterate2()
+        end
+
+        iterate3()
+      else
+        safeCall3()
+      end
+
+      return
+    end, })
+
+  treadmillRunnerSection:Toggle({
+    Title = "Stealth Unequip on Treadmill", Desc = "Unequips all held tools while running on treadmill to blend in", Value = roxyHubState.TreadmillUnequip, Callback = function(value24)
+      roxyHubState.TreadmillUnequip = value24
+
+      if value24 and roxyHubState.AutoTreadmill then
+        iterate2()
+      end
+
+      return
+    end, })
+
+  local plotAutomationSection = autoFarmTab:Section({
+    Title = "Plot & Automation", Opened = true, })
+
+  plotAutomationSection:Toggle({
+    Title = "Auto Upgrade Plot", Desc = "Automatically purchases available base plot upgrades", Value = roxyHubState.AutoUpgradePlot, Callback = function(value25)
+      roxyHubState.AutoUpgradePlot = value25
+      return
+    end, })
+
+  plotAutomationSection:Toggle({
+    Title = "Auto Upgrade Treadmill", Desc = "Automatically levels up your treadmill for higher training gains", Value = roxyHubState.AutoUpgradeTreadmill, Callback = function(value26)
+      roxyHubState.AutoUpgradeTreadmill = value26
+      return
+    end, })
+
+  plotAutomationSection:Toggle({
+    Title = "Auto Buy Next Pickaxe", Desc = "Automatically buys the next pickaxe tier when affordable", Value = roxyHubState.AutoBuyPickaxe, Callback = function(value27)
+      roxyHubState.AutoBuyPickaxe = value27
+      return
+    end, })
+
+  plotAutomationSection:Toggle({
+    Title = "Auto Bank Carried Animals", Desc = "Automatically deposits carried pets into your base storage", Value = roxyHubState.AutoBankAnimals, Callback = function(value28)
+      roxyHubState.AutoBankAnimals = value28
+      return
+    end, })
+
+  return
+end)
+
+safeCall6(combatTab, "Combat", function()
+  local section3 = combatTab:Section({ Title = "Bat Defense & Knockback", Opened = true })
+
+  section3:Toggle({
+    Title = "Auto Bat Knockback Aura", Desc = "Swings bat automatically to knock away players or guards nearby", Value = roxyHubState.AutoBatAura, Callback = function(value29)
+      roxyHubState.AutoBatAura = value29
+
+      if value29 then
+        helper8()
+      end
+
+      return
+    end, })
+
+  section3:Slider({
+    Title = "Bat Aura Distance", Desc = "Maximum detection radius in studs for bat knockback defense", Step = 1, Value = { Min = 5, Max = 30, Default = roxyHubState.BatRange or 15 }, Callback = function(value30)
+
+      local val69 = (type(value30)) == "number" and value30
+      local batRange = val69
+
+      if not val69 then
+        local val70 = (type(value30)) == "table"
+        local default3 = val70
+
+        if val70 then
+
+          default3 = value30.Default or value30.Value
+        end
+
+        batRange = default3 or 15
+      end
+
+      roxyHubState.BatRange = batRange
+      return
+    end, })
+
+  section3:Toggle({
+    Title = "Target Other Players", Desc = "Enables bat knockback against nearby rival players", Value = roxyHubState.TargetPlayers, Callback = function(value31)
+      roxyHubState.TargetPlayers = value31
+      return
+    end, })
+
+  section3:Toggle({
+    Title = "Target Guard NPCs", Desc = "Enables bat knockback against attacking guard NPCs", Value = roxyHubState.TargetGuards, Callback = function(value32)
+      roxyHubState.TargetGuards = value32
+      return
+    end, })
+
+  return
+end)
+
+safeCall6(teleportsTab, "Teleports", function()
+  local mainLandmarksSection = teleportsTab:Section({ Title = "Main Landmarks", Opened = true })
+
+  mainLandmarksSection:Button({
+    Title = "Teleport to My Base Plot", Desc = "Instantly teleports you to your personal base plot", Callback = function()
+      safeCall3()
+      helper6()
+      return
+    end, })
+
+  mainLandmarksSection:Button({
+    Title = "Teleport to My Treadmill", Desc = "Teleports your character directly onto your base treadmill", Callback = function()
+      iterate3()
+      return
+    end, })
+
+  mainLandmarksSection:Button({
+    Title = "Teleport to Egg Machine", Desc = "Teleports your character directly to the central egg machine", Callback = function()
+      safeCall3()
+
+      local eggMachine = workspace:FindFirstChild("EggMachine")
+      local element8 = helper4()
+
+      if eggMachine and element8 then
+        local findFirstChildWhichIsA = eggMachine:FindFirstChildWhichIsA("BasePart", true)
+
+        if findFirstChildWhichIsA then
+          element8.CFrame = findFirstChildWhichIsA.CFrame + (Vector3.new(0, 4, 0))
+        end
+      end
+
+      return
+    end, })
+
+  mainLandmarksSection:Button({
+    Title = "Teleport to Leaderboards", Desc = "Teleports your character to the global leaderboards area", Callback = function()
+      safeCall3()
+
+      local leaderboards = workspace:FindFirstChild("Leaderboards")
+      local element9 = helper4()
+
+      if leaderboards and element9 then
+        local findFirstChildWhichIsA2 = leaderboards:FindFirstChildWhichIsA("BasePart", true)
+
+        if findFirstChildWhichIsA2 then
+          element9.CFrame = findFirstChildWhichIsA2.CFrame + (Vector3.new(0, 4, 0))
+        end
+      end
+
+      return
+    end, })
+
+  local zoneTeleportsSection = teleportsTab:Section({ Title = "Zone Teleports", Opened = true })
+
+  local val71 = {
+    ["Zone 1"] = (Vector3.new(-154, 3, -72)), ["Zone 2"] = (Vector3.new(-245, 36, 120)), ["Zone 3"] = (Vector3.new(-332, 3, 33)), ["Zone 4"] = (Vector3.new(-578, 14, -120)), ["Zone 5"] = (Vector3.new(-865, 3, -60)), ["Zone 6"] = (Vector3.new(-1136, 14, 120)), ["Zone 7"] = (Vector3.new(-1660, 3, -89)), ["Zone 8"] = (Vector3.new(-2084, 36, -120)), ["Zone 9"] = (Vector3.new(-2603, 3, 0)), }
+
+  local val72 = "Zone 1"
+
+  zoneTeleportsSection:Dropdown({
+    Title = "Select Destination Zone", Desc = "Choose the target zone map to teleport to", Values = {
+      "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8", "Zone 9", }, Value = val72, Callback = function(value33)
+      val72 = value33
+      return
+    end, })
+
+  zoneTeleportsSection:Button({
+    Title = "Teleport to Selected Zone", Desc = "Teleports your character to the chosen zone spawn coordinates", Callback = function()
+      safeCall3()
+      local val73 = val71[val72]
+      local element10 = helper4()
+
+      if element10 and val73 then
+        element10.CFrame = CFrame.new(val73 + (Vector3.new(0, 3, 0)))
+        element10.AssemblyLinearVelocity = Vector3.zero
+
+        val20:Notify({
+          Title = "Teleported", Content = "Arrived at " .. val72, Duration = 2, Icon = "map-pin", })
+      end
+
+      return
+    end, })
+
+  return
+end)
+
+local roxyHubESP = Instance.new("Folder")
+roxyHubESP.Name = "CarHub_ESP"
+
+pcall(function()
+  local roxyHubESP2 = coreGui2:FindFirstChild("RoxyHub_ESP")
+
+  if roxyHubESP2 then
+    roxyHubESP2:Destroy()
+  end
+
+  roxyHubESP.Parent = coreGui2
+  return
+end)
+
+safeCall6(visualsTab, "Visuals", function()
+  local section4 = visualsTab:Section({ Title = "Visual Sensors & ESP", Opened = true })
+
+  section4:Toggle({
+    Title = "Egg ESP", Desc = "Highlights all active eggs across the map with health and tier", Value = roxyHubState.EggESP, Callback = function(value34)
+      roxyHubState.EggESP = value34
+
+      if not value34 then
+        for index11, value35 in ipairs(roxyHubESP:GetChildren()) do
+
+          if (value35.Name:find("EggESP_")) then
+            value35:Destroy()
+          end
+        end
+      end
+
+      return
+    end, })
+
+  section4:Toggle({
+    Title = "Animal Pickup ESP", Desc = "Highlights dropped animals and prompts ready to be snatched", Value = roxyHubState.PickupESP, Callback = function(value36)
+      roxyHubState.PickupESP = value36
+
+      if not value36 then
+        for index12, value37 in ipairs(roxyHubESP:GetChildren()) do
+
+          if (value37.Name:find("PickupESP_")) then
+            value37:Destroy()
+          end
+        end
+      end
+
+      return
+    end, })
+
+  section4:Toggle({
+    Title = "Player ESP", Desc = "Draws boxes and nametags around other players in the game", Value = roxyHubState.PlayerESP, Callback = function(value38)
+      roxyHubState.PlayerESP = value38
+
+      if not value38 then
+        for index13, value39 in ipairs(roxyHubESP:GetChildren()) do
+
+          if (value39.Name:find("PlayerESP_")) then
+            value39:Destroy()
+          end
+        end
+      end
+
+      return
+    end, })
+
+  section4:Toggle({
+    Title = "Rare Egg Spawn Notifier", Desc = "Sends a screen notification whenever a rare or titanic egg spawns", Value = roxyHubState.RareNotifier, Callback = function(value40)
+      roxyHubState.RareNotifier = value40
+      return
+    end, })
+
+  return
+end)
+
+safeCall6(playerTab, "Player", function()
+  local movementPhysicsSection = playerTab:Section({
+    Title = "Movement & Physics", Opened = true, })
+
+  movementPhysicsSection:Slider({
+    Title = "WalkSpeed", Desc = "Adjust your character movement walk speed in studs per second", Step = 1, Value = { Min = 16, Max = 250, Default = roxyHubState.WalkSpeed or 16 }, Callback = function(value41)
+
+      local val74 = (type(value41)) == "number" and value41
+      local val75 = val74
+
+      if not val74 then
+        local val76 = (type(value41)) == "table"
+        local default4 = val76
+
+        if val76 then
+
+          default4 = value41.Default or value41.Value
+        end
+
+        val75 = default4 or 16
+      end
+
+      local walkSpeed = val75
+      roxyHubState.WalkSpeed = walkSpeed
+      local element11 = helper5()
+
+      if element11 then
+        element11.WalkSpeed = walkSpeed
+      end
+
+      return
+    end, })
+
+  movementPhysicsSection:Slider({
+    Title = "JumpPower", Desc = "Adjust your character jump height power", Step = 5, Value = { Min = 50, Max = 300, Default = roxyHubState.JumpPower or 50 }, Callback = function(value42)
+
+      local val77 = (type(value42)) == "number" and value42
+      local val78 = val77
+
+      if not val77 then
+        local val79 = (type(value42)) == "table"
+        local default5 = val79
+
+        if val79 then
+
+          default5 = value42.Default or value42.Value
+        end
+
+        val78 = default5 or 50
+      end
+
+      local jumpPower = val78
+      roxyHubState.JumpPower = jumpPower
+      local element12 = helper5()
+
+      if element12 then
+        element12.UseJumpPower = true
+        element12.JumpPower = jumpPower
+      end
+
+      return
+    end, })
+
+  movementPhysicsSection:Toggle({
+    Title = "Infinite Jump", Desc = "Allows jumping continuously mid-air without touching the ground", Value = roxyHubState.InfiniteJump, Callback = function(value43)
+      roxyHubState.InfiniteJump = value43
+      return
+    end, })
+
+  movementPhysicsSection:Toggle({
+    Title = "Noclip", Desc = "Walk through walls and obstacles without collision", Value = roxyHubState.Noclip, Callback = function(value44)
+      roxyHubState.Noclip = value44
+      return
+    end, })
+
+  movementPhysicsSection:Toggle({
+    Title = "Flight Mode", Desc = "Fly freely across the map using WASD and camera orientation", Value = roxyHubState.Fly, Callback = function(value45)
+      roxyHubState.Fly = value45
+      return
+    end, })
+
+  movementPhysicsSection:Slider({
+    Title = "Flight Speed", Desc = "Flying speed multiplier when flight mode is enabled", Step = 5, Value = { Min = 20, Max = 200, Default = roxyHubState.FlySpeed or 50 }, Callback = function(value46)
+
+      local val80 = (type(value46)) == "number" and value46
+      local flySpeed = val80
+
+      if not val80 then
+        local val81 = (type(value46)) == "table"
+        local default6 = val81
+
+        if val81 then
+
+          default6 = value46.Default or value46.Value
+        end
+
+        flySpeed = default6 or 50
+      end
+
+      roxyHubState.FlySpeed = flySpeed
+      return
+    end, })
+
+  return
+end)
+
+safeCall6(settingsTab, "Settings", function()
+  local interfaceControlsSection = settingsTab:Section({
+    Title = "Interface & Controls", Opened = true, })
+
+  interfaceControlsSection:Keybind({
+    Title = "Toggle Menu Keybind", Desc = "Keyboard key used to show or hide the RoxyHub interface", Default = Enum.KeyCode.RightShift, Callback = function()
+      window:Toggle()
+      return
+    end, })
+
+  interfaceControlsSection:Toggle({
+    Title = "Mobile Floating Button", Desc = "Show or hide the draggable mobile toggle icon on screen", Default = true, Callback = function(value47)
+      if val36 then
+        val36.Enabled = value47
+      end
+
+      return
+    end, })
+
+  interfaceControlsSection:Dropdown({
+    Title = "Window Theme", Desc = "Switch between visual color palettes and themes", Values = { "RoxyHub", "Dark", "Rose", "Plant", "Indigo" }, Value = "RoxyHub", Callback = function(value48)
+      pcall(function()
+        val20:SetTheme(value48)
+        return
+      end)
+
+      return
+    end, })
+
+  interfaceControlsSection:Button({
+    Title = "Unload / Close CatHub", Desc = "Disconnects all background loops and completely removes the UI", Callback = function()
+      if _G.RoxyHubConnections then
+        for index14, value49 in ipairs(_G.RoxyHubConnections) do
+          local object9 = value49
+
+          pcall(function()
+            object9:Disconnect()
+            return
+          end)
+        end
+      end
+
+      _G.RoxyHubConnections = {}
+      safeCall5()
+      safeCall4()
+      safeCall3()
+
+      pcall(function()
+        roxyHubESP:Destroy()
+        return
+      end)
+
+      if val36 then
+        pcall(function()
+          val36:Destroy()
+          return
+        end)
+      end
+
+      if window then
+        window:Destroy()
+      end
+
+      return
+    end, })
+
+  local section5 = settingsTab:Section({ Title = "Profiles & AutoLoad", Opened = true })
+
+  if makefolder and not (isfolder("RoxyHub_BreakAndStealAnEgg/configs")) then
+    pcall(function()
+      if not (isfolder("RoxyHub_BreakAndStealAnEgg")) then
+        makefolder("RoxyHub_BreakAndStealAnEgg")
+      end
+
+      makefolder("RoxyHub_BreakAndStealAnEgg/configs")
+      return
+    end)
+  end
+
+  local function helper12()
+    local val82 = {}
+    local val83 = listfiles
+    local roxyHubBreakAndStealAnEggConfigs = val83
+
+    if val83 then
+
+      roxyHubBreakAndStealAnEggConfigs = isfolder
+        and isfolder("RoxyHub_BreakAndStealAnEgg/configs")
+    end
+
+    if roxyHubBreakAndStealAnEggConfigs then
+      pcall(function()
+
+        for index15, value50 in ipairs(listfiles("RoxyHub_BreakAndStealAnEgg/configs")) do
+          local json = value50:match("([^\\/]+)%.json$")
+
+          if json and json ~= "autoload" then
+            table.insert(val82, json)
+          end
+        end
+
+        return
+      end)
+    end
+
+    table.sort(val82)
+
+    if #val82 == 0 then
+      table.insert(val82, "default")
+    end
+
+    return val82
+  end
+
+  local val84 = false
+  local val85 = "default"
+
+  local function fileIO(val86)
+local val87, val88, jsonString
+
+    if not writefile then
+      return false, "writefile not supported"
+    else
+      local val89 = not val86
+      local val90 = val89
+
+      if not val89 then
+
+        val90 = val86 == "" or val86 == "autoload"
+      end
+
+      if val90 then
+        return false, "Invalid profile name"
+      else
+        val87 = "RoxyHub_BreakAndStealAnEgg/configs" .. "/" .. val86 .. ".json"
+        val88 = {}
+
+        for key, value51 in pairs(roxyHubState) do
+          val88[key] = value51
+        end
+
+        local val91
+        val91, jsonString = pcall(function() return httpService:JSONEncode(val88) end)
+
+        if not val91 then
+          return false, "JSON encoding error"
+        else
+          local val92 = {
+            pcall(function()
+              writefile(val87, jsonString)
+              return
+            end), }
+
+          if not val92[1] then
+            return false, tostring(val92[2])
+          else
+            return true
+          end
+        end
+      end
+    end
+  end
+
+  local function fileIO2(val93)
+
+    local val94 = not readfile or not isfile
+local val95, fileContent
+
+    if val94 then
+      return false, "readfile not supported"
+    else
+      local val96 = not val93
+      local val97 = val96
+
+      if not val96 then
+
+        val97 = val93 == "" or val93 == "autoload"
+      end
+
+      if val97 then
+        return false, "Invalid profile name"
+      else
+        val95 = "RoxyHub_BreakAndStealAnEgg/configs" .. "/" .. val93 .. ".json"
+
+        if not (isfile(val95)) then
+          return false, "Profile file not found"
+        else
+          local val98
+          val98, fileContent = pcall(function() return readfile(val95) end)
+
+          if not val98 or not fileContent then
+            return false, "Failed to read profile"
+          else
+            local jsonData = { pcall(function() return httpService:JSONDecode(fileContent) end) }
+            local val99 = jsonData[2]
+
+            if not jsonData[1] or (type(val99)) ~= "table" then
+              return false, "Corrupted profile data"
+            else
+              for key2, value52 in pairs(val99) do
+                roxyHubState[key2] = value52
+              end
+
+              return true
+            end
+          end
+        end
+      end
+    end
+  end
+
+  section5:Input({
+    Title = "Profile Name", Desc = "Enter the profile file name to save or load configuration", Placeholder = "e.g. default, farm_setup", Value = val85, Callback = function(value53)
+
+      if value53 and value53 ~= "" then
+        val85 = value53
+      end
+
+      return
+    end, })
+
+  local selectProfileDropdown
+
+  local function safeCall7(val100)
+    local val101 = helper12()
+
+    local setValues = selectProfileDropdown and selectProfileDropdown.SetValues
+
+    if setValues then
+
+      selectProfileDropdown:SetValues(val101)
+
+      if val100 then
+        pcall(function()
+
+          selectProfileDropdown:Set(val100)
+          return
+        end)
+      end
+    end
+
+    return
+  end
+
+  selectProfileDropdown = section5:Dropdown({
+    Title = "Select Profile", Desc = "Select an existing saved configuration profile", Values = (helper12()), Value = val85, Callback = function(value54)
+
+      if value54 and value54 ~= "" then
+        val85 = value54
+      end
+
+      return
+    end, })
+
+  section5:Button({
+    Title = "Save Current Config", Desc = "Saves all current toggles and settings to the selected profile", Callback = function()
+      local val102 = val85
+      local val103, val104 = fileIO(val102)
+
+      if val103 then
+        safeCall7(val102)
+
+        val20:Notify({
+          Title = "Profile Saved", Content = (string.format("Saved '%s.json' successfully!", val102)), Duration = 3, Icon = "check", })
+      else
+        val20:Notify({
+          Title = "Save Error", Content = (tostring(val104)), Duration = 3, Icon = "x", })
+      end
+
+      return
+    end, })
+
+  section5:Button({
+    Title = "Load Selected Config", Desc = "Loads all settings from the selected profile file", Callback = function()
+      local val105 = val85
+      local val106, val107 = fileIO2(val105)
+
+      if val106 then
+        safeCall7(val105)
+
+        val20:Notify({
+          Title = "Profile Loaded", Content = (string.format("Loaded '%s.json' successfully!", val105)), Duration = 3, Icon = "check", })
+      else
+        val20:Notify({
+          Title = "Load Error", Content = (tostring(val107)), Duration = 3, Icon = "x", })
+      end
+
+      return
+    end, })
+
+  section5:Toggle({
+    Title = "Auto Load Profile On Startup", Desc = "Automatically loads your active configuration when script runs", Value = val84, Callback = function(value55)
+      val84 = value55
+
+      pcall(function()
+        writefile(
+          "RoxyHub_BreakAndStealAnEgg/configs/autoload.json", httpService:JSONEncode({ AutoLoad = value55, Profile = val85 })
+        )
+
+        return
+      end)
+
+      return
+    end, })
+
+  if val84 then
+    pcall(function()
+      fileIO2(val85)
+      return
+    end)
+  end
+
+  return
+end)
+
+local val108
+
+local function iterate5(val110, val109, val111)
+
+  if val108 then
+    return
+  else
+    val108 = true
+    safeCall3()
+    local val112 = helper4()
+    local val113 = helper5()
+
+    if not val112 or not val113 then
+      val108 = false
+      return
+    else
+      if localPlayer2.Character then
+
+        for index16, value56 in ipairs(localPlayer2.Character:GetDescendants()) do
+          if (value56:IsA("BasePart")) then
+            value56.CanCollide = false
+          end
+        end
+      end
+
+      createFolder()
+
+      local val114, val115
+      val114, val115 = helper9(val110, nil, roxyHubState.UnderDepth or 2.8)
+
+      val112.Anchored = false
+      val112.CFrame = CFrame.new(val114)
+      val112.AssemblyLinearVelocity = Vector3.zero
+
+      task.wait(0.12)
+
+      if val109 and val109.Parent then
+        pcall(function()
+          val109.HoldDuration = 0
+          val109.MaxActivationDistance = 9999
+          val109.RequiresLineOfSight = false
+
+          return
+        end)
+      end
+
+      local val116 = os.clock()
+      local val117 = false
+      local format = string.format
+
+      val20:Notify({
+        Title = "Ninja Snatch!", Content = (format("Snatching %s (Instant E)...", val111 or "Animal")), Duration = 3, Icon = "target", })
+
+      while true do
+
+        if roxyHubState.NinjaSteal and (os.clock()) - val116 < 4 then
+
+          if val112 and (val112.Position - val114).Magnitude > 4 then
+            val112.CFrame = CFrame.new(val114)
+            val112.AssemblyLinearVelocity = Vector3.zero
+          end
+
+          local carrying = localPlayer2:GetAttribute("Carrying")
+          local carryCount = localPlayer2:GetAttribute("CarryCount")
+          local val118 = carrying ~= nil
+          local val119 = val118
+
+          if not val118 then
+
+            val119 = carryCount and carryCount > 0
+          end
+
+          if val119 then
+            val117 = true
+            break
+          else
+
+            if val109 and val109.Parent then
+              pcall(function()
+                val109.HoldDuration = 0
+                val109.MaxActivationDistance = 9999
+                val109.RequiresLineOfSight = false
+
+                return
+              end)
+
+              if fireproximityprompt then
+                pcall(function()
+                  fireproximityprompt(val109, 0)
+                  return
+                end)
+              end
+
+              pcall(function()
+                val109:InputHoldBegin()
+                task.wait()
+                val109:InputHoldEnd()
+                return
+              end)
+
+              task.wait(0.05)
+            else
+              task.wait(0.08)
+
+              if (localPlayer2:GetAttribute("Carrying")) ~= nil then
+                val117 = true
+              end
+
+              break
+            end
+          end
+        else
+          break
+        end
+      end
+
+      safeCall5()
+
+      if localPlayer2.Character then
+
+        for index17, value57 in ipairs(localPlayer2.Character:GetDescendants()) do
+          local element13 = value57
+          local basePart3 = element13:IsA("BasePart")
+          local val120 = basePart3
+
+          if basePart3 then
+            val120 = not (element13:IsA("Terrain"))
+          end
+
+          if val120 then
+            pcall(function()
+              element13.CanCollide = true
+              return
+            end)
+          end
+        end
+      end
+
+      local val121 = val117
+
+      if not val117 then
+        val121 = (localPlayer2:GetAttribute("Carrying")) ~= nil
+      end
+
+      if val121 then
+        local format2 = string.format
+
+        val20:Notify({
+          Title = "Snatch Success!", Content = (format2("Secured %s! Banking at base...", val111 or "Animal")), Duration = 3, Icon = "sparkles", })
+
+        task.wait(0.05)
+        helper6()
+        task.wait(0.3)
+        local val122 = os.clock()
+
+        while true do
+          local val123 = (localPlayer2:GetAttribute("Carrying")) ~= nil
+
+          if val123 and (os.clock()) - val122 < 4 then
+            task.wait(0.15)
+          else
+            break
+          end
+        end
+      else
+        val20:Notify({
+          Title = "Snatch Missed", Content = "Prompt expired or taken. Returning...", Duration = 2, Icon = "x", })
+      end
+
+      if val112 then
+        val112.Anchored = false
+      end
+
+      if roxyHubState.NinjaStealthRun and not roxyHubState.AutoBreakUnder then
+        iterate2()
+        task.wait(0.1)
+        iterate3()
+      end
+
+      val108 = false
+      return
+    end
+  end
+end
+
+val108 = false
+
+task.spawn(function()
+
+  while true do
+
+    if roxyHubState.NinjaSteal and not val108 then
+      if not (localPlayer2:GetAttribute("Carrying")) then
+
+        for index18, value58 in ipairs(workspace:GetChildren()) do
+          if value58.Name == "PromptAnchor" then
+            local stealPrompt = value58:FindFirstChild("StealPrompt")
+
+            local hatchPrompt = stealPrompt
+            hatchPrompt = stealPrompt or value58:FindFirstChild("HatchPrompt")
+
+            local enabled = hatchPrompt
+
+            if hatchPrompt then
+
+              enabled = (hatchPrompt:IsA("ProximityPrompt")) and hatchPrompt.Enabled
+            end
+
+            if enabled then
+
+              local objectText = hatchPrompt.ObjectText or "Animal"
+
+              if (helper11(objectText, "", roxyHubState.TargetRarity)) then
+                iterate5(value58.Position, hatchPrompt, objectText)
+                break
+              else
+                ::L14406497::
+                ::L403764::
+              end
+            else
+              goto L14406497
+            end
+          else
+            goto L403764
+          end
+        end
+
+        if not val108 then
+          for index19, value59 in ipairs((collectionService:GetTagged("AnimalPickup"))) do
+
+            if (value59:IsA("Model")) and value59.Parent then
+
+              local rarity = (value59:GetAttribute("Rarity")) or ""
+
+              local weightBracket = (value59:GetAttribute("WeightBracket")) or ""
+              local name = value59.Name
+
+              if (helper11(rarity .. " " .. name, weightBracket, roxyHubState.TargetRarity)) then
+                local primaryPart = value59.PrimaryPart
+
+                local basePart4 = primaryPart
+                basePart4 = primaryPart or value59:FindFirstChildWhichIsA("BasePart")
+
+                if basePart4 then
+                  iterate5(
+                    basePart4.Position, value59:FindFirstChildWhichIsA("ProximityPrompt", true), name
+                  )
+
+                  break
+                else
+                  ::L15542361::
+                  ::L14386351::
+                end
+              else
+                goto L15542361
+              end
+            else
+              goto L14386351
+            end
+          end
+        end
+
+        local ninjaStealthRun = roxyHubState.NinjaStealthRun
+        local val124 = ninjaStealthRun
+
+        if ninjaStealthRun then
+
+          val124 = not val108 and not roxyHubState.AutoBreakUnder
+        end
+
+        if val124 then
+          if not (helper7()) then
+            local object10 = iterate()
+
+            if object10 then
+              local ghostTreadmill3 = object10:FindFirstChild("Ghost Treadmill")
+              local basePart5 = ghostTreadmill3
+
+              if ghostTreadmill3 then
+                local hitbox4 = ghostTreadmill3:FindFirstChild("Hitbox")
+
+                basePart5 = hitbox4 or ghostTreadmill3:FindFirstChildWhichIsA("BasePart")
+              end
+
+              local element14 = helper4()
+              local val125 = basePart5
+
+              if basePart5 then
+
+                val125 = element14 and (element14.Position - basePart5.Position).Magnitude > 8
+              end
+
+              if val125 then
+                iterate2()
+                iterate3()
+              end
+            end
+          end
+        end
+      end
+    end
+
+    task.wait(0.3)
+  end
+
+  return
+end)
+
+local val126
+
+task.spawn(function()
+  local eggHitRequest = replicatedStorage:FindFirstChild("EggHitRequest")
+
+local val127
+
+  while true do
+
+    if roxyHubState.AutoBreakUnder or roxyHubState.AutoBreakAura then
+      local val128 = helper4()
+
+      if val128 and not val108 then
+        local val129 = val126
+        local val130 = val129
+
+        if val129 then
+          local parent4 = val126.Parent
+          local val131 = parent4
+
+          if parent4 then
+
+            local basePart6 = val126:IsA("BasePart")
+            local val132 = basePart6
+
+            if basePart6 then
+
+              local val133 = not (val126:GetAttribute("Broken"))
+              local val134 = val133
+
+              if val133 then
+
+                local val135 = not (val126:GetAttribute("Hatching"))
+                local val136 = val135
+
+                if val135 then
+
+                  local val137 = not (val126:GetAttribute("Despawning"))
+                  local val138 = val137
+
+                  if val137 then
+
+                    local val139 = (val126:GetAttribute("Health")) == nil
+                    local val140 = val139
+
+                    if not val139 then
+
+                      val140 = (val126:GetAttribute("Health")) > 0
+                    end
+
+                    val138 = val140
+                  end
+
+                  val136 = val138
+                end
+
+                val134 = val136
+              end
+
+              val132 = val134
+            end
+
+            val131 = val132
+          end
+
+          val130 = val131
+        end
+
+        if not val130 then
+
+          if val126 and val128 then
+            val128.Anchored = false
+          end
+
+          val126 = nil
+          safeCall5()
+          local val141 = nil
+          local val142 = 999999
+
+          for index20, value60 in ipairs((collectionService:GetTagged("BreakableEgg"))) do
+            local basePart7 = value60:IsA("BasePart")
+            local val143 = basePart7
+
+            if basePart7 then
+              local val144 = not (value60:GetAttribute("Broken"))
+              local val145 = val144
+
+              if val144 then
+                local val146 = not (value60:GetAttribute("Hatching"))
+
+                val145 = val146 and not (value60:GetAttribute("Despawning"))
+              end
+
+              val143 = val145
+            end
+
+            if val143 then
+
+              local eggType = (value60:GetAttribute("EggType")) or ""
+
+              local weightBracket2 = (value60:GetAttribute("WeightBracket")) or "Normal"
+
+              if weightBracket2 == "" then
+                weightBracket2 = "Normal"
+              end
+
+              local val147 = roxyHubState.TargetEggType == "All Eggs"
+
+              local val148 = val147
+              val148 = val147 or (eggType:find(roxyHubState.TargetEggType)) ~= nil
+
+              local val149 = roxyHubState.TargetWeight == "Any"
+              local val150 = val149
+
+              if not val149 then
+                local upper = weightBracket2:upper()
+
+                val150 = upper == (roxyHubState.TargetWeight:upper())
+              end
+
+              if val148 and val150 then
+                local magnitude2 = (value60.Position - val128.Position).Magnitude
+
+                if roxyHubState.AutoBreakAura and not roxyHubState.AutoBreakUnder then
+
+                  if magnitude2 <= 9 and magnitude2 < val142 then
+                    val142 = magnitude2
+                    val141 = value60
+                  end
+                else
+                  if magnitude2 < val142 then
+                    val142 = magnitude2
+                    val141 = value60
+                  end
+                end
+              end
+            end
+          end
+
+          if val141 then
+            val126 = val141
+
+            if roxyHubState.AutoBreakUnder then
+              safeCall3()
+              createFolder()
+              local val151 = helper9(val141.Position, val141, roxyHubState.UnderFarmDepth or 2.8)
+
+              if localPlayer2.Character then
+
+                for index21, value61 in ipairs(localPlayer2.Character:GetDescendants()) do
+                  if (value61:IsA("BasePart")) then
+                    value61.CanCollide = false
+                  end
+                end
+              end
+
+              val128.Anchored = false
+              val128.CFrame = CFrame.new(val151)
+              val128.AssemblyLinearVelocity = Vector3.zero
+            end
+          else
+
+            if roxyHubState.AutoTreadmill and not val108 then
+              if val128 then
+                val128.Anchored = false
+              end
+
+              if not (helper7()) then
+                iterate3()
+              end
+            end
+          end
+        end
+
+        if val126 and val126.Parent then
+          if roxyHubState.AutoEquipPickaxe then
+            iterate4()
+          end
+
+          if roxyHubState.AutoBreakUnder then
+            local val152 = helper9(val126.Position, val126, roxyHubState.UnderFarmDepth or 2.8)
+
+            if (val128.Position - val152).Magnitude > 2 then
+              val128.CFrame = CFrame.new(val152)
+              val128.AssemblyLinearVelocity = Vector3.zero
+            end
+
+            if val128.Anchored then
+              val128.Anchored = false
+            end
+          end
+
+          if val127 and val127.Swing then
+            pcall(function()
+              val127.Swing(val126)
+              return
+            end)
+          end
+
+          local remoteEvent = eggHitRequest
+
+          if eggHitRequest then
+            remoteEvent = eggHitRequest:IsA("RemoteEvent")
+          end
+
+          if remoteEvent then
+            pcall(function()
+              eggHitRequest:FireServer(val126)
+              return
+            end)
+          end
+        end
+      end
+    else
+      if val126 then
+        local character9 = localPlayer2.Character
+        local humanoidRootPart = character9
+
+        if character9 then
+
+          humanoidRootPart = localPlayer2.Character:FindFirstChild("HumanoidRootPart")
+        end
+
+        if humanoidRootPart then
+          localPlayer2.Character.HumanoidRootPart.Anchored = false
+        end
+
+        val126 = nil
+      end
+    end
+
+    task.wait(0.1)
+  end
+end)
+
+task.spawn(function()
+
+  while true do
+    local autoTreadmill = roxyHubState.AutoTreadmill
+    local val153 = autoTreadmill
+
+    if autoTreadmill then
+
+      val153 = not val108 and not roxyHubState.AutoBreakUnder
+    end
+
+    if val153 then
+      local val154 = (localPlayer2:GetAttribute("Carrying")) == nil
+
+      if val154 and not (helper7()) then
+        local object11 = iterate()
+
+        if object11 then
+          local ghostTreadmill4 = object11:FindFirstChild("Ghost Treadmill")
+          local basePart8 = ghostTreadmill4
+
+          if ghostTreadmill4 then
+            local hitbox5 = ghostTreadmill4:FindFirstChild("Hitbox")
+
+            basePart8 = hitbox5 or ghostTreadmill4:FindFirstChildWhichIsA("BasePart")
+          end
+
+          local element15 = basePart8
+          local element16 = helper4()
+          local val155 = element15
+
+          if element15 then
+
+            val155 = element16 and (element16.Position - element15.Position).Magnitude > 6
+          end
+
+          if val155 then
+            if roxyHubState.TreadmillUnequip then
+              iterate2()
+            end
+
+            iterate3()
+          end
+        end
+      end
+    end
+
+    task.wait(1.5)
+  end
+end)
+
+task.spawn(function()
+
+  while true do
+
+    if roxyHubState.AutoBankAnimals and not val108 then
+      if (localPlayer2:GetAttribute("Carrying")) ~= nil then
+        helper6()
+        task.wait(0.6)
+      end
+    end
+
+    task.wait(0.5)
+  end
+end)
+
+task.spawn(function()
+  while true do
+    if roxyHubState.AutoUpgradePlot then
+      local upgradePlotRequest = replicatedStorage:FindFirstChild("UpgradePlotRequest")
+
+      if upgradePlotRequest and upgradePlotRequest:IsA("RemoteEvent") then
+        upgradePlotRequest:FireServer()
+      end
+    end
+
+    if roxyHubState.AutoUpgradeTreadmill then
+      local upgradeTreadmillRequest = replicatedStorage:FindFirstChild("UpgradeTreadmillRequest")
+
+      if upgradeTreadmillRequest and upgradeTreadmillRequest:IsA("RemoteEvent") then
+        upgradeTreadmillRequest:FireServer()
+      end
+    end
+
+    if roxyHubState.AutoBuyPickaxe then
+      pcall(function()
+
+        local element17 = require(replicatedStorage.Shared.PickaxeConfig)
+        local val156 = ((localPlayer2:GetAttribute("PickaxeTier")) or 1) + 1
+        local cash = (localPlayer2:GetAttribute("Cash")) or 0
+        local tiers = element17
+
+        if element17 then
+
+          tiers = element17.Tiers and element17.Tiers[val156]
+        end
+
+        if tiers then
+          local element18 = element17.Tiers[val156]
+
+          if element18.Price and cash >= element18.Price then
+            local pickaxeShopRequest = replicatedStorage:FindFirstChild("PickaxeShopRequest")
+
+            if pickaxeShopRequest and pickaxeShopRequest:IsA("RemoteEvent") then
+              pickaxeShopRequest:FireServer("Purchase", val156)
+              task.wait(0.2)
+              pickaxeShopRequest:FireServer("Equip", val156)
+            end
+          end
+        end
+
+        return
+      end)
+    end
+
+    task.wait(2.5)
+  end
+end)
+
+task.spawn(function()
+
+  while true do
+    if roxyHubState.AutoBatAura then
+      local val157 = helper4()
+
+      if val157 then
+        local batHitRequest = replicatedStorage:FindFirstChild("BatHitRequest")
+
+        if batHitRequest and batHitRequest:IsA("RemoteEvent") then
+          if roxyHubState.TargetPlayers then
+            for index22, value62 in ipairs(players:GetPlayers()) do
+              local val158 = value62 ~= localPlayer2
+              local val159 = val158
+
+              if val158 then
+                local character10 = value62.Character
+                local humanoidRootPart2 = character10
+
+                if character10 then
+
+                  humanoidRootPart2 = value62.Character:FindFirstChild("HumanoidRootPart")
+                end
+
+                val159 = humanoidRootPart2
+              end
+
+              if val159 then
+                if (value62.Character.HumanoidRootPart.Position - val157.Position).Magnitude
+                  <= roxyHubState.BatRange then
+                  helper8()
+                  batHitRequest:FireServer(value62.Character)
+                  task.wait(0.1)
+                end
+              end
+            end
+          end
+
+          if roxyHubState.TargetGuards then
+
+            for index23, value63 in ipairs(workspace:GetChildren()) do
+              local model2 = value63:IsA("Model")
+              local humanoidRootPart3 = model2
+
+              if model2 then
+
+                local guard = value63.Name:find("Guard")
+
+                humanoidRootPart3 = guard and value63:FindFirstChild("HumanoidRootPart")
+              end
+
+              if humanoidRootPart3 then
+                if (value63.HumanoidRootPart.Position - val157.Position).Magnitude
+                  <= roxyHubState.BatRange then
+                  helper8()
+                  batHitRequest:FireServer(value63)
+                  task.wait(0.1)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    task.wait(0.3)
+  end
+end)
+
+local val160 = {}
+
+task.spawn(function()
+
+  while true do
+    if roxyHubState.RareNotifier then
+      for index24, value64 in ipairs((collectionService:GetTagged("BreakableEgg"))) do
+
+        if (value64:IsA("BasePart")) and not val160[value64] then
+
+          local weightBracket3 = (value64:GetAttribute("WeightBracket")) or ""
+
+          local eggType2 = (value64:GetAttribute("EggType")) or ""
+          local val161 = weightBracket3 == "TITANIC"
+          local val162 = val161
+
+          if not val161 then
+            local val163 = weightBracket3 == "HUGE"
+            local val164 = val163
+
+            if not val163 then
+              local cosmic = eggType2:find("Cosmic")
+              local fortune = cosmic
+
+              if not cosmic then
+                local secret = eggType2:find("Secret")
+
+                fortune = secret or eggType2:find("Fortune")
+              end
+
+              val164 = fortune
+            end
+
+            val162 = val164
+          end
+
+          if val162 then
+            val160[value64] = true
+            local format3 = string.format
+
+            local val165 = weightBracket3 ~= "" and weightBracket3 or "RARE"
+
+            val20:Notify({
+              Title = "Rare Egg Detected!", Content = (format3("[%s] %s spawned!", val165, eggType2)), Duration = 5, Icon = "bell", })
+          end
+        end
+      end
+    end
+
+    task.wait(2)
+  end
+end)
+
+helper(runService.Stepped:Connect(function()
+
+  local character11 = roxyHubState.Noclip and localPlayer2.Character
+
+  if character11 then
+
+    for index25, value65 in ipairs(localPlayer2.Character:GetDescendants()) do
+
+      if (value65:IsA("BasePart")) and value65.CanCollide then
+        value65.CanCollide = false
+      end
+    end
+  end
+
+  local element19 = helper5()
+
+  if element19 then
+
+    if roxyHubState.WalkSpeed and element19.WalkSpeed ~= roxyHubState.WalkSpeed then
+      element19.WalkSpeed = roxyHubState.WalkSpeed
+    end
+
+    if roxyHubState.JumpPower and element19.JumpPower ~= roxyHubState.JumpPower then
+      element19.UseJumpPower = true
+      element19.JumpPower = roxyHubState.JumpPower
+    end
+  end
+
+  return
+end))
+
+helper(userInputService.JumpRequest:Connect(function()
+  if roxyHubState.InfiniteJump then
+    local object12 = helper5()
+
+    if object12 then
+      object12:ChangeState("Jumping")
+    end
+  end
+
+  return
+end))
+
+local bodyPosition, bodyGyro
+
+helper(runService.RenderStepped:Connect(function()
+  local val166 = helper4()
+  local val167 = helper5()
+  local fly = roxyHubState.Fly
+  local val168 = fly
+
+  if fly then
+
+    val168 = val166 and val167
+  end
+
+  if val168 then
+    if not bodyPosition then
+      bodyPosition = Instance.new("BodyPosition")
+      bodyPosition.MaxForce = Vector3.new(1000000, 1000000, 1000000)
+      bodyPosition.Position = val166.Position
+      bodyPosition.Parent = val166
+
+      bodyGyro = Instance.new("BodyGyro")
+      bodyGyro.MaxTorque = Vector3.new(1000000, 1000000, 1000000)
+      bodyGyro.CFrame = val166.CFrame
+      bodyGyro.Parent = val166
+    end
+
+    local currentCamera = workspace.CurrentCamera
+    local zero = Vector3.zero
+
+    if (userInputService:IsKeyDown(Enum.KeyCode.W)) then
+      zero = zero + currentCamera.CFrame.LookVector
+    end
+
+    if (userInputService:IsKeyDown(Enum.KeyCode.S)) then
+      zero = zero - currentCamera.CFrame.LookVector
+    end
+
+    if (userInputService:IsKeyDown(Enum.KeyCode.A)) then
+      zero = zero - currentCamera.CFrame.RightVector
+    end
+
+    if (userInputService:IsKeyDown(Enum.KeyCode.D)) then
+      zero = zero + currentCamera.CFrame.RightVector
+    end
+
+    if (userInputService:IsKeyDown(Enum.KeyCode.Space)) then
+      zero = zero + (Vector3.new(0, 1, 0))
+    end
+
+    if (userInputService:IsKeyDown(Enum.KeyCode.LeftShift)) then
+      zero = zero - (Vector3.new(0, 1, 0))
+    end
+
+    if zero.Magnitude > 0 then
+      zero = zero.Unit * roxyHubState.FlySpeed
+    end
+
+    bodyPosition.Position = val166.Position + zero * 0.05
+    bodyGyro.CFrame = currentCamera.CFrame
+  else
+    if bodyPosition then
+
+      bodyPosition:Destroy()
+      bodyPosition = nil
+    end
+
+    if bodyGyro then
+
+      bodyGyro:Destroy()
+      bodyGyro = nil
+    end
+  end
+
+  return
+end))
+
+task.wait()
+task.wait(0.2)
+
+helper2(true)
+task.wait(0.2)
+
+pcall(function()
+
+  if val36 then
+    val36.Enabled = true
+  end
+
+  if window and window.Open then
+    window:Open()
+  end
+
+  if ninjaStealTab and ninjaStealTab.Select then
+    ninjaStealTab:Select()
+  end
+
+  return
+end)
+
+val20:Notify({
+  Title = "RoxyHub Loaded", Content = "Break and Steal an Egg script ready!", Duration = 4, Icon = "sparkles", }), })
