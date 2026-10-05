@@ -1,0 +1,174 @@
+-- ============================================
+-- TEST — Cat Image IDs (Bagong IDs)
+-- ============================================
+
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+local CAT_IDS = {
+    { id = "85422381974829", label = "Decal ID" },
+    { id = "85043883236326", label = "Image ID" },
+}
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "CatImageTest2"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = playerGui
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(340, 320)
+main.Position = UDim2.new(0.5, -170, 0.5, -160)
+main.BackgroundColor3 = Color3.fromRGB(10, 15, 30)
+main.BorderSizePixel = 0
+main.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = main
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(64, 128, 255)
+stroke.Thickness = 1.5
+stroke.Parent = main
+
+local title = Instance.new("TextLabel")
+title.BackgroundTransparency = 1
+title.Position = UDim2.fromOffset(15, 10)
+title.Size = UDim2.new(1, -30, 0, 22)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.new(1,1,1)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "Cat Image Test"
+title.Parent = main
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Position = UDim2.fromOffset(15, 45)
+scroll.Size = UDim2.new(1, -30, 1, -60)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 4
+scroll.CanvasSize = UDim2.fromOffset(0, 0)
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = main
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 10)
+layout.Parent = scroll
+
+for _, entry in ipairs(CAT_IDS) do
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -6, 0, 110)
+    row.BackgroundColor3 = Color3.fromRGB(18, 25, 45)
+    row.BorderSizePixel = 0
+    row.Parent = scroll
+
+    local rCorner = Instance.new("UICorner")
+    rCorner.CornerRadius = UDim.new(0, 8)
+    rCorner.Parent = row
+
+    -- Circle image
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.fromOffset(80, 80)
+    circle.Position = UDim2.fromOffset(15, 15)
+    circle.BackgroundColor3 = Color3.fromRGB(30, 100, 230)
+    circle.BorderSizePixel = 0
+    circle.Parent = row
+
+    local cCorner = Instance.new("UICorner")
+    cCorner.CornerRadius = UDim.new(1, 0)
+    cCorner.Parent = circle
+
+    local img = Instance.new("ImageLabel")
+    img.Size = UDim2.new(1, -6, 1, -6)
+    img.Position = UDim2.fromOffset(3, 3)
+    img.BackgroundTransparency = 1
+    img.Image = "rbxthumb://type=Asset&id="..entry.id.."&w=420&h=420"
+    img.Parent = circle
+
+    local iCorner = Instance.new("UICorner")
+    iCorner.CornerRadius = UDim.new(1, 0)
+    iCorner.Parent = img
+
+    -- Labels
+    local lbl = Instance.new("TextLabel")
+    lbl.BackgroundTransparency = 1
+    lbl.Position = UDim2.fromOffset(105, 15)
+    lbl.Size = UDim2.new(1, -115, 0, 18)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 11
+    lbl.TextColor3 = Color3.new(1,1,1)
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Text = entry.label
+    lbl.Parent = row
+
+    local idLbl = Instance.new("TextLabel")
+    idLbl.BackgroundTransparency = 1
+    idLbl.Position = UDim2.fromOffset(105, 35)
+    idLbl.Size = UDim2.new(1, -115, 0, 16)
+    idLbl.Font = Enum.Font.Gotham
+    idLbl.TextSize = 9
+    idLbl.TextColor3 = Color3.fromRGB(150, 170, 200)
+    idLbl.TextXAlignment = Enum.TextXAlignment.Left
+    idLbl.Text = entry.id
+    idLbl.Parent = row
+
+    local status = Instance.new("TextLabel")
+    status.BackgroundTransparency = 1
+    status.Position = UDim2.fromOffset(105, 55)
+    status.Size = UDim2.new(1, -115, 0, 18)
+    status.Font = Enum.Font.GothamBold
+    status.TextSize = 10
+    status.TextColor3 = Color3.fromRGB(255, 200, 100)
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Text = "Loading..."
+    status.Parent = row
+
+    task.spawn(function()
+        task.wait(2)
+        if img.IsLoaded then
+            status.Text = "✅ OK — lumabas!"
+            status.TextColor3 = Color3.fromRGB(80, 255, 140)
+        else
+            task.wait(2)
+            if img.IsLoaded then
+                status.Text = "✅ OK — lumabas!"
+                status.TextColor3 = Color3.fromRGB(80, 255, 140)
+            else
+                status.Text = "❌ Hindi lumabas"
+                status.TextColor3 = Color3.fromRGB(255, 100, 100)
+            end
+        end
+    end)
+end
+
+-- Drag
+local dragging, dragStart, startPos
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+    end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        local d = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + d.X,
+            startPos.Y.Scale, startPos.Y.Offset + d.Y
+        )
+    end
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
