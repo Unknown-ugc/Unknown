@@ -1,0 +1,2243 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local SoundService = game:GetService("SoundService")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+local DISCORD_LINK = "https://discord.gg/FJK6QzNnf7"
+local CAT_IMAGE_ID = "85043883236326"
+local DC_IMAGE_ID  = "10367063084"
+local FAV_FILE     = "cathub_fav_" .. localPlayer.UserId .. ".json"
+
+local COL_BG       = Color3.fromRGB(10, 18, 35)
+local COL_PANEL    = Color3.fromRGB(16, 26, 46)
+local COL_CARD     = Color3.fromRGB(22, 34, 58)
+local COL_DIVIDER  = Color3.fromRGB(35, 70, 130)
+local COL_ACCENT   = Color3.fromRGB(50, 120, 255)
+local COL_GLOW     = Color3.fromRGB(80, 150, 255)
+local COL_TEXT     = Color3.fromRGB(240, 245, 255)
+local COL_SUBTEXT  = Color3.fromRGB(140, 165, 200)
+local COL_MUTED    = Color3.fromRGB(90, 110, 140)
+local COL_STAR     = Color3.fromRGB(255, 200, 60)
+local COL_GREEN    = Color3.fromRGB(80, 220, 130)
+local COL_RED      = Color3.fromRGB(230, 80, 100)
+
+local favorites = {}
+
+local function loadFavorites()
+    favorites = {}
+    if readfile and isfile then
+        local ok, exists = pcall(function() return isfile(FAV_FILE) end)
+        if ok and exists then
+            local ok2, content = pcall(function() return readfile(FAV_FILE) end)
+            if ok2 and content then
+                local ok3, data = pcall(function() return HttpService:JSONDecode(content) end)
+                if ok3 and type(data) == "table" then
+                    favorites = data
+                end
+            end
+        end
+    end
+end
+
+local function saveFavorites()
+    if writefile then
+        pcall(function()
+            writefile(FAV_FILE, HttpService:JSONEncode(favorites))
+        end)
+    end
+end
+
+loadFavorites()
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "CatHubGUI"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = playerGui
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(600, 400)
+main.Position = UDim2.new(0.5, -300, 0.5, -200)
+main.BackgroundColor3 = COL_BG
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = gui
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+local uiScale = Instance.new("UIScale", main)
+local vp = workspace.CurrentCamera.ViewportSize
+uiScale.Scale = math.min(1, (vp.X - 20) / 600, (vp.Y - 20) / 400)
+
+local mainStroke = Instance.new("UIStroke", main)
+mainStroke.Color = COL_GLOW
+mainStroke.Thickness = 1.5
+mainStroke.Transparency = 0.2
+
+task.spawn(function()
+    while main.Parent do
+        local t1 = TweenService:Create(mainStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Transparency = 0.6, Thickness = 2.5 })
+        t1:Play(); t1.Completed:Wait()
+        local t2 = TweenService:Create(mainStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Transparency = 0.2, Thickness = 1.5 })
+        t2:Play(); t2.Completed:Wait()
+    end
+end)
+
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 55)
+header.BackgroundColor3 = COL_PANEL
+header.BorderSizePixel = 0
+header.Parent = main
+
+Instance.new("UICorner", header).CornerRadius = UDim.new(0, 12)
+
+local catCircle = Instance.new("Frame")
+catCircle.Size = UDim2.fromOffset(38, 38)
+catCircle.Position = UDim2.fromOffset(10, 8)
+catCircle.BackgroundColor3 = COL_ACCENT
+catCircle.BorderSizePixel = 0
+catCircle.Parent = header
+
+Instance.new("UICorner", catCircle).CornerRadius = UDim.new(1, 0)
+
+local catStroke = Instance.new("UIStroke", catCircle)
+catStroke.Color = COL_GLOW
+catStroke.Thickness = 1.5
+
+local catImage = Instance.new("ImageLabel")
+catImage.Size = UDim2.new(1, -6, 1, -6)
+catImage.Position = UDim2.fromOffset(3, 3)
+catImage.BackgroundTransparency = 1
+catImage.Image = "rbxthumb://type=Asset&id="..CAT_IMAGE_ID.."&w=420&h=420"
+catImage.ScaleType = Enum.ScaleType.Crop
+catImage.Parent = catCircle
+
+Instance.new("UICorner", catImage).CornerRadius = UDim.new(1, 0)
+
+local title = Instance.new("TextLabel")
+title.BackgroundTransparency = 1
+title.Position = UDim2.fromOffset(62, 6)
+title.Size = UDim2.new(0.5, 0, 0, 20)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+title.TextColor3 = COL_TEXT
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "cat hub"
+title.Parent = header
+
+local subtitle = Instance.new("TextLabel")
+subtitle.BackgroundTransparency = 1
+subtitle.Position = UDim2.fromOffset(62, 28)
+subtitle.Size = UDim2.new(0.5, 0, 0, 14)
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextSize = 9
+subtitle.TextColor3 = COL_SUBTEXT
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Text = "universal"
+subtitle.Parent = header
+
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.fromOffset(26, 26)
+minimizeBtn.Position = UDim2.new(1, -68, 0, 15)
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Text = "-"
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 18
+minimizeBtn.TextColor3 = COL_TEXT
+minimizeBtn.AutoButtonColor = false
+minimizeBtn.Parent = header
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.fromOffset(26, 26)
+closeBtn.Position = UDim2.new(1, -34, 0, 15)
+closeBtn.BackgroundTransparency = 1
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.TextColor3 = COL_TEXT
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = header
+
+local sidebar = Instance.new("Frame")
+sidebar.Name = "Sidebar"
+sidebar.Size = UDim2.new(0, 130, 1, -71)
+sidebar.Position = UDim2.fromOffset(8, 63)
+sidebar.BackgroundColor3 = COL_PANEL
+sidebar.BorderSizePixel = 0
+sidebar.Parent = main
+
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 10)
+
+local sidebarList = Instance.new("Frame")
+sidebarList.Size = UDim2.new(1, 0, 0, 230)
+sidebarList.BackgroundTransparency = 1
+sidebarList.Parent = sidebar
+
+local sidebarLayout = Instance.new("UIListLayout", sidebarList)
+sidebarLayout.Padding = UDim.new(0, 10)
+sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+Instance.new("UIPadding", sidebarList).PaddingTop = UDim.new(0, 14)
+
+local function makeNavButton(text, order)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -16, 0, 34)
+    btn.BackgroundColor3 = COL_CARD
+    btn.BackgroundTransparency = 1
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    btn.TextColor3 = COL_SUBTEXT
+    btn.AutoButtonColor = false
+    btn.LayoutOrder = order
+    btn.Parent = sidebarList
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    return btn
+end
+
+local homeBtn     = makeNavButton("Home", 1)
+local scriptBtn   = makeNavButton("Script", 2)
+local settingsBtn = makeNavButton("Settings", 3)
+local creditBtn   = makeNavButton("Credit", 4)
+local aboutBtn    = makeNavButton("About", 5)
+
+homeBtn.BackgroundTransparency = 0
+homeBtn.BackgroundColor3 = COL_ACCENT
+homeBtn.TextColor3 = COL_TEXT
+
+local profileBox = Instance.new("Frame")
+profileBox.Name = "ProfileBox"
+profileBox.Size = UDim2.new(1, -12, 0, 130)
+profileBox.Position = UDim2.new(0, 6, 1, -138)
+profileBox.BackgroundColor3 = COL_CARD
+profileBox.BorderSizePixel = 0
+profileBox.Parent = sidebar
+profileBox.ZIndex = 1
+
+Instance.new("UICorner", profileBox).CornerRadius = UDim.new(0, 8)
+
+local profileStroke = Instance.new("UIStroke", profileBox)
+profileStroke.Color = COL_DIVIDER
+profileStroke.Thickness = 1
+profileStroke.Transparency = 0.3
+
+local profPad = Instance.new("UIPadding", profileBox)
+profPad.PaddingTop = UDim.new(0, 12)
+profPad.PaddingBottom = UDim.new(0, 12)
+profPad.PaddingLeft = UDim.new(0, 12)
+profPad.PaddingRight = UDim.new(0, 12)
+
+local dividerTop = Instance.new("Frame")
+dividerTop.Size = UDim2.new(1, 0, 0, 1)
+dividerTop.Position = UDim2.fromOffset(0, 0)
+dividerTop.BackgroundColor3 = COL_DIVIDER
+dividerTop.BorderSizePixel = 0
+dividerTop.Parent = profileBox
+
+local pAvatar = Instance.new("ImageLabel")
+pAvatar.Size = UDim2.fromOffset(28, 28)
+pAvatar.Position = UDim2.fromOffset(0, 12)
+pAvatar.BackgroundColor3 = COL_ACCENT
+pAvatar.BorderSizePixel = 0
+pAvatar.Parent = profileBox
+
+Instance.new("UICorner", pAvatar).CornerRadius = UDim.new(1, 0)
+
+pcall(function()
+    pAvatar.Image = Players:GetUserThumbnailAsync(localPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+end)
+
+local pName = Instance.new("TextLabel")
+pName.BackgroundTransparency = 1
+pName.Position = UDim2.fromOffset(36, 12)
+pName.Size = UDim2.new(1, -40, 0, 14)
+pName.Font = Enum.Font.GothamBold
+pName.TextSize = 10
+pName.TextColor3 = COL_TEXT
+pName.TextXAlignment = Enum.TextXAlignment.Left
+pName.TextTruncate = Enum.TextTruncate.AtEnd
+pName.Text = localPlayer.Name
+pName.Parent = profileBox
+
+local pHandle = Instance.new("TextLabel")
+pHandle.BackgroundTransparency = 1
+pHandle.Position = UDim2.fromOffset(36, 28)
+pHandle.Size = UDim2.new(1, -40, 0, 12)
+pHandle.Font = Enum.Font.Gotham
+pHandle.TextSize = 8
+pHandle.TextColor3 = COL_SUBTEXT
+pHandle.TextXAlignment = Enum.TextXAlignment.Left
+pHandle.TextTruncate = Enum.TextTruncate.AtEnd
+pHandle.Text = "@"..localPlayer.Name
+pHandle.Parent = profileBox
+
+local dividerMid = Instance.new("Frame")
+dividerMid.Size = UDim2.new(1, 0, 0, 1)
+dividerMid.Position = UDim2.fromOffset(0, 48)
+dividerMid.BackgroundColor3 = COL_DIVIDER
+dividerMid.BorderSizePixel = 0
+dividerMid.Parent = profileBox
+
+local pPlayingLabel = Instance.new("TextLabel")
+pPlayingLabel.BackgroundTransparency = 1
+pPlayingLabel.Position = UDim2.fromOffset(0, 58)
+pPlayingLabel.Size = UDim2.new(1, 0, 0, 12)
+pPlayingLabel.Font = Enum.Font.Gotham
+pPlayingLabel.TextSize = 8
+pPlayingLabel.TextColor3 = COL_MUTED
+pPlayingLabel.TextXAlignment = Enum.TextXAlignment.Left
+pPlayingLabel.Text = "Playing:"
+pPlayingLabel.Parent = profileBox
+
+local pGame = Instance.new("TextLabel")
+pGame.BackgroundTransparency = 1
+pGame.Position = UDim2.fromOffset(0, 74)
+pGame.Size = UDim2.new(1, 0, 0, 14)
+pGame.Font = Enum.Font.GothamBold
+pGame.TextSize = 10
+pGame.TextColor3 = COL_GLOW
+pGame.TextXAlignment = Enum.TextXAlignment.Left
+pGame.TextTruncate = Enum.TextTruncate.AtEnd
+pGame.Text = "Loading..."
+pGame.Parent = profileBox
+
+task.spawn(function()
+    local ok, info = pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+    end)
+    if ok and info then
+        pGame.Text = info.Name
+    else
+        pGame.Text = "Unknown Game"
+    end
+end)
+
+local miniCircle = Instance.new("ImageButton")
+miniCircle.Name = "MinimizeCircle"
+miniCircle.Size = UDim2.fromOffset(60, 60)
+miniCircle.Position = UDim2.new(0.5, -30, 0, 100)
+miniCircle.BackgroundColor3 = COL_BG
+miniCircle.Image = "rbxthumb://type=Asset&id="..CAT_IMAGE_ID.."&w=420&h=420"
+miniCircle.Visible = false
+miniCircle.Active = true
+miniCircle.Parent = gui
+
+Instance.new("UICorner", miniCircle).CornerRadius = UDim.new(1, 0)
+
+local miniStroke = Instance.new("UIStroke", miniCircle)
+miniStroke.Color = COL_GLOW
+miniStroke.Thickness = 2
+
+task.spawn(function()
+    while gui.Parent do
+        if miniCircle.Visible then
+            local t1 = TweenService:Create(miniStroke, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Transparency = 0.6, Thickness = 3 })
+            t1:Play(); t1.Completed:Wait()
+            local t2 = TweenService:Create(miniStroke, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Transparency = 0, Thickness = 2 })
+            t2:Play(); t2.Completed:Wait()
+        else
+            task.wait(0.5)
+        end
+    end
+end)
+
+local isMinimized = false
+
+local function minimizeGUI()
+    isMinimized = true
+    main.Visible = false
+    miniCircle.Visible = true
+end
+
+local function restoreGUI()
+    isMinimized = false
+    main.Visible = true
+    miniCircle.Visible = false
+end
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    if not isMinimized then minimizeGUI() end
+end)
+
+miniCircle.MouseButton1Click:Connect(function()
+    if isMinimized then restoreGUI() end
+end)
+
+local miniDragging = false
+local miniDragStart, miniStartPos
+
+miniCircle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        miniDragging = true
+        miniDragStart = input.Position
+        miniStartPos = miniCircle.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if miniDragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        local delta = input.Position - miniDragStart
+        miniCircle.Position = UDim2.new(
+            miniStartPos.X.Scale, miniStartPos.X.Offset + delta.X,
+            miniStartPos.Y.Scale, miniStartPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        miniDragging = false
+    end
+end)
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -162, 1, -79)
+content.Position = UDim2.fromOffset(154, 67)
+content.BackgroundTransparency = 1
+content.Parent = main
+content.ZIndex = 10
+
+local contentPad = Instance.new("UIPadding", content)
+contentPad.PaddingTop = UDim.new(0, 4)
+contentPad.PaddingBottom = UDim.new(0, 4)
+contentPad.PaddingLeft = UDim.new(0, 8)
+contentPad.PaddingRight = UDim.new(0, 8)
+
+local homePage = Instance.new("ScrollingFrame")
+homePage.Name = "HomePage"
+homePage.Size = UDim2.fromScale(1, 1)
+homePage.BackgroundTransparency = 1
+homePage.BorderSizePixel = 0
+homePage.ScrollBarThickness = 4
+homePage.ScrollBarImageColor3 = COL_ACCENT
+homePage.ScrollBarImageTransparency = 0.3
+homePage.CanvasSize = UDim2.fromOffset(0, 0)
+homePage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+homePage.ScrollingDirection = Enum.ScrollingDirection.Y
+homePage.Visible = true
+homePage.Parent = content
+
+local welcomeSec = Instance.new("Frame")
+welcomeSec.Size = UDim2.new(1, 0, 0, 100)
+welcomeSec.Position = UDim2.fromOffset(0, 8)
+welcomeSec.BackgroundTransparency = 1
+welcomeSec.Parent = homePage
+
+local wText = Instance.new("TextLabel")
+wText.BackgroundTransparency = 1
+wText.Position = UDim2.fromOffset(0, 8)
+wText.Size = UDim2.new(1, -110, 0, 16)
+wText.Font = Enum.Font.GothamBold
+wText.TextSize = 9
+wText.TextColor3 = COL_MUTED
+wText.TextXAlignment = Enum.TextXAlignment.Left
+wText.Text = "WELCOME BACK"
+wText.Parent = welcomeSec
+
+local wName = Instance.new("TextLabel")
+wName.BackgroundTransparency = 1
+wName.Position = UDim2.fromOffset(0, 28)
+wName.Size = UDim2.new(1, -110, 0, 22)
+wName.Font = Enum.Font.GothamBold
+wName.TextSize = 16
+wName.TextColor3 = COL_TEXT
+wName.TextXAlignment = Enum.TextXAlignment.Left
+wName.TextTruncate = Enum.TextTruncate.AtEnd
+wName.Text = localPlayer.Name
+wName.Parent = welcomeSec
+
+local wHandle = Instance.new("TextLabel")
+wHandle.BackgroundTransparency = 1
+wHandle.Position = UDim2.fromOffset(0, 54)
+wHandle.Size = UDim2.new(1, -110, 0, 14)
+wHandle.Font = Enum.Font.Gotham
+wHandle.TextSize = 10
+wHandle.TextColor3 = COL_SUBTEXT
+wHandle.TextXAlignment = Enum.TextXAlignment.Left
+wHandle.Text = "@"..localPlayer.Name
+wHandle.Parent = welcomeSec
+
+local wVersion = Instance.new("TextLabel")
+wVersion.BackgroundTransparency = 1
+wVersion.Position = UDim2.fromOffset(0, 74)
+wVersion.Size = UDim2.new(1, -110, 0, 14)
+wVersion.Font = Enum.Font.Gotham
+wVersion.TextSize = 9
+wVersion.TextColor3 = COL_ACCENT
+wVersion.TextXAlignment = Enum.TextXAlignment.Left
+wVersion.Text = "v2.0"
+wVersion.Parent = welcomeSec
+
+local avatarBox = Instance.new("Frame")
+avatarBox.Size = UDim2.fromOffset(90, 90)
+avatarBox.Position = UDim2.new(1, -90, 0, 4)
+avatarBox.BackgroundColor3 = COL_CARD
+avatarBox.BorderSizePixel = 0
+avatarBox.ClipsDescendants = true
+avatarBox.Parent = welcomeSec
+
+Instance.new("UICorner", avatarBox).CornerRadius = UDim.new(0, 10)
+
+local avatarBoxStroke = Instance.new("UIStroke", avatarBox)
+avatarBoxStroke.Color = COL_DIVIDER
+avatarBoxStroke.Thickness = 1
+avatarBoxStroke.Transparency = 0.2
+
+local avatarBust = Instance.new("ImageLabel")
+avatarBust.Size = UDim2.new(1, -4, 1, -4)
+avatarBust.Position = UDim2.fromOffset(2, 2)
+avatarBust.BackgroundTransparency = 1
+avatarBust.Parent = avatarBox
+
+Instance.new("UICorner", avatarBust).CornerRadius = UDim.new(0, 8)
+
+pcall(function()
+    avatarBust.Image = Players:GetUserThumbnailAsync(localPlayer.UserId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size420x420)
+end)
+
+local statsPanel = Instance.new("Frame")
+statsPanel.Size = UDim2.new(1, 0, 0, 150)
+statsPanel.Position = UDim2.fromOffset(0, 128)
+statsPanel.BackgroundColor3 = COL_PANEL
+statsPanel.BorderSizePixel = 0
+statsPanel.Parent = homePage
+
+Instance.new("UICorner", statsPanel).CornerRadius = UDim.new(0, 8)
+
+local statsPad = Instance.new("UIPadding", statsPanel)
+statsPad.PaddingTop = UDim.new(0, 14)
+statsPad.PaddingBottom = UDim.new(0, 14)
+statsPad.PaddingLeft = UDim.new(0, 14)
+statsPad.PaddingRight = UDim.new(0, 14)
+
+local btnColumn = Instance.new("Frame")
+btnColumn.Size = UDim2.fromOffset(110, 1)
+btnColumn.Position = UDim2.fromOffset(0, 0)
+btnColumn.BackgroundTransparency = 1
+btnColumn.Parent = statsPanel
+
+local btnLayout = Instance.new("UIListLayout", btnColumn)
+btnLayout.Padding = UDim.new(0, 6)
+btnLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local function makeServerBtn(text, order)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, 0, 0, 26)
+    b.BackgroundColor3 = COL_CARD
+    b.Text = text
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 9
+    b.TextColor3 = COL_TEXT
+    b.AutoButtonColor = false
+    b.BorderSizePixel = 0
+    b.LayoutOrder = order
+    b.Parent = btnColumn
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
+    return b
+end
+
+local rejoinBtn = makeServerBtn("Rejoin", 1)
+local hopBtn    = makeServerBtn("Hop", 2)
+local lowestBtn = makeServerBtn("Lowest", 3)
+local joinIdBtn = makeServerBtn("Join ID", 4)
+
+local joinIdInput = Instance.new("Frame")
+joinIdInput.Size = UDim2.new(1, 0, 0, 26)
+joinIdInput.BackgroundColor3 = COL_CARD
+joinIdInput.BorderSizePixel = 0
+joinIdInput.Visible = false
+joinIdInput.LayoutOrder = 5
+joinIdInput.Parent = btnColumn
+
+Instance.new("UICorner", joinIdInput).CornerRadius = UDim.new(0, 5)
+
+local joinIdBox = Instance.new("TextBox")
+joinIdBox.Size = UDim2.new(1, -6, 1, 0)
+joinIdBox.Position = UDim2.fromOffset(3, 0)
+joinIdBox.BackgroundTransparency = 1
+joinIdBox.Font = Enum.Font.Gotham
+joinIdBox.TextSize = 8
+joinIdBox.TextColor3 = COL_TEXT
+joinIdBox.PlaceholderText = "Paste JobId..."
+joinIdBox.PlaceholderColor3 = COL_MUTED
+joinIdBox.Text = ""
+joinIdBox.TextXAlignment = Enum.TextXAlignment.Left
+joinIdBox.ClearTextOnFocus = false
+joinIdBox.Parent = joinIdInput
+
+joinIdBtn.MouseButton1Click:Connect(function()
+    joinIdInput.Visible = not joinIdInput.Visible
+    if joinIdInput.Visible then joinIdBox:CaptureFocus() end
+end)
+
+rejoinBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, localPlayer)
+    end)
+end)
+
+hopBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+        local raw = game:HttpGet(url)
+        local data = HttpService:JSONDecode(raw)
+        if data.data and #data.data > 0 then
+            for _, srv in ipairs(data.data) do
+                if srv.id ~= game.JobId and srv.playing < srv.maxPlayers then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, srv.id, localPlayer)
+                    break
+                end
+            end
+        end
+    end)
+end)
+
+lowestBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+        local raw = game:HttpGet(url)
+        local data = HttpService:JSONDecode(raw)
+        if data.data and #data.data > 0 then
+            table.sort(data.data, function(a, b) return (a.playing or 0) < (b.playing or 0) end)
+            for _, srv in ipairs(data.data) do
+                if srv.id ~= game.JobId and srv.playing < srv.maxPlayers then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, srv.id, localPlayer)
+                    break
+                end
+            end
+        end
+    end)
+end)
+
+joinIdBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local jid = joinIdBox.Text:gsub("%s", "")
+        if jid ~= "" then
+            pcall(function()
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, jid, localPlayer)
+            end)
+        end
+    end
+end)
+
+local statsColumn = Instance.new("Frame")
+statsColumn.Size = UDim2.new(1, -130, 1, 0)
+statsColumn.Position = UDim2.fromOffset(120, 0)
+statsColumn.BackgroundTransparency = 1
+statsColumn.Parent = statsPanel
+
+local fpsLabel = Instance.new("TextLabel")
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.Position = UDim2.fromOffset(0, 0)
+fpsLabel.Size = UDim2.new(0.5, -4, 0, 16)
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextSize = 10
+fpsLabel.TextColor3 = COL_TEXT
+fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
+fpsLabel.Text = "0 FPS"
+fpsLabel.Parent = statsColumn
+
+local fpsChart = Instance.new("Frame")
+fpsChart.Position = UDim2.fromOffset(0, 20)
+fpsChart.Size = UDim2.new(0.5, -4, 0, 30)
+fpsChart.BackgroundTransparency = 1
+fpsChart.Parent = statsColumn
+
+local pingLabel = Instance.new("TextLabel")
+pingLabel.BackgroundTransparency = 1
+pingLabel.Position = UDim2.new(0.5, 4, 0, 0)
+pingLabel.Size = UDim2.new(0.5, -4, 0, 16)
+pingLabel.Font = Enum.Font.GothamBold
+pingLabel.TextSize = 10
+pingLabel.TextColor3 = COL_TEXT
+pingLabel.TextXAlignment = Enum.TextXAlignment.Left
+pingLabel.Text = "0 ms PING"
+pingLabel.Parent = statsColumn
+
+local pingChart = Instance.new("Frame")
+pingChart.Position = UDim2.new(0.5, 4, 0, 20)
+pingChart.Size = UDim2.new(0.5, -4, 0, 30)
+pingChart.BackgroundTransparency = 1
+pingChart.Parent = statsColumn
+
+local sessionLabel = Instance.new("TextLabel")
+sessionLabel.BackgroundTransparency = 1
+sessionLabel.Position = UDim2.fromOffset(0, 60)
+sessionLabel.Size = UDim2.new(0.5, -4, 0, 16)
+sessionLabel.Font = Enum.Font.GothamBold
+sessionLabel.TextSize = 10
+sessionLabel.TextColor3 = COL_TEXT
+sessionLabel.TextXAlignment = Enum.TextXAlignment.Left
+sessionLabel.Text = "0s SESSION"
+sessionLabel.Parent = statsColumn
+
+local playersLabel = Instance.new("TextLabel")
+playersLabel.BackgroundTransparency = 1
+playersLabel.Position = UDim2.new(0.5, 4, 0, 60)
+playersLabel.Size = UDim2.new(0.5, -4, 0, 16)
+playersLabel.Font = Enum.Font.GothamBold
+playersLabel.TextSize = 10
+playersLabel.TextColor3 = COL_TEXT
+playersLabel.TextXAlignment = Enum.TextXAlignment.Left
+playersLabel.Text = "0/0 PLAYERS"
+playersLabel.Parent = statsColumn
+
+local jobLabel = Instance.new("TextLabel")
+jobLabel.BackgroundTransparency = 1
+jobLabel.Position = UDim2.fromOffset(0, 86)
+jobLabel.Size = UDim2.new(1, 0, 0, 14)
+jobLabel.Font = Enum.Font.Gotham
+jobLabel.TextSize = 8
+jobLabel.TextColor3 = COL_SUBTEXT
+jobLabel.TextXAlignment = Enum.TextXAlignment.Left
+jobLabel.TextTruncate = Enum.TextTruncate.AtEnd
+jobLabel.Text = "Job ID: "..game.JobId
+jobLabel.Parent = statsColumn
+
+local placeLabel = Instance.new("TextLabel")
+placeLabel.BackgroundTransparency = 1
+placeLabel.Position = UDim2.fromOffset(0, 102)
+placeLabel.Size = UDim2.new(1, 0, 0, 14)
+placeLabel.Font = Enum.Font.Gotham
+placeLabel.TextSize = 8
+placeLabel.TextColor3 = COL_SUBTEXT
+placeLabel.TextXAlignment = Enum.TextXAlignment.Left
+placeLabel.Text = "Place: "..tostring(game.PlaceId)
+placeLabel.Parent = statsColumn
+
+local CHART_BARS = 20
+local BAR_WIDTH = 4
+local BAR_SPACING = 1
+local BAR_MAX_HEIGHT = 26
+
+local function createChart(parent)
+    local bars = {}
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.fromScale(1, 1)
+    holder.BackgroundTransparency = 1
+    holder.Parent = parent
+
+    for i = 1, CHART_BARS do
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.fromOffset(BAR_WIDTH, 2)
+        bar.Position = UDim2.fromOffset((i - 1) * (BAR_WIDTH + BAR_SPACING), BAR_MAX_HEIGHT - 2)
+        bar.BackgroundColor3 = COL_ACCENT
+        bar.BorderSizePixel = 0
+        bar.AnchorPoint = Vector2.new(0, 1)
+        bar.Parent = holder
+        Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 1)
+        table.insert(bars, bar)
+    end
+
+    return bars
+end
+
+local fpsBars = createChart(fpsChart)
+local pingBars = createChart(pingChart)
+
+local function pushBar(bars, value, maxValue, colorGood, colorBad)
+    for i = 1, #bars - 1 do
+        bars[i].Size = bars[i + 1].Size
+        bars[i].BackgroundColor3 = bars[i + 1].BackgroundColor3
+        bars[i].Position = UDim2.fromOffset((i - 1) * (BAR_WIDTH + BAR_SPACING), BAR_MAX_HEIGHT)
+    end
+
+    local clamped = math.clamp(value / maxValue, 0, 1)
+    local h = math.max(2, clamped * BAR_MAX_HEIGHT)
+    local last = bars[#bars]
+    TweenService:Create(last, TweenInfo.new(0.3), { Size = UDim2.fromOffset(BAR_WIDTH, h) }):Play()
+
+    if value >= maxValue * 0.5 then
+        last.BackgroundColor3 = colorGood
+    else
+        last.BackgroundColor3 = colorBad
+    end
+end
+
+local fpsFrames = 0
+local fpsLastUpdate = tick()
+local sessionStart = tick()
+
+RunService.RenderStepped:Connect(function()
+    fpsFrames = fpsFrames + 1
+    if tick() - fpsLastUpdate >= 0.5 then
+        local fps = math.floor(fpsFrames / (tick() - fpsLastUpdate))
+        fpsFrames = 0
+        fpsLastUpdate = tick()
+        fpsLabel.Text = tostring(fps).." FPS"
+        pushBar(fpsBars, fps, 60, COL_GREEN, COL_RED)
+    end
+end)
+
+task.spawn(function()
+    while gui.Parent do
+        local ping = 0
+        pcall(function()
+            ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+        end)
+        pingLabel.Text = tostring(ping).." ms PING"
+        pushBar(pingBars, ping, 300, COL_ACCENT, COL_RED)
+
+        local count = #Players:GetPlayers()
+        local maxP = Players.MaxPlayers or 0
+        playersLabel.Text = tostring(count).."/"..tostring(maxP).." PLAYERS"
+
+        local elapsed = tick() - sessionStart
+        local mins = math.floor(elapsed / 60)
+        local secs = math.floor(elapsed % 60)
+        sessionLabel.Text = string.format("%dm %ds SESSION", mins, secs)
+
+        task.wait(0.5)
+    end
+end)
+
+local favBox = Instance.new("Frame")
+favBox.Name = "FavoritesBox"
+favBox.Size = UDim2.new(1, 0, 0, 70)
+favBox.Position = UDim2.fromOffset(0, 298)
+favBox.BackgroundColor3 = COL_PANEL
+favBox.BorderSizePixel = 0
+favBox.AutomaticSize = Enum.AutomaticSize.Y
+favBox.Parent = homePage
+
+Instance.new("UICorner", favBox).CornerRadius = UDim.new(0, 8)
+
+local favPad = Instance.new("UIPadding", favBox)
+favPad.PaddingTop = UDim.new(0, 12)
+favPad.PaddingBottom = UDim.new(0, 12)
+favPad.PaddingLeft = UDim.new(0, 14)
+favPad.PaddingRight = UDim.new(0, 14)
+
+local favTitle = Instance.new("TextLabel")
+favTitle.BackgroundTransparency = 1
+favTitle.Position = UDim2.fromOffset(0, 0)
+favTitle.Size = UDim2.new(1, 0, 0, 12)
+favTitle.Font = Enum.Font.GothamBold
+favTitle.TextSize = 8
+favTitle.TextColor3 = COL_MUTED
+favTitle.TextXAlignment = Enum.TextXAlignment.Left
+favTitle.Text = "FAVORITES"
+favTitle.Parent = favBox
+
+local favListFrame = Instance.new("Frame")
+favListFrame.Size = UDim2.new(1, 0, 0, 0)
+favListFrame.Position = UDim2.fromOffset(0, 20)
+favListFrame.BackgroundTransparency = 1
+favListFrame.AutomaticSize = Enum.AutomaticSize.Y
+favListFrame.Parent = favBox
+
+local favLayout = Instance.new("UIListLayout", favListFrame)
+favLayout.Padding = UDim.new(0, 6)
+
+local favEmpty = Instance.new("TextLabel")
+favEmpty.BackgroundTransparency = 1
+favEmpty.Size = UDim2.new(1, 0, 0, 20)
+favEmpty.Font = Enum.Font.Gotham
+favEmpty.TextSize = 9
+favEmpty.TextColor3 = COL_MUTED
+favEmpty.TextXAlignment = Enum.TextXAlignment.Left
+favEmpty.Text = "Star scripts to add them here."
+favEmpty.Parent = favListFrame
+
+local favRunFns = {}
+
+local function refreshFavorites()
+    for _, c in ipairs(favListFrame:GetChildren()) do
+        if c:IsA("Frame") then c:Destroy() end
+    end
+
+    if #favorites == 0 then
+        favEmpty.Visible = true
+        return
+    end
+    favEmpty.Visible = false
+
+    for _, name in ipairs(favorites) do
+        local row = Instance.new("Frame")
+        row.Name = name
+        row.Size = UDim2.new(1, 0, 0, 30)
+        row.BackgroundColor3 = COL_CARD
+        row.BorderSizePixel = 0
+        row.Parent = favListFrame
+
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 5)
+
+        local lbl = Instance.new("TextLabel")
+        lbl.BackgroundTransparency = 1
+        lbl.Position = UDim2.fromOffset(10, 0)
+        lbl.Size = UDim2.new(1, -110, 1, 0)
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 9
+        lbl.TextColor3 = COL_TEXT
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.TextTruncate = Enum.TextTruncate.AtEnd
+        lbl.Text = name
+        lbl.Parent = row
+
+        local star = Instance.new("TextButton")
+        star.Size = UDim2.fromOffset(26, 22)
+        star.Position = UDim2.new(1, -94, 0.5, -11)
+        star.BackgroundColor3 = COL_BG
+        star.Text = "★"
+        star.Font = Enum.Font.GothamBold
+        star.TextSize = 11
+        star.TextColor3 = COL_STAR
+        star.AutoButtonColor = false
+        star.BorderSizePixel = 0
+        star.Parent = row
+
+        Instance.new("UICorner", star).CornerRadius = UDim.new(0, 4)
+
+        local run = Instance.new("TextButton")
+        run.Size = UDim2.fromOffset(58, 22)
+        run.Position = UDim2.new(1, -64, 0.5, -11)
+        run.BackgroundColor3 = COL_ACCENT
+        run.Text = "RUN"
+        run.Font = Enum.Font.GothamBold
+        run.TextSize = 8
+        run.TextColor3 = COL_TEXT
+        run.AutoButtonColor = false
+        run.BorderSizePixel = 0
+        run.Parent = row
+
+        Instance.new("UICorner", run).CornerRadius = UDim.new(0, 4)
+
+        star.MouseButton1Click:Connect(function()
+            for i, n in ipairs(favorites) do
+                if n == name then
+                    table.remove(favorites, i)
+                    break
+                end
+            end
+            saveFavorites()
+            refreshFavorites()
+            if _G.CatHubRefreshStars then _G.CatHubRefreshStars() end
+        end)
+
+        run.MouseButton1Click:Connect(function()
+            if favRunFns[name] then
+                task.spawn(favRunFns[name])
+            end
+        end)
+    end
+end
+
+_G.CatHubFavRunFns = favRunFns
+_G.CatHubRefreshFavorites = refreshFavorites
+
+refreshFavorites()
+
+local linksBox = Instance.new("Frame")
+linksBox.Name = "LinksBox"
+linksBox.Size = UDim2.new(1, 0, 0, 80)
+linksBox.Position = UDim2.fromOffset(0, 0)
+linksBox.BackgroundColor3 = COL_PANEL
+linksBox.BorderSizePixel = 0
+linksBox.Parent = homePage
+
+Instance.new("UICorner", linksBox).CornerRadius = UDim.new(0, 8)
+
+local linksPad = Instance.new("UIPadding", linksBox)
+linksPad.PaddingTop = UDim.new(0, 12)
+linksPad.PaddingBottom = UDim.new(0, 12)
+linksPad.PaddingLeft = UDim.new(0, 14)
+linksPad.PaddingRight = UDim.new(0, 14)
+
+local linksTitle = Instance.new("TextLabel")
+linksTitle.BackgroundTransparency = 1
+linksTitle.Position = UDim2.fromOffset(0, 0)
+linksTitle.Size = UDim2.new(1, 0, 0, 12)
+linksTitle.Font = Enum.Font.GothamBold
+linksTitle.TextSize = 8
+linksTitle.TextColor3 = COL_MUTED
+linksTitle.TextXAlignment = Enum.TextXAlignment.Left
+linksTitle.Text = "LINKS"
+linksTitle.Parent = linksBox
+
+local dcCircle = Instance.new("Frame")
+dcCircle.Size = UDim2.fromOffset(22, 22)
+dcCircle.Position = UDim2.fromOffset(0, 22)
+dcCircle.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+dcCircle.BorderSizePixel = 0
+dcCircle.Parent = linksBox
+
+Instance.new("UICorner", dcCircle).CornerRadius = UDim.new(1, 0)
+
+local dcIcon = Instance.new("ImageLabel")
+dcIcon.Size = UDim2.new(1, -4, 1, -4)
+dcIcon.Position = UDim2.fromOffset(2, 2)
+dcIcon.BackgroundTransparency = 1
+dcIcon.Image = "rbxthumb://type=Asset&id="..DC_IMAGE_ID.."&w=420&h=420"
+dcIcon.Parent = dcCircle
+
+Instance.new("UICorner", dcIcon).CornerRadius = UDim.new(1, 0)
+
+local dcCommunity = Instance.new("TextLabel")
+dcCommunity.BackgroundTransparency = 1
+dcCommunity.Position = UDim2.fromOffset(28, 22)
+dcCommunity.Size = UDim2.new(0.4, 0, 0, 12)
+dcCommunity.Font = Enum.Font.GothamBold
+dcCommunity.TextSize = 9
+dcCommunity.TextColor3 = COL_TEXT
+dcCommunity.TextXAlignment = Enum.TextXAlignment.Left
+dcCommunity.Text = "Community"
+dcCommunity.Parent = linksBox
+
+local dcLinkText = Instance.new("TextLabel")
+dcLinkText.BackgroundTransparency = 1
+dcLinkText.Position = UDim2.fromOffset(28, 36)
+dcLinkText.Size = UDim2.new(0.5, 0, 0, 12)
+dcLinkText.Font = Enum.Font.Gotham
+dcLinkText.TextSize = 8
+dcLinkText.TextColor3 = COL_SUBTEXT
+dcLinkText.TextXAlignment = Enum.TextXAlignment.Left
+dcLinkText.TextTruncate = Enum.TextTruncate.AtEnd
+dcLinkText.Text = "discord.gg/FJK6QzNnf7"
+dcLinkText.Parent = linksBox
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Size = UDim2.fromOffset(54, 24)
+copyBtn.Position = UDim2.new(1, -54, 0.5, -12)
+copyBtn.BackgroundColor3 = COL_CARD
+copyBtn.Text = "COPY"
+copyBtn.Font = Enum.Font.GothamBold
+copyBtn.TextSize = 8
+copyBtn.TextColor3 = COL_TEXT
+copyBtn.AutoButtonColor = false
+copyBtn.BorderSizePixel = 0
+copyBtn.Parent = linksBox
+
+Instance.new("UICorner", copyBtn).CornerRadius = UDim.new(0, 5)
+
+copyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then setclipboard(DISCORD_LINK)
+    elseif syn and syn.write_clipboard then syn.write_clipboard(DISCORD_LINK)
+    elseif toclipboard then toclipboard(DISCORD_LINK) end
+    copyBtn.Text = "OK!"
+    task.wait(1.2)
+    copyBtn.Text = "COPY"
+end)
+
+local execBox = Instance.new("Frame")
+execBox.Name = "ExecutorBox"
+execBox.Size = UDim2.new(1, 0, 0, 60)
+execBox.Position = UDim2.fromOffset(0, 0)
+execBox.BackgroundColor3 = COL_PANEL
+execBox.BorderSizePixel = 0
+execBox.Parent = homePage
+
+Instance.new("UICorner", execBox).CornerRadius = UDim.new(0, 8)
+
+local execBoxStroke = Instance.new("UIStroke", execBox)
+execBoxStroke.Color = COL_DIVIDER
+execBoxStroke.Thickness = 1
+execBoxStroke.Transparency = 0.3
+
+local execPad = Instance.new("UIPadding", execBox)
+execPad.PaddingTop = UDim.new(0, 12)
+execPad.PaddingBottom = UDim.new(0, 12)
+execPad.PaddingLeft = UDim.new(0, 14)
+execPad.PaddingRight = UDim.new(0, 14)
+
+local execLabel = Instance.new("TextLabel")
+execLabel.BackgroundTransparency = 1
+execLabel.Position = UDim2.fromOffset(0, 0)
+execLabel.Size = UDim2.new(1, 0, 0, 12)
+execLabel.Font = Enum.Font.GothamBold
+execLabel.TextSize = 8
+execLabel.TextColor3 = COL_MUTED
+execLabel.TextXAlignment = Enum.TextXAlignment.Left
+execLabel.Text = "YOUR EXECUTOR"
+execLabel.Parent = execBox
+
+local execValue = Instance.new("TextLabel")
+execValue.BackgroundTransparency = 1
+execValue.Position = UDim2.fromOffset(0, 18)
+execValue.Size = UDim2.new(1, 0, 0, 20)
+execValue.Font = Enum.Font.GothamBold
+execValue.TextSize = 13
+execValue.TextColor3 = COL_GLOW
+execValue.TextXAlignment = Enum.TextXAlignment.Left
+execValue.Text = "Loading..."
+execValue.Parent = execBox
+
+task.spawn(function()
+    local name = "Unknown"
+    pcall(function()
+        if identifyexecutor then name = identifyexecutor() end
+    end)
+    execValue.Text = tostring(name)
+end)
+
+local function updateHomeLayout()
+    local y = 298 + favBox.AbsoluteSize.Y + 16
+    linksBox.Position = UDim2.fromOffset(0, y)
+    execBox.Position = UDim2.fromOffset(0, y + 80 + 16)
+end
+
+favBox:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateHomeLayout)
+task.defer(function()
+    task.wait(0.1)
+    updateHomeLayout()
+end)
+
+local scriptPage = Instance.new("Frame")
+scriptPage.Name = "ScriptPage"
+scriptPage.Size = UDim2.fromScale(1, 1)
+scriptPage.BackgroundTransparency = 1
+scriptPage.Visible = false
+scriptPage.Parent = content
+
+local gameListView = Instance.new("Frame")
+gameListView.Name = "GameListView"
+gameListView.Size = UDim2.new(1, 0, 1, -20)
+gameListView.BackgroundTransparency = 1
+gameListView.Visible = true
+gameListView.Parent = scriptPage
+
+local glPad = Instance.new("UIPadding", gameListView)
+glPad.PaddingTop = UDim.new(0, 4)
+glPad.PaddingBottom = UDim.new(0, 4)
+glPad.PaddingLeft = UDim.new(0, 2)
+glPad.PaddingRight = UDim.new(0, 2)
+
+local glTitle = Instance.new("TextLabel")
+glTitle.BackgroundTransparency = 1
+glTitle.Position = UDim2.fromOffset(0, 0)
+glTitle.Size = UDim2.new(1, 0, 0, 22)
+glTitle.Font = Enum.Font.GothamBold
+glTitle.TextSize = 14
+glTitle.TextColor3 = COL_TEXT
+glTitle.TextXAlignment = Enum.TextXAlignment.Left
+glTitle.Text = "Script game"
+glTitle.Parent = gameListView
+
+local glLayout = Instance.new("UIListLayout", gameListView)
+glLayout.Padding = UDim.new(0, 12)
+glLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local glPad2 = Instance.new("UIPadding", gameListView)
+glPad2.PaddingTop = UDim.new(0, 36)
+
+local function makeGameBtn(name, order)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -6, 0, 46)
+    btn.BackgroundColor3 = COL_PANEL
+    btn.Text = "  "..name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
+    btn.TextColor3 = COL_TEXT
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.LayoutOrder = order
+    btn.Parent = gameListView
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 8)
+
+    local arrow = Instance.new("TextLabel")
+    arrow.BackgroundTransparency = 1
+    arrow.Position = UDim2.new(1, -26, 0, 0)
+    arrow.Size = UDim2.fromOffset(20, 46)
+    arrow.Font = Enum.Font.GothamBold
+    arrow.TextSize = 14
+    arrow.TextColor3 = COL_SUBTEXT
+    arrow.Text = ">"
+    arrow.Parent = btn
+
+    return btn
+end
+
+local universalBtn = makeGameBtn("Universal", 1)
+local stealBtn     = makeGameBtn("Steal an Egg", 2)
+
+local universalView = Instance.new("Frame")
+universalView.Name = "UniversalView"
+universalView.Size = UDim2.fromScale(1, 1)
+universalView.BackgroundTransparency = 1
+universalView.Visible = false
+universalView.Parent = scriptPage
+
+local univPad = Instance.new("UIPadding", universalView)
+univPad.PaddingTop = UDim.new(0, 4)
+univPad.PaddingBottom = UDim.new(0, 4)
+univPad.PaddingLeft = UDim.new(0, 2)
+univPad.PaddingRight = UDim.new(0, 2)
+
+local backUnivBtn = Instance.new("TextButton")
+backUnivBtn.Size = UDim2.fromOffset(64, 26)
+backUnivBtn.Position = UDim2.fromOffset(0, 0)
+backUnivBtn.BackgroundColor3 = COL_CARD
+backUnivBtn.Text = "< Back"
+backUnivBtn.Font = Enum.Font.GothamBold
+backUnivBtn.TextSize = 10
+backUnivBtn.TextColor3 = COL_TEXT
+backUnivBtn.AutoButtonColor = false
+backUnivBtn.BorderSizePixel = 0
+backUnivBtn.Parent = universalView
+
+Instance.new("UICorner", backUnivBtn).CornerRadius = UDim.new(0, 6)
+
+local univTitle = Instance.new("TextLabel")
+univTitle.BackgroundTransparency = 1
+univTitle.Position = UDim2.fromOffset(74, 0)
+univTitle.Size = UDim2.new(1, -74, 0, 26)
+univTitle.Font = Enum.Font.GothamBold
+univTitle.TextSize = 12
+univTitle.TextColor3 = COL_TEXT
+univTitle.TextXAlignment = Enum.TextXAlignment.Left
+univTitle.Text = "Universal"
+univTitle.Parent = universalView
+
+local univSearch = Instance.new("Frame")
+univSearch.Size = UDim2.new(1, -6, 0, 30)
+univSearch.Position = UDim2.fromOffset(0, 36)
+univSearch.BackgroundColor3 = COL_CARD
+univSearch.BorderSizePixel = 0
+univSearch.Parent = universalView
+
+Instance.new("UICorner", univSearch).CornerRadius = UDim.new(0, 6)
+
+local univSearchPad = Instance.new("UIPadding", univSearch)
+univSearchPad.PaddingLeft = UDim.new(0, 10)
+univSearchPad.PaddingRight = UDim.new(0, 10)
+
+local univBox = Instance.new("TextBox")
+univBox.Size = UDim2.new(1, 0, 1, 0)
+univBox.Position = UDim2.fromOffset(0, 0)
+univBox.BackgroundTransparency = 1
+univBox.Font = Enum.Font.Gotham
+univBox.TextSize = 10
+univBox.TextColor3 = COL_TEXT
+univBox.PlaceholderText = "Search scripts..."
+univBox.PlaceholderColor3 = COL_MUTED
+univBox.Text = ""
+univBox.TextXAlignment = Enum.TextXAlignment.Left
+univBox.ClearTextOnFocus = false
+univBox.Parent = univSearch
+
+local univList = Instance.new("ScrollingFrame")
+univList.Size = UDim2.new(1, -6, 1, -78)
+univList.Position = UDim2.fromOffset(0, 74)
+univList.BackgroundTransparency = 1
+univList.BorderSizePixel = 0
+univList.ScrollBarThickness = 3
+univList.ScrollBarImageColor3 = COL_ACCENT
+univList.CanvasSize = UDim2.fromOffset(0, 0)
+univList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+univList.Parent = universalView
+
+local univLayout = Instance.new("UIListLayout", univList)
+univLayout.Padding = UDim.new(0, 8)
+
+local stealView = Instance.new("Frame")
+stealView.Name = "StealView"
+stealView.Size = UDim2.fromScale(1, 1)
+stealView.BackgroundTransparency = 1
+stealView.Visible = false
+stealView.Parent = scriptPage
+
+local stealPad = Instance.new("UIPadding", stealView)
+stealPad.PaddingTop = UDim.new(0, 4)
+stealPad.PaddingBottom = UDim.new(0, 4)
+stealPad.PaddingLeft = UDim.new(0, 2)
+stealPad.PaddingRight = UDim.new(0, 2)
+
+local backStealBtn = Instance.new("TextButton")
+backStealBtn.Size = UDim2.fromOffset(64, 26)
+backStealBtn.Position = UDim2.fromOffset(0, 0)
+backStealBtn.BackgroundColor3 = COL_CARD
+backStealBtn.Text = "< Back"
+backStealBtn.Font = Enum.Font.GothamBold
+backStealBtn.TextSize = 10
+backStealBtn.TextColor3 = COL_TEXT
+backStealBtn.AutoButtonColor = false
+backStealBtn.BorderSizePixel = 0
+backStealBtn.Parent = stealView
+
+Instance.new("UICorner", backStealBtn).CornerRadius = UDim.new(0, 6)
+
+local stealTitle = Instance.new("TextLabel")
+stealTitle.BackgroundTransparency = 1
+stealTitle.Position = UDim2.fromOffset(74, 0)
+stealTitle.Size = UDim2.new(1, -74, 0, 26)
+stealTitle.Font = Enum.Font.GothamBold
+stealTitle.TextSize = 12
+stealTitle.TextColor3 = COL_TEXT
+stealTitle.TextXAlignment = Enum.TextXAlignment.Left
+stealTitle.Text = "Steal an Egg"
+stealTitle.Parent = stealView
+
+local stealSearch = Instance.new("Frame")
+stealSearch.Size = UDim2.new(1, -6, 0, 30)
+stealSearch.Position = UDim2.fromOffset(0, 36)
+stealSearch.BackgroundColor3 = COL_CARD
+stealSearch.BorderSizePixel = 0
+stealSearch.Parent = stealView
+
+Instance.new("UICorner", stealSearch).CornerRadius = UDim.new(0, 6)
+
+local stealSearchPad = Instance.new("UIPadding", stealSearch)
+stealSearchPad.PaddingLeft = UDim.new(0, 10)
+stealSearchPad.PaddingRight = UDim.new(0, 10)
+
+local stealBox = Instance.new("TextBox")
+stealBox.Size = UDim2.new(1, 0, 1, 0)
+stealBox.Position = UDim2.fromOffset(0, 0)
+stealBox.BackgroundTransparency = 1
+stealBox.Font = Enum.Font.Gotham
+stealBox.TextSize = 10
+stealBox.TextColor3 = COL_TEXT
+stealBox.PlaceholderText = "Search scripts..."
+stealBox.PlaceholderColor3 = COL_MUTED
+stealBox.Text = ""
+stealBox.TextXAlignment = Enum.TextXAlignment.Left
+stealBox.ClearTextOnFocus = false
+stealBox.Parent = stealSearch
+
+local stealTabs = Instance.new("Frame")
+stealTabs.Size = UDim2.new(1, -6, 0, 30)
+stealTabs.Position = UDim2.fromOffset(0, 74)
+stealTabs.BackgroundTransparency = 1
+stealTabs.Parent = stealView
+
+local function makeStealTab(text, x, w)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.fromOffset(w, 30)
+    b.Position = UDim2.fromOffset(x, 0)
+    b.BackgroundColor3 = COL_CARD
+    b.Text = text
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 9
+    b.TextColor3 = COL_TEXT
+    b.AutoButtonColor = false
+    b.BorderSizePixel = 0
+    b.Parent = stealTabs
+
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    return b
+end
+
+local tabKey      = makeStealTab("KEY", 0, 74)
+local tabKeyless  = makeStealTab("KEYLESS", 80, 74)
+local tabVisuals  = makeStealTab("VISUALS", 160, 74)
+
+tabKey.BackgroundColor3 = COL_ACCENT
+
+local stealList = Instance.new("ScrollingFrame")
+stealList.Size = UDim2.new(1, -6, 1, -118)
+stealList.Position = UDim2.fromOffset(0, 114)
+stealList.BackgroundTransparency = 1
+stealList.BorderSizePixel = 0
+stealList.ScrollBarThickness = 3
+stealList.ScrollBarImageColor3 = COL_ACCENT
+stealList.CanvasSize = UDim2.fromOffset(0, 0)
+stealList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+stealList.Parent = stealView
+
+local stealLayout = Instance.new("UIListLayout", stealList)
+stealLayout.Padding = UDim.new(0, 8)
+
+local UNIVERSAL_SCRIPTS = {
+    {"Animation Changer", "https://rawscripts.net/raw/Universal-Script-Free-animations-112111"},
+    {"Avatar Changer",    "https://raw.githubusercontent.com/Unknown-ugc/Unknown/refs/heads/main/Avatar%20change"},
+    {"Shader",            "https://pastebin.com/raw/Zpaf00Nu"},
+    {"Shader 1",          "https://raw.githubusercontent.com/randomstring0/pshade-ultimate/refs/heads/main/src/cd.lua"},
+    {"Shader 2",          "https://rawscripts.net/raw/Universal-Script-Simple-Shader-37434"},
+    {"Universal Graphics","https://raw.githubusercontent.com/Uranus197/-Univers-Hub-Graphics-Script-/refs/heads/main/UniversHub"},
+}
+
+local KEY_HUBS = {
+    {"Clover Hub", "https://cloverhub.app/clover.lua"},
+    {"Ajjans Hub", "https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"},
+    {"Big Foot", "https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua"},
+    {"Speed Hub", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua"},
+    {"Zeroin Hub", "https://zeroinhub.com/api/script"},
+    {"Quantumq Onyx", "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"},
+    {"Axonic", "https://raw.githubusercontent.com/Kenniel123/Steal-A-Egg/refs/heads/main/Steal%20A%20Egg"},
+    {"Night Hub", "https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/StealAnEggs.luau"},
+    {"On Hub", "https://raw.githubusercontent.com/davizin713/ONhub/refs/heads/main/script.lua"},
+    {"NEOX HUB", "https://raw.githubusercontent.com/hassanxzayn-lua/NEOXHUBMAIN/refs/heads/main/loader"},
+    {"RIFT GOHA", "https://raw.githubusercontent.com/Dodoyung24/script-core/main/Steal-An-Egg"},
+    {"ATHER HUB", "https://api.luarmor.net/files/v3/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua"},
+    {"VANITY HUB", "https://vanityscript.xyz/loader"},
+    {"RONIX HUB", "https://api.luarmor.net/files/v3/loaders/fda9babd071d6b536a745774b6bc681c.lua"},
+    {"UNREXL", "https://raw.githubusercontent.com/unrexl/Scripts/refs/heads/main/StealaEgg"},
+    {"WADIDIS HUB", "https://api.jnkie.com/api/v1/luascripts/public/809c81e15814d1c016f44d9fe56587f5f38c55a97f203f11bc1a3f7cc3725c5f/download"},
+    {"H4XSCRIPTS", "https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader.lua"},
+    {"THAN HUB", "https://api.luarmor.net/files/v4/loaders/d1c82862a093e64c6bd82bb6d6f7a46b.lua"},
+    {"YANTO HUB", "https://raw.githubusercontent.com/YantoRoblox/Script-Free-YantoHUB/refs/heads/main/YantoHUB"},
+    {"CHIYO HUB", "https://raw.githubusercontent.com/kaisenlmao/loader/refs/heads/main/chiyo.lua"},
+    {"OMG HUB", "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua"},
+    {"SOLIX HUB", "https://raw.githubusercontent.com/bao8jl/solixhub/main/loader"},
+    {"SNOWY HUB", "https://flowauth.net/v1/ui/a87f00d9adf63658655fcd02ab86a4ef.lua"},
+    {"ZHENN SPAWNER", "https://raw.githubusercontent.com/ZhennHub/PetSpawner/refs/heads/main/lua"},
+    {"NOVA HUB", "https://raw.githubusercontent.com/NovaHubRBLX/NovaHub/refs/heads/main/novahub.lua"},
+    {"SPORTSCLUB HUB", "https://loader.sportsclub.fun/loader.luau"},
+    {"GS HUB", "https://gist.githubusercontent.com/spiritualgaming1123-beep/46ef55c5f8284e076aafc5ebd12233f4/raw/5b24749c3931c1838a76e64c9af508dcdd03700a/gistfile1.lua"},
+    {"SAIOPS HUB", "https://api.saiops.cc/scripts/Steal-An-Egg-Script.lua"},
+    {"NEVERLOSE", "https://raw.githubusercontent.com/inrate1337/NeverloseLoaderRoblox/refs/heads/main/main.luau"},
+    {"OCTOPUS HUB", "https://www.octopushub.xyz/loader"},
+    {"JINHUB", "https://jinhub.my.id/scripts/Universal.lua"},
+    {"OVERFLOW", "https://overflow.cx/loader.lua"},
+    {"SAKURA HUB", "https://flowauth.net/v1/ui/d00ec69382de97372fc9559efc722298.lua"},
+    {"FORGE HUB", "https://cdn.forgehub.store/loader"},
+    {"BASEMENT HUB", "https://thebsmt.xyz/BSMT"},
+    {"KALI HUB", "https://kalihub.xyz/loader.lua"},
+    {"CORE HUB", "https://getcore.lol/loader.lua"},
+    {"APEL HUB", "https://apelhub.com/loader.lua"},
+    {"FISHY", "https://jnkie.com/loaders/fishyhub"},
+    {"VIVID LUA", "https://vivid.vividhub.workers.dev/loader.lua"},
+    {"SHADOW HUB", "https://pastebin.com/raw/QAvDbBKa"},
+    {"KING VYPER", "https://kingvypers.site/raw/TrialLoader"},
+    {"HIP HUB", "https://hiphub.cloud/api/script-roblox/loader"},
+    {"POTATO HUB", "https://raw.githubusercontent.com/potatohub67/potatoscripts/refs/heads/main/stealaegg.lua"},
+}
+
+local KEYLESS_HUBS = {
+    {"Cat Hub Instant Egg", "https://raw.githubusercontent.com/showscript-hub/Script/refs/heads/main/Cat%20hub%20instant%20egg"},
+    {"Bypass Speed", "https://rawscripts.net/raw/Steal-An-Egg-bypass-anti-cheat-224212"},
+    {"Nasi Rendang", "https://www.nrlscript.com/raw/y9BUU6LkVW"},
+    {"Miranda Hub", "https://api.luarmor.net/files/v4/loaders/7891557d7950ed56a7d1d8f57b66ad4d.lua"},
+    {"Lennon Hub", "https://raw.githubusercontent.com/lennonxscripts/lennonhubv4/refs/heads/main/stealanegg"},
+    {"Foxname", "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"},
+    {"Mcrzhub", "https://flowauth.net/v1/loaders/3c4e87ed34813171b0f8d53a108a7d88.lua"},
+    {"VXEZES", "https://vxezestudio.online/api/scripts/script_G5CGjqj2X3rOS/stream/init"},
+    {"Anti Guard", "https://api.getpolsec.com/scripts/hosted/6582551b42d21c6b7eb55f1d76d8d50ce53cb35592093d6615b5e83437594dc0.lua"},
+    {"Lkz", "https://api.luarmor.net/files/v4/loaders/65bf3459d87ba3ac46350e154b640929.lua"},
+    {"Decode", "https://raw.githubusercontent.com/ItzYumi/Decode/refs/heads/main/DE%3ACODE.lua"},
+    {"Blxyo Hub", "https://flowauth.net/v1/loaders/69d3463240384f3a73fbe32c178093a2.lua"},
+    {"Hoshi Hub", "https://hoshihub.site/loader.lua"},
+    {"Sena Hub", "https://senahub.xyz/raw/loader"},
+    {"Vincetore", "https://raw.githubusercontent.com/idk953072-crypto/Steal-an-Egg/refs/heads/main/vincitore"},
+    {"Chilli Hub", "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"},
+    {"Tsuo", "https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/stealanegg"},
+    {"Ouroboros", "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"},
+    {"VOIDHUB", "https://voidon.top/api/loader/main"},
+    {"LIMBO HUB", "https://limbohub.my.id/loader.lua"},
+    {"OXIDE HUB", "https://raw.githubusercontent.com/xulfo/Oxide-Loader/main/Main.lua"},
+    {"PULSE HUB", "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"},
+    {"YARHM HUB", "https://yarhm.com"},
+    {"MONARCHH", "https://raw.githubusercontent.com/nobuxy/monarch.win/refs/heads/main/Monarch.lua"},
+    {"DIVINE EGG", "https://raw.githubusercontent.com/SynergyNetworkz/VULN/refs/heads/main/STEALANEGG.lua"},
+    {"TOKINU", "https://raw.githubusercontent.com/Tokinu-Scripts/Steal-An-Egg/refs/heads/main/Instant/Tp"},
+    {"NEVA HUB", "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2"},
+    {"LEVON HUB", "https://pastefy.app/nasHhfko/raw"},
+    {"PET SPAWNER", "https://raw.githubusercontent.com/bugxiefun/roblox-scripts/refs/heads/main/rblxscripts-stealanegg-spawner"},
+    {"VALINC HUB", "https://api.valincsyndicate.com/v1/releases/5502cba03703f4a3628d522d396b80d8.lua"},
+    {"CIAO HUB HOP", "https://pastefy.app/YoZocJ8O/raw"},
+    {"RONNEI HUB", "https://raw.githubusercontent.com/elonmod/skibidi/refs/heads/main/Ronneihub-keyless.lua"},
+    {"PROJECT-MADARA", "https://raw.githubusercontent.com/IsThisMe01/Project-Madara/refs/heads/main/stealanegg"},
+    {"TOOLBOX", "https://raw.githubusercontent.com/Abdullahking20/loader-lua/main/loader"},
+    {"CITRA HUB", "https://raw.githubusercontent.com/gilgameshfate59/ohbfoosk8tid/main/CitraLoader.lua"},
+    {"VSN", "https://raw.githubusercontent.com/NetNullv1/VSN/refs/heads/main/HUB"},
+    {"BK HUB", "https://api.luarmor.net/files/v4/loaders/9ee4edde227ac85f50872bf9e4226508.lua"},
+    {"AXURS", "https://raw.githubusercontent.com/XE3Scripts/Axur-sGamesHub/refs/heads/main/StealAnEgg"},
+    {"WIS HUB", "https://api.wishub.cloud/files/loader.lua"},
+    {"SOFTKILLZ", "https://pastebin.com/raw/ZuEBwb5K"},
+}
+
+local VISUAL_HUBS = {
+    {"Spawner", "https://raw.githubusercontent.com/bugxiefun/roblox-scripts/refs/heads/main/rblxscripts-stealanegg-spawner"},
+    {"Admin Panel", "https://api.jnkie.com/api/v1/luascripts/public/f6851ba0a3fc126430592a97d523d7c05b632f607eefb582f11353b9ef77a38f/download"},
+    {"Pet Spawner", "https://api.luarmor.net/files/v4/loaders/d8f1c691a58edb11ef782849f80e9b61.lua"},
+}
+
+local favRunFunctions = {}
+
+local function makeScriptRow(parentFrame, name, url)
+    local row = Instance.new("Frame")
+    row.Name = name
+    row.Size = UDim2.new(1, -6, 0, 40)
+    row.BackgroundColor3 = COL_PANEL
+    row.BorderSizePixel = 0
+    row.Parent = parentFrame
+
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.fromOffset(14, 0)
+    label.Size = UDim2.new(1, -120, 1, 0)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 9
+    label.TextColor3 = COL_TEXT
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextTruncate = Enum.TextTruncate.AtEnd
+    label.Text = name
+    label.Parent = row
+
+    local star = Instance.new("TextButton")
+    star.Size = UDim2.fromOffset(28, 24)
+    star.Position = UDim2.new(1, -100, 0.5, -12)
+    star.BackgroundColor3 = COL_BG
+    star.Text = "★"
+    star.Font = Enum.Font.GothamBold
+    star.TextSize = 12
+    star.AutoButtonColor = false
+    star.BorderSizePixel = 0
+    star.Parent = row
+
+    Instance.new("UICorner", star).CornerRadius = UDim.new(0, 5)
+
+    local isFav = table.find(favorites, name) ~= nil
+    star.TextColor3 = isFav and COL_STAR or COL_MUTED
+
+    star.MouseButton1Click:Connect(function()
+        local found = table.find(favorites, name)
+        if found then
+            table.remove(favorites, found)
+            star.TextColor3 = COL_MUTED
+        else
+            table.insert(favorites, name)
+            star.TextColor3 = COL_STAR
+        end
+        saveFavorites()
+        if _G.CatHubRefreshFavorites then _G.CatHubRefreshFavorites() end
+    end)
+
+    local run = Instance.new("TextButton")
+    run.Size = UDim2.fromOffset(60, 24)
+    run.Position = UDim2.new(1, -68, 0.5, -12)
+    run.BackgroundColor3 = COL_ACCENT
+    run.Text = "RUN"
+    run.Font = Enum.Font.GothamBold
+    run.TextSize = 9
+    run.TextColor3 = COL_TEXT
+    run.AutoButtonColor = false
+    run.BorderSizePixel = 0
+    run.Parent = row
+
+    Instance.new("UICorner", run).CornerRadius = UDim.new(0, 5)
+
+    local function runFn()
+        pcall(function()
+            loadstring(game:HttpGet(url))()
+        end)
+    end
+
+    run.MouseButton1Click:Connect(function()
+        task.spawn(runFn)
+    end)
+
+    favRunFunctions[name] = runFn
+    if _G.CatHubFavRunFns then
+        _G.CatHubFavRunFns[name] = runFn
+    end
+end
+
+local function clearList(frame)
+    for _, c in ipairs(frame:GetChildren()) do
+        if c:IsA("Frame") then c:Destroy() end
+    end
+end
+
+local function showUniversalList()
+    clearList(univList)
+    for _, item in ipairs(UNIVERSAL_SCRIPTS) do
+        makeScriptRow(univList, item[1], item[2])
+    end
+end
+
+local function showStealList(list)
+    clearList(stealList)
+    for _, item in ipairs(list) do
+        makeScriptRow(stealList, item[1], item[2])
+    end
+end
+
+tabKey.MouseButton1Click:Connect(function()
+    tabKey.BackgroundColor3 = COL_ACCENT
+    tabKeyless.BackgroundColor3 = COL_CARD
+    tabVisuals.BackgroundColor3 = COL_CARD
+    showStealList(KEY_HUBS)
+    stealBox.Text = ""
+end)
+
+tabKeyless.MouseButton1Click:Connect(function()
+    tabKeyless.BackgroundColor3 = COL_ACCENT
+    tabKey.BackgroundColor3 = COL_CARD
+    tabVisuals.BackgroundColor3 = COL_CARD
+    showStealList(KEYLESS_HUBS)
+    stealBox.Text = ""
+end)
+
+tabVisuals.MouseButton1Click:Connect(function()
+    tabVisuals.BackgroundColor3 = COL_ACCENT
+    tabKey.BackgroundColor3 = COL_CARD
+    tabKeyless.BackgroundColor3 = COL_CARD
+    showStealList(VISUAL_HUBS)
+    stealBox.Text = ""
+end)
+
+univBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local q = string.lower(univBox.Text or "")
+    for _, row in ipairs(univList:GetChildren()) do
+        if row:IsA("Frame") then
+            local nameLower = string.lower(row.Name)
+            row.Visible = (q == "" or string.find(nameLower, q, 1, true) ~= nil)
+        end
+    end
+end)
+
+stealBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local q = string.lower(stealBox.Text or "")
+    for _, row in ipairs(stealList:GetChildren()) do
+        if row:IsA("Frame") then
+            local nameLower = string.lower(row.Name)
+            row.Visible = (q == "" or string.find(nameLower, q, 1, true) ~= nil)
+        end
+    end
+end)
+
+universalBtn.MouseButton1Click:Connect(function()
+    gameListView.Visible = false
+    universalView.Visible = true
+    stealView.Visible = false
+    showUniversalList()
+end)
+
+stealBtn.MouseButton1Click:Connect(function()
+    gameListView.Visible = false
+    universalView.Visible = false
+    stealView.Visible = true
+    showStealList(KEY_HUBS)
+end)
+
+backUnivBtn.MouseButton1Click:Connect(function()
+    universalView.Visible = false
+    gameListView.Visible = true
+end)
+
+backStealBtn.MouseButton1Click:Connect(function()
+    stealView.Visible = false
+    gameListView.Visible = true
+end)
+
+local settingsPage, creditPage, aboutPage
+
+local function __buildPages()
+
+settingsPage = Instance.new("Frame")
+settingsPage.Name = "SettingsPage"
+settingsPage.Size = UDim2.fromScale(1, 1)
+settingsPage.BackgroundTransparency = 1
+settingsPage.Visible = false
+settingsPage.Parent = content
+settingsPage.ZIndex = 10
+
+local stPad = Instance.new("UIPadding", settingsPage)
+stPad.PaddingTop = UDim.new(0, 4)
+stPad.PaddingBottom = UDim.new(0, 4)
+stPad.PaddingLeft = UDim.new(0, 2)
+stPad.PaddingRight = UDim.new(0, 2)
+
+local stTitle = Instance.new("TextLabel")
+stTitle.BackgroundTransparency = 1
+stTitle.Position = UDim2.fromOffset(0, 0)
+stTitle.Size = UDim2.new(1, 0, 0, 22)
+stTitle.Font = Enum.Font.GothamBold
+stTitle.TextSize = 14
+stTitle.TextColor3 = COL_TEXT
+stTitle.TextXAlignment = Enum.TextXAlignment.Left
+stTitle.Text = "Settings"
+stTitle.Parent = settingsPage
+
+local colorTitle = Instance.new("TextLabel")
+colorTitle.BackgroundTransparency = 1
+colorTitle.Position = UDim2.fromOffset(0, 36)
+colorTitle.Size = UDim2.new(1, 0, 0, 14)
+colorTitle.Font = Enum.Font.GothamBold
+colorTitle.TextSize = 9
+colorTitle.TextColor3 = COL_MUTED
+colorTitle.TextXAlignment = Enum.TextXAlignment.Left
+colorTitle.Text = "COLOR CHANGE"
+colorTitle.Parent = settingsPage
+
+local colorBtn = Instance.new("TextButton")
+colorBtn.Size = UDim2.new(1, -6, 0, 32)
+colorBtn.Position = UDim2.fromOffset(0, 56)
+colorBtn.BackgroundColor3 = COL_PANEL
+colorBtn.Text = "Color Change"
+colorBtn.Font = Enum.Font.GothamBold
+colorBtn.TextSize = 10
+colorBtn.TextColor3 = COL_TEXT
+colorBtn.TextXAlignment = Enum.TextXAlignment.Left
+colorBtn.AutoButtonColor = false
+colorBtn.BorderSizePixel = 0
+colorBtn.Parent = settingsPage
+
+Instance.new("UICorner", colorBtn).CornerRadius = UDim.new(0, 6)
+Instance.new("UIPadding", colorBtn).PaddingLeft = UDim.new(0, 14)
+
+local colorPanel = Instance.new("Frame")
+colorPanel.Size = UDim2.new(1, -6, 0, 90)
+colorPanel.Position = UDim2.fromOffset(0, 94)
+colorPanel.BackgroundColor3 = COL_PANEL
+colorPanel.BorderSizePixel = 0
+colorPanel.Visible = false
+colorPanel.Parent = settingsPage
+
+Instance.new("UICorner", colorPanel).CornerRadius = UDim.new(0, 8)
+
+local colorPad = Instance.new("UIPadding", colorPanel)
+colorPad.PaddingTop = UDim.new(0, 8)
+colorPad.PaddingBottom = UDim.new(0, 8)
+colorPad.PaddingLeft = UDim.new(0, 8)
+colorPad.PaddingRight = UDim.new(0, 8)
+
+local colorGrid = Instance.new("UIGridLayout", colorPanel)
+colorGrid.CellSize = UDim2.fromOffset(80, 30)
+colorGrid.CellPadding = UDim2.fromOffset(6, 6)
+
+local COLOR_OPTIONS = {
+    {"Blue",    Color3.fromRGB(50, 120, 255)},
+    {"Purple",  Color3.fromRGB(155, 95, 255)},
+    {"Cyan",    Color3.fromRGB(40, 210, 220)},
+    {"Green",   Color3.fromRGB(55, 205, 125)},
+    {"Orange",  Color3.fromRGB(255, 135, 55)},
+    {"Red",     Color3.fromRGB(230, 80, 100)},
+}
+
+for _, data in ipairs(COLOR_OPTIONS) do
+    local btn = Instance.new("TextButton")
+    btn.BackgroundColor3 = data[2]
+    btn.Text = data[1]
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 9
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Parent = colorPanel
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+
+    btn.MouseButton1Click:Connect(function()
+    main.BackgroundColor3 = data[2]
+    header.BackgroundColor3 = data[2]
+    sidebar.BackgroundColor3 = data[2]
+    mainStroke.Color = data[2]
+    catCircle.BackgroundColor3 = data[2]
+    catStroke.Color = data[2]
+    homeBtn.BackgroundColor3 = data[2]
+    tabKey.BackgroundColor3 = data[2]
+    playBtn.BackgroundColor3 = data[2]
+    copyBtn.BackgroundColor3 = data[2]
+    dcCircle.BackgroundColor3 = data[2]
+    colorPanel.Visible = false
+end)
+
+colorBtn.MouseButton1Click:Connect(function()
+    colorPanel.Visible = not colorPanel.Visible
+end)
+
+local songTitle = Instance.new("TextLabel")
+songTitle.BackgroundTransparency = 1
+songTitle.Position = UDim2.fromOffset(0, 196)
+songTitle.Size = UDim2.new(1, 0, 0, 14)
+songTitle.Font = Enum.Font.GothamBold
+songTitle.TextSize = 9
+songTitle.TextColor3 = COL_MUTED
+songTitle.TextXAlignment = Enum.TextXAlignment.Left
+songTitle.Text = "SONG ID"
+songTitle.Parent = settingsPage
+
+local songBox = Instance.new("TextBox")
+songBox.Size = UDim2.new(1, -124, 0, 32)
+songBox.Position = UDim2.fromOffset(0, 216)
+songBox.BackgroundColor3 = COL_PANEL
+songBox.Font = Enum.Font.Gotham
+songBox.TextSize = 10
+songBox.TextColor3 = COL_TEXT
+songBox.PlaceholderText = "Enter Song ID"
+songBox.PlaceholderColor3 = COL_MUTED
+songBox.Text = ""
+songBox.TextXAlignment = Enum.TextXAlignment.Left
+songBox.ClearTextOnFocus = false
+songBox.BorderSizePixel = 0
+songBox.Parent = settingsPage
+
+Instance.new("UICorner", songBox).CornerRadius = UDim.new(0, 6)
+Instance.new("UIPadding", songBox).PaddingLeft = UDim.new(0, 12)
+
+local playBtn = Instance.new("TextButton")
+playBtn.Size = UDim2.fromOffset(56, 32)
+playBtn.Position = UDim2.new(1, -118, 0, 216)
+playBtn.BackgroundColor3 = COL_ACCENT
+playBtn.Text = "PLAY"
+playBtn.Font = Enum.Font.GothamBold
+playBtn.TextSize = 9
+playBtn.TextColor3 = COL_TEXT
+playBtn.AutoButtonColor = false
+playBtn.BorderSizePixel = 0
+playBtn.Parent = settingsPage
+
+Instance.new("UICorner", playBtn).CornerRadius = UDim.new(0, 6)
+
+local stopBtn = Instance.new("TextButton")
+stopBtn.Size = UDim2.fromOffset(56, 32)
+stopBtn.Position = UDim2.new(1, -56, 0, 216)
+stopBtn.BackgroundColor3 = COL_PANEL
+stopBtn.Text = "STOP"
+stopBtn.Font = Enum.Font.GothamBold
+stopBtn.TextSize = 9
+stopBtn.TextColor3 = COL_TEXT
+stopBtn.AutoButtonColor = false
+stopBtn.BorderSizePixel = 0
+stopBtn.Parent = settingsPage
+
+Instance.new("UICorner", stopBtn).CornerRadius = UDim.new(0, 6)
+
+local song = Instance.new("Sound")
+song.Volume = 0.5
+song.Looped = true
+song.Parent = SoundService
+
+playBtn.MouseButton1Click:Connect(function()
+    local id = songBox.Text:gsub("%D", "")
+    if id ~= "" then
+        song.SoundId = "rbxassetid://"..id
+        song:Play()
+    end
+end)
+
+stopBtn.MouseButton1Click:Connect(function()
+    song:Stop()
+end)
+
+local transTitle = Instance.new("TextLabel")
+transTitle.BackgroundTransparency = 1
+transTitle.Position = UDim2.fromOffset(0, 262)
+transTitle.Size = UDim2.new(1, 0, 0, 14)
+transTitle.Font = Enum.Font.GothamBold
+transTitle.TextSize = 9
+transTitle.TextColor3 = COL_MUTED
+transTitle.TextXAlignment = Enum.TextXAlignment.Left
+transTitle.Text = "TRANSPARENCY 0%"
+transTitle.Parent = settingsPage
+
+local transBar = Instance.new("Frame")
+transBar.Position = UDim2.fromOffset(0, 286)
+transBar.Size = UDim2.new(1, -6, 0, 8)
+transBar.BackgroundColor3 = COL_PANEL
+transBar.BorderSizePixel = 0
+transBar.Parent = settingsPage
+
+Instance.new("UICorner", transBar).CornerRadius = UDim.new(1, 0)
+
+local transDot = Instance.new("TextButton")
+transDot.Size = UDim2.fromOffset(16, 16)
+transDot.Position = UDim2.new(0, -8, 0.5, -8)
+transDot.BackgroundColor3 = COL_ACCENT
+transDot.Text = ""
+transDot.BorderSizePixel = 0
+transDot.AutoButtonColor = false
+transDot.Parent = transBar
+
+Instance.new("UICorner", transDot).CornerRadius = UDim.new(1, 0)
+
+local transDragging = false
+transDot.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        transDragging = true
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if transDragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        local percent = math.clamp(
+            (input.Position.X - transBar.AbsolutePosition.X) /
+            transBar.AbsoluteSize.X, 0, 1)
+        transDot.Position = UDim2.new(percent, -8, 0.5, -8)
+        transTitle.Text = "TRANSPARENCY "..math.floor(percent*100).."%"
+        main.BackgroundTransparency = percent * 0.9
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        transDragging = false
+    end
+end)
+
+creditPage = Instance.new("Frame")
+creditPage.Name = "CreditPage"
+creditPage.Size = UDim2.fromScale(1, 1)
+creditPage.BackgroundTransparency = 1
+creditPage.Visible = false
+creditPage.Parent = content
+creditPage.ZIndex = 10
+
+local crPad = Instance.new("UIPadding", creditPage)
+crPad.PaddingTop = UDim.new(0, 4)
+crPad.PaddingBottom = UDim.new(0, 4)
+crPad.PaddingLeft = UDim.new(0, 2)
+crPad.PaddingRight = UDim.new(0, 2)
+
+local crTitle = Instance.new("TextLabel")
+crTitle.BackgroundTransparency = 1
+crTitle.Position = UDim2.fromOffset(0, 0)
+crTitle.Size = UDim2.new(1, 0, 0, 22)
+crTitle.Font = Enum.Font.GothamBold
+crTitle.TextSize = 14
+crTitle.TextColor3 = COL_TEXT
+crTitle.TextXAlignment = Enum.TextXAlignment.Left
+crTitle.Text = "Credit"
+crTitle.Parent = creditPage
+
+local crThank = Instance.new("TextLabel")
+crThank.BackgroundTransparency = 1
+crThank.Position = UDim2.fromOffset(0, 36)
+crThank.Size = UDim2.new(1, 0, 0, 40)
+crThank.Font = Enum.Font.Gotham
+crThank.TextSize = 10
+crThank.TextColor3 = COL_TEXT
+crThank.TextXAlignment = Enum.TextXAlignment.Left
+crThank.TextYAlignment = Enum.TextYAlignment.Top
+crThank.Text = "THANK YOU\nThank you for using cat hub!"
+crThank.Parent = creditPage
+
+local crSpecial = Instance.new("TextLabel")
+crSpecial.BackgroundTransparency = 1
+crSpecial.Position = UDim2.fromOffset(0, 84)
+crSpecial.Size = UDim2.new(1, 0, 0, 14)
+crSpecial.Font = Enum.Font.GothamBold
+crSpecial.TextSize = 9
+crSpecial.TextColor3 = COL_MUTED
+crSpecial.TextXAlignment = Enum.TextXAlignment.Left
+crSpecial.Text = "SPECIAL THANKS TO"
+crSpecial.Parent = creditPage
+
+local tiktokList = {
+    {"@official_mneil", "https://www.tiktok.com/@official_mneil"},
+    {"@noah_dump5", "https://www.tiktok.com/@noah_dump5"},
+    {"@_johnxines", "https://www.tiktok.com/@_johnxines"},
+    {"@kenn50921", "https://www.tiktok.com/@kenn50921"},
+}
+
+for i, tk in ipairs(tiktokList) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -6, 0, 28)
+    btn.Position = UDim2.fromOffset(0, 108 + (i - 1) * 34)
+    btn.BackgroundColor3 = COL_PANEL
+    btn.Text = tk[1]
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 9
+    btn.TextColor3 = COL_GLOW
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Parent = creditPage
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+    Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 14)
+
+    btn.MouseButton1Click:Connect(function()
+        if setclipboard then setclipboard(tk[2]) end
+        btn.Text = "Copied!"
+        task.wait(1.2)
+        btn.Text = tk[1]
+    end)
+end
+
+local crOwnerLabel = Instance.new("TextLabel")
+crOwnerLabel.BackgroundTransparency = 1
+crOwnerLabel.Position = UDim2.fromOffset(0, 254)
+crOwnerLabel.Size = UDim2.new(1, 0, 0, 14)
+crOwnerLabel.Font = Enum.Font.GothamBold
+crOwnerLabel.TextSize = 9
+crOwnerLabel.TextColor3 = COL_MUTED
+crOwnerLabel.TextXAlignment = Enum.TextXAlignment.Left
+crOwnerLabel.Text = "OWNER"
+crOwnerLabel.Parent = creditPage
+
+local crOwner = Instance.new("TextLabel")
+crOwner.BackgroundTransparency = 1
+crOwner.Position = UDim2.fromOffset(0, 274)
+crOwner.Size = UDim2.new(1, 0, 0, 22)
+crOwner.Font = Enum.Font.GothamBold
+crOwner.TextSize = 12
+crOwner.TextColor3 = COL_GLOW
+crOwner.TextXAlignment = Enum.TextXAlignment.Left
+crOwner.Text = "CHRIS"
+crOwner.Parent = creditPage
+
+aboutPage = Instance.new("Frame")
+aboutPage.Name = "AboutPage"
+aboutPage.Size = UDim2.fromScale(1, 1)
+aboutPage.BackgroundTransparency = 1
+aboutPage.Visible = false
+aboutPage.Parent = content
+aboutPage.ZIndex = 10
+
+local abPad = Instance.new("UIPadding", aboutPage)
+abPad.PaddingTop = UDim.new(0, 4)
+abPad.PaddingBottom = UDim.new(0, 4)
+abPad.PaddingLeft = UDim.new(0, 2)
+abPad.PaddingRight = UDim.new(0, 2)
+
+local abTitle = Instance.new("TextLabel")
+abTitle.BackgroundTransparency = 1
+abTitle.Position = UDim2.fromOffset(0, 0)
+abTitle.Size = UDim2.new(1, 0, 0, 22)
+abTitle.Font = Enum.Font.GothamBold
+abTitle.TextSize = 14
+abTitle.TextColor3 = COL_TEXT
+abTitle.TextXAlignment = Enum.TextXAlignment.Left
+abTitle.Text = "About"
+abTitle.Parent = aboutPage
+
+local abVer = Instance.new("Frame")
+abVer.Position = UDim2.fromOffset(0, 36)
+abVer.Size = UDim2.new(1, -6, 0, 100)
+abVer.BackgroundColor3 = COL_PANEL
+abVer.BorderSizePixel = 0
+abVer.Parent = aboutPage
+
+Instance.new("UICorner", abVer).CornerRadius = UDim.new(0, 8)
+
+local abVerStroke = Instance.new("UIStroke", abVer)
+abVerStroke.Color = COL_ACCENT
+abVerStroke.Thickness = 1
+abVerStroke.Transparency = 0.4
+
+local abVerPad = Instance.new("UIPadding", abVer)
+abVerPad.PaddingTop = UDim.new(0, 12)
+abVerPad.PaddingBottom = UDim.new(0, 12)
+abVerPad.PaddingLeft = UDim.new(0, 14)
+abVerPad.PaddingRight = UDim.new(0, 14)
+
+local abVerTitle = Instance.new("TextLabel")
+abVerTitle.BackgroundTransparency = 1
+abVerTitle.Position = UDim2.fromOffset(0, 0)
+abVerTitle.Size = UDim2.new(1, 0, 0, 16)
+abVerTitle.Font = Enum.Font.GothamBold
+abVerTitle.TextSize = 11
+abVerTitle.TextColor3 = COL_GLOW
+abVerTitle.TextXAlignment = Enum.TextXAlignment.Left
+abVerTitle.Text = "v2.0 UPDATE"
+abVerTitle.Parent = abVer
+
+local abChangelog = Instance.new("TextLabel")
+abChangelog.BackgroundTransparency = 1
+abChangelog.Position = UDim2.fromOffset(0, 26)
+abChangelog.Size = UDim2.new(1, 0, 0, 60)
+abChangelog.Font = Enum.Font.Gotham
+abChangelog.TextSize = 9
+abChangelog.TextColor3 = COL_TEXT
+abChangelog.TextXAlignment = Enum.TextXAlignment.Left
+abChangelog.TextYAlignment = Enum.TextYAlignment.Top
+abChangelog.TextWrapped = true
+abChangelog.Text = "- New GUI design\n- Universal section\n- Live FPS / Ping / Players\n- Favorites system\n- Search bar in Scripts"
+abChangelog.Parent = abVer
+
+local abFree = Instance.new("Frame")
+abFree.Position = UDim2.fromOffset(0, 150)
+abFree.Size = UDim2.new(1, -6, 0, 80)
+abFree.BackgroundColor3 = Color3.fromRGB(38, 30, 22)
+abFree.BorderSizePixel = 0
+abFree.Parent = aboutPage
+
+Instance.new("UICorner", abFree).CornerRadius = UDim.new(0, 8)
+
+local afStroke = Instance.new("UIStroke", abFree)
+afStroke.Color = Color3.fromRGB(255, 180, 60)
+afStroke.Thickness = 1.2
+afStroke.Transparency = 0.3
+
+local abFreePad = Instance.new("UIPadding", abFree)
+abFreePad.PaddingTop = UDim.new(0, 12)
+abFreePad.PaddingBottom = UDim.new(0, 12)
+abFreePad.PaddingLeft = UDim.new(0, 14)
+abFreePad.PaddingRight = UDim.new(0, 14)
+
+local abFreeTitle = Instance.new("TextLabel")
+abFreeTitle.BackgroundTransparency = 1
+abFreeTitle.Position = UDim2.fromOffset(0, 0)
+abFreeTitle.Size = UDim2.new(1, 0, 0, 16)
+abFreeTitle.Font = Enum.Font.GothamBold
+abFreeTitle.TextSize = 11
+abFreeTitle.TextColor3 = Color3.fromRGB(255, 200, 80)
+abFreeTitle.TextXAlignment = Enum.TextXAlignment.Left
+abFreeTitle.Text = "This script is 100% FREE!"
+abFreeTitle.Parent = abFree
+
+local abFreeMsg = Instance.new("TextLabel")
+abFreeMsg.BackgroundTransparency = 1
+abFreeMsg.Position = UDim2.fromOffset(0, 26)
+abFreeMsg.Size = UDim2.new(1, 0, 0, 40)
+abFreeMsg.Font = Enum.Font.Gotham
+abFreeMsg.TextSize = 9
+abFreeMsg.TextColor3 = Color3.fromRGB(230, 200, 150)
+abFreeMsg.TextXAlignment = Enum.TextXAlignment.Left
+abFreeMsg.TextYAlignment = Enum.TextYAlignment.Top
+abFreeMsg.TextWrapped = true
+abFreeMsg.Text = "If you PAID for it, you got scammed.\nReport the seller on Discord."
+abFreeMsg.Parent = abFree
+
+local abThanks = Instance.new("Frame")
+abThanks.Position = UDim2.fromOffset(0, 246)
+abThanks.Size = UDim2.new(1, -6, 0, 55)
+abThanks.BackgroundColor3 = COL_PANEL
+abThanks.BorderSizePixel = 0
+abThanks.Parent = aboutPage
+
+Instance.new("UICorner", abThanks).CornerRadius = UDim.new(0, 8)
+
+local abThanksPad = Instance.new("UIPadding", abThanks)
+abThanksPad.PaddingTop = UDim.new(0, 12)
+abThanksPad.PaddingBottom = UDim.new(0, 12)
+abThanksPad.PaddingLeft = UDim.new(0, 14)
+abThanksPad.PaddingRight = UDim.new(0, 14)
+
+local abThanksText = Instance.new("TextLabel")
+abThanksText.BackgroundTransparency = 1
+abThanksText.Position = UDim2.fromOffset(0, 0)
+abThanksText.Size = UDim2.new(1, 0, 1, 0)
+abThanksText.Font = Enum.Font.GothamBold
+abThanksText.TextSize = 11
+abThanksText.TextColor3 = COL_TEXT
+abThanksText.TextXAlignment = Enum.TextXAlignment.Left
+abThanksText.TextYAlignment = Enum.TextYAlignment.Center
+abThanksText.Text = "Thank you for using cat hub."
+abThanksText.Parent = abThanks
+
+end
+
+__buildPages()
+
+local allPages = {
+    [homeBtn]     = homePage,
+    [scriptBtn]   = scriptPage,
+    [settingsBtn] = settingsPage,
+    [creditBtn]   = creditPage,
+    [aboutBtn]    = aboutPage,
+}
+
+local allNavs = {homeBtn, scriptBtn, settingsBtn, creditBtn, aboutBtn}
+
+local function setActive(activeBtn)
+    for _, b in ipairs(allNavs) do
+        b.BackgroundTransparency = 1
+        b.BackgroundColor3 = COL_CARD
+        b.TextColor3 = COL_SUBTEXT
+    end
+    activeBtn.BackgroundTransparency = 0
+    activeBtn.BackgroundColor3 = COL_ACCENT
+    activeBtn.TextColor3 = COL_TEXT
+end
+
+local function showPage(page)
+    homePage.Visible = false
+    scriptPage.Visible = false
+    settingsPage.Visible = false
+    creditPage.Visible = false
+    aboutPage.Visible = false
+    page.Visible = true
+end
+
+for btn, page in pairs(allPages) do
+    btn.MouseButton1Click:Connect(function()
+        setActive(btn)
+        showPage(page)
+        ...
+    end)
+end
+
+for _, b in ipairs(allNavs) do
+    b.MouseEnter:Connect(function()
+        if b.BackgroundColor3 ~= COL_ACCENT then
+            b.BackgroundTransparency = 0.7
+            b.BackgroundColor3 = COL_CARD
+        end
+    end)
+    b.MouseLeave:Connect(function()
+        if b.BackgroundColor3 ~= COL_ACCENT then
+            b.BackgroundTransparency = 1
+        end
+    end)
+end
+
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+closeBtn.MouseEnter:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.15), { BackgroundColor3 = COL_RED, BackgroundTransparency = 0.3 }):Play()
+end)
+
+closeBtn.MouseLeave:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.15), { BackgroundTransparency = 1 }):Play()
+end)
+
+minimizeBtn.MouseEnter:Connect(function()
+    TweenService:Create(minimizeBtn, TweenInfo.new(0.15), { BackgroundColor3 = COL_CARD, BackgroundTransparency = 0.3 }):Play()
+end)
+
+minimizeBtn.MouseLeave:Connect(function()
+    TweenService:Create(minimizeBtn, TweenInfo.new(0.15), { BackgroundTransparency = 1 }):Play()
+end)
+
+local dragging = false
+local dragStart, startPos
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+main.BackgroundTransparency = 1
+header.BackgroundTransparency = 1
+sidebar.BackgroundTransparency = 1
+
+TweenService:Create(main, TweenInfo.new(0.5), { BackgroundTransparency = 0 }):Play()
+TweenService:Create(header, TweenInfo.new(0.5), { BackgroundTransparency = 0 }):Play()
+TweenService:Create(sidebar, TweenInfo.new(0.5), { BackgroundTransparency = 0 }):Play()
+
+print("[cat hub] v2.0 loaded.")
