@@ -31811,10 +31811,450 @@ Missing: %s]], __SenaV4ScrambleTradeIn.banner, __SenaV4ScrambleTradeIn.status, m
 		end
 	end
 
-	v4315()
+	CustomCatHubUI()
 end
 
 -- ===== SK Racing event (ghep tu SenaHub_RacingEvent.lua, chay doc lap bang getgenv().SenaRacing) =====
+-- ==========================================
+-- CAT HUB CUSTOM UI (Paste this above the 'do' block)
+-- ==========================================
+local function CustomCatHubUI()
+    pcall(function()
+        local ChloeX_Instance = genv.ChloeX_Instance
+        if type(ChloeX_Instance) == "table" and type(ChloeX_Instance.DestroyGui) == "function" then
+            ChloeX_Instance:DestroyGui()
+        end
+    end)
+    genv.ChloeX_Running = nil
+    genv.ChloeX_ReopenPrompt = nil
+    genv.ChloeX_Instance = nil
+
+    local SenaLibOverride = genv.SenaLibOverride
+    if type(SenaLibOverride) ~= "table" then
+        local ok, result = pcall(function()
+            return loadstring(game:HttpGet("https://raw.githubusercontent.com/Boongdeptraiso1thegioi/stealanegg/refs/heads/main/lib.lua"))()
+        end)
+        SenaLibOverride = ok and type(result) == "table" and result or nil
+    end
+
+    if not SenaLibOverride then
+        warn("[Sena] UI library failed to load")
+        return
+    end
+
+    -- Dropdown Helper Functions
+    local function v4320(p965)
+        local t196 = {}
+        local ipairs_ = ipairs
+        local v4323 = type(p965) == "table" and p965 or {}
+        for _, v in ipairs_(v4323) do
+            if v ~= "None" and v ~= "" then t196[#t196 + 1] = v end
+        end
+        return t196
+    end
+    local function v4326()
+        local t197 = {}
+        pcall(function()
+            for _, v in ipairs(v611.getRarities()) do t197[#t197 + 1] = v end
+        end)
+        if #t197 == 0 then t197 = {"Common","Uncommon","Rare","Epic","Legendary","Mythic","Cosmic","Secret","Eternal","Divine"} end
+        return t197
+    end
+    local function v4330(p966)
+        local t198 = { "All" }
+        for _, v in ipairs(p966) do if v ~= "All" then t198[#t198 + 1] = v end end
+        return t198
+    end
+
+    local t199 = {}
+    pcall(function()
+        for _, v in ipairs(v611.getMutations()) do t199[#t199 + 1] = v end
+    end)
+    if #t199 == 0 then t199 = {"Golden","Rainbow","Shocked","Frozen","Burnt","Boss"} end
+
+    local v4522 = v4320({"None"})
+    local v4523 = v4320({"None"})
+    local v4524 = v4326()
+    local v4525 = v4330(v4320({"None"}))
+
+    -- Callback Functions for UI Toggles
+    local v4526 = function(p981) senaV4Config.AutoSteal = p981 == true; if v612 then v612:setEnabled(senaV4Config.AutoSteal) end end
+    local v4527 = function(p982) senaV4Config.StealHoldSeconds = math.clamp(math.floor((tonumber(p982) or 5) + 0.5), 1, 10) end
+    local v4528 = function(p983) senaV4Config.GodMode = p983 == true; if v615 then v615:setEnabled(senaV4Config.GodMode) end end
+    local v4529 = function(p984) senaV4Config.AutoTreadmillIdle = p984 == true; local v4689 = genv.__SenaV4TreadmillManager; if v4689 then v4689:setIdleFarm(senaV4Config.AutoTreadmillIdle and not senaV4Config.AntiTreadmill) end end
+    local v4530 = function(p985) senaV4Config.AntiTreadmill = p985 == true; local v4690 = genv.__SenaV4TreadmillManager; if senaV4Config.AntiTreadmill then if v4690 then v4690:setIdleFarm(false) end; t145.startAntiTreadmillLoop() elseif v4690 then v4690:setIdleFarm(senaV4Config.AutoTreadmillIdle) end end
+    local v4531 = function(p986) senaV4Config.HopNoMatch = p986 == true; if senaV4Config.HopNoMatch then t145.startHopLoop() end end
+    local v4532 = function(p987) if type(p987) == "table" then p987 = p987[1] end; senaV4Config.PrivateServerMax = tostring(p987 or "2") end
+    local v4533 = function(p988) senaV4Config.PrivateServerAuto = p988 == true; if senaV4Config.PrivateServerAuto then t145.startPrivateAutoHop() end end
+    local v4534 = function(p989) senaV4Config.HopCooldown = math.max(1, math.floor(tonumber(p989) or 5)) end
+    local v4535 = function(p990) senaV4Config.AutoTreadmillUpgrade = p990 == true; local v4691 = genv.__SenaV4TreadmillManager; if v4691 then v4691:setAutoUpgrade(senaV4Config.AutoTreadmillUpgrade) end end
+    local v4536 = function(p991) local v4692 = type(p991) == "string" and p991 or ""; local stealMode = (v4692:find("Fly") or v4692:find("High")) and "Fly" or "Instant"; local flyAerial = stealMode == "Fly" and (v4692:find("%(Fly%)") ~= nil or v4692:lower():find("aerial") ~= nil); senaV4Config.StealMode = stealMode; senaV4Config.FlyAerial = flyAerial; if v612 then v612:setStealMode(stealMode, flyAerial) end end
+    local v4537 = function(p992) local v4695 = math.floor(math.clamp(math.floor((tonumber(p992) or 600) + 0.5), 500, 1000) / 10 + 0.5); v223(v4695); if v612 then v612:setSpeed(v4695) end end
+    local v4538 = function(p993, p994, p995) local v4696 = v4320(p995); if p993 == "names" then senaV4Config.StealNamesFilter = v4696 elseif p993 == "areas" then senaV4Config.StealAreas = v4696 elseif p993 == "rarities" then senaV4Config.StealRarities = v4696 end; if v612 then v612:setFilter(p993, v4696); v612:setFilterEnabled(p994, #v4696 > 0) end end
+    local v4539 = function(p996) senaV4Config:applyStealValueInput(p996); if v612 then v612:setMinValuePerSec(senaV4Config.StealMinValue or 0) end end
+    local v4540 = function(p997) local v4697 = v4320(p997); senaV4Config.StealMutations = v4697; if v612 then v612:setFilter("mutations", v4697); v612:setFilterEnabled("mutation", #v4697 > 0) end end
+    local v4541 = function(p998) local tonumber_ = tonumber; local v4699 = tostring(p998 or ""):gsub("[^%d%.]", ""); local stealMinWeight = tonumber_(v4699) or 0; senaV4Config.StealMinWeight = stealMinWeight; if v612 then v612:setMinWeightKg(stealMinWeight) end end
+    local v4542 = function(p999) senaV4Config.StealPriority = tostring(p999 or "Rarity"); if v612 then v612:setHighestValueFirst(senaV4Config.StealPriority == "Highest Value"); v612:setHeaviestFirst(senaV4Config.StealPriority == "Heaviest") end end
+    local v4543 = function(p1000) senaV4Config.EggESP = p1000 == true; if v612 then v612:setEggEsp(senaV4Config.EggESP) end end
+    local v4544 = function(p1001) local v4701 = v4320(p1001); senaV4Config.EspDetails = v4701; if not v612 then return end; local t215 = {}; for _, v in ipairs(v4701) do t215[v] = true end; v612:setEspOption("name", t215.Name == true); v612:setEspOption("rarity", t215.Rarity == true); v612:setEspOption("value", t215.Value == true); v612:setEspOption("kg", t215.Weight == true); v612:setEspOption("mutation", t215.Mutation == true); v612:setEspOption("placed", t215["Placed Eggs"] == true) end
+    local v4545 = function(p1002) senaV4Config.ScrambleTradeInBanners = v4320(p1002) end
+    local v4546 = function(p1003) t145.setBackpackRates(p1003 == true) end
+    local v4547 = function(p1004) senaV4Config.AntiGuardKnockback = p1004 == true; local __SenaV4AntiGuard = genv.__SenaV4AntiGuard; if __SenaV4AntiGuard and type(__SenaV4AntiGuard.setEnabled) == "function" then pcall(__SenaV4AntiGuard.setEnabled, __SenaV4AntiGuard, senaV4Config.AntiGuardKnockback) end end
+    local v4548 = function(p1005) senaV4Config.AutoFavorite = p1005 == true end
+    local v4549 = function(p1006) senaV4Config.FavMode = p1006 == "Species" and "Species" or "Rarity" end
+    local v4550 = function(p1007) senaV4Config.FavRarities = v4320(p1007) end
+    local v4551 = function(p1008) senaV4Config.FavSpecies = v4320(p1008) end
+    local v4552 = function(p1009) senaV4Config.AutoEquipBest = p1009 == true end
+    local v4553 = function(p1010) senaV4Config.AutoClaimOffline = p1010 == true end
+    local v4554 = function(p1011) senaV4Config.AutoBaseUpgrade = p1011 == true end
+    local v4555 = function(p1012) senaV4Config.AutoClaimAlmanac = p1012 == true end
+    local v4556 = function(p1013) senaV4Config.AutoFusePets = p1013 == true end
+    local v4557 = function(p1014) senaV4Config.FuseSelectedOnly = p1014 == "Selected Species" end
+    local v4558 = function(p1015) senaV4Config.FuseRarities = v4320(p1015) end
+    local v4559 = function(p1016) senaV4Config.FuseSpecies = v4320(p1016) end
+    local v4560 = function(p1017) local __SenaV4Roaming = genv.__SenaV4Roaming; if __SenaV4Roaming and type(__SenaV4Roaming.setNoclip) == "function" then pcall(__SenaV4Roaming.setNoclip, p1017 == true) end end
+    local v4561 = function(p1018) local __SenaV4Roaming = genv.__SenaV4Roaming; if __SenaV4Roaming and type(__SenaV4Roaming.setBottingMode) == "function" then pcall(__SenaV4Roaming.setBottingMode, p1018 == true) end end
+    local v4562 = function(p1019) senaV4Config.AntiCutscene = p1019 == true end
+    local v4564 = function(p1027) senaV4Config.ScrambleAutoBuy = p1027 == true end
+    local v4565 = function(p1030) senaV4Config.ScrambleBuyList = v4320(p1030) end
+    local v4566 = function(p1031) senaV4Config.AutoPlace = p1031 == true; if senaV4Config.AutoPlace then task.spawn(t24.AutoPlaceLoop) end end
+    local v4567 = function(p1032) senaV4Config.AutoHatch = p1032 == true; if senaV4Config.AutoHatch then task.spawn(t24.AutoHatchLoop) end end
+    local v4568 = function(p1033) senaV4Config.AutoMutation = p1033 == true; if senaV4Config.AutoMutation then task.spawn(t24.AutoMutationLoop) end end
+    local v4569 = function(p1034) senaV4Config.AutoRingEvent = p1034 == true; if senaV4Config.AutoRingEvent then t24.RingEventLoop() end end
+    local v4570 = function(p1035) senaV4Config.MutationChoice = p1035 == "Fractured" and "Fractured" or "Scrambled" end
+    local v4571 = function(p1036) senaV4Config.MutationSpecies = v4320(p1036) end
+    local v4572 = function(p1037) senaV4Config.MutationRarities = v4320(p1037) end
+    local v4573 = function(p1038) senaV4Config.MutationRetry = p1038 == true end
+    local v4574 = function(p1039) senaV4Config.AutoSell = p1039 == true; if senaV4Config.AutoSell then t24.startAutoSellLoop() end end
+    local v4575 = function(p1040) senaV4Config.AutoSellEgg = p1040 == true; if senaV4Config.AutoSellEgg then t24.startAutoSellEggLoop() end end
+    local v4576 = function(p1041) senaV4Config.SellPetMaxRate = v4584(p1041) end
+    local v4577 = function(p1042) senaV4Config.SellEggMaxRate = v4584(p1042) end
+    local v4717 = function(p1043) local v4718 = senaV4Config.StartupBoost == true; senaV4Config.StartupBoost = p1043 == true; if not senaV4Config.StartupBoost then u4716 = false; if v4718 or t15.snapshot then task.spawn(t15.revert) end; return end; if senaV4Config.StartupBoost and not u4716 then u4716 = true; task.spawn(function() task.wait(1.5); if v16() and senaV4Config.StartupBoost then v390() end; task.wait(4); if v16() and senaV4Config.StartupBoost then v390() end end) end end
+    local v4719 = function(p1044) if p1044 == true then task.spawn(v391) end end
+    local v4720 = function(p1045) local __SenaV4SetCapFps = genv.__SenaV4SetCapFps; if type(__SenaV4SetCapFps) == "function" then __SenaV4SetCapFps(p1045 == true and 240 or 60) end end
+    local v4722 = function(p1046) senaV4Config.FlyForCapture = p1046 == true; local v4748 = genv.__SenaV4MovementExtras; if v4748 then v4748:setFlyForCapture(senaV4Config.FlyForCapture) end end
+    local v4723 = function(p1047) senaV4Config.InstantGrab = p1047 == true; local v4749 = genv.__SenaV4MovementExtras; if v4749 then v4749:setInstantGrab(senaV4Config.InstantGrab) end end
+    local v4724 = function(p1049) senaV4Config.AutoStealCapture = p1049 == true end
+    local v4725 = function(p1050) senaV4Config.InfiniteJump = p1050 == true; local v4759 = genv.__SenaV4MovementExtras; if v4759 then v4759:setInfiniteJump(senaV4Config.InfiniteJump) end end
+    local v4726 = function(p1052) senaV4Config.AntiHitGuard = p1052 == true; local __SenaV4AntiHitGuard = genv.__SenaV4AntiHitGuard; if __SenaV4AntiHitGuard then __SenaV4AntiHitGuard:setEnabled(senaV4Config.AntiHitGuard) end end
+    local v4727 = function(p1053) senaV4Config.AntiAFK = p1053 == true; genv.__SenaV4AntiAfkEnabled = senaV4Config.AntiAFK; if type(genv.__SenaV4SetAntiAfkEnabled) == "function" then genv.__SenaV4SetAntiAfkEnabled(senaV4Config.AntiAFK) end end
+    local v4728 = function(p1054) senaV4Config.AutoReconnect = p1054 == true; v2526.autoReconnect = senaV4Config.AutoReconnect; if getgenv then getgenv().SNE_AutoReconnect = senaV4Config.AutoReconnect end end
+    local v4729 = function(p1055) senaV4Config.AutoExecute = p1055 == true; v2526.autoExecute = senaV4Config.AutoExecute; if getgenv then getgenv().SNE_AutoExecute = senaV4Config.AutoExecute end; if p1055 then pcall(v2528) else pcall(v2530) end end
+    local v4734 = function(p1058) senaV4Config.StealPlayers = p1058 == true; if __SenaV4PlayerSteal then __SenaV4PlayerSteal:setEnabled(senaV4Config.StealPlayers) end end
+    local v4735 = function(p1059) senaV4Config.StealPlayerRarities = v4320(p1059) end
+    local v4736 = function(p1061) senaV4Config.StealPlayerMinValue = v4768(p1061) end
+    local v4737 = function(p1062) senaV4Config.AutoIndex = p1062 == true; if v612 then v612:setIndexObjective(senaV4Config.AutoIndex) end end
+    local v4738 = function(p1063) senaV4Config.WebhookEnabled = p1063 == true end
+    local v4739 = function(p1064) senaV4Config.WebhookURL = type(p1064) == "string" and p1064 or "" end
+    local v4740 = function(p1065) senaV4Config.WebhookRarities = v4320(p1065) end
+    local v4741 = function(p1066) senaV4Config.WebhookMinValue = v4768(p1066) end
+    local v4750 = function(p1048) genv.__SenaV4AdminBoost = p1048 == true; if v612 then v612:setSpeed(senaV4Config.TweenSpeedMultiplier or 60) end; genv.__SenaV4AdminBoostSpeedGen = (genv.__SenaV4AdminBoostSpeedGen or 0) + 1; local __SenaV4AdminBoostSpeedGen = genv.__SenaV4AdminBoostSpeedGen; if p1048 == true then task.spawn(function() local RunService2 = game:GetService("RunService"); local v4753; local v4754; while genv.__SenaV4AdminBoostSpeedGen == __SenaV4AdminBoostSpeedGen and v16() do local Character = LocalPlayer.Character; local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid"); if Humanoid then local WalkSpeed = Humanoid.WalkSpeed; if v4753 == nil or v4754 == nil or math.abs(WalkSpeed - v4754) > 0.5 then v4753 = WalkSpeed > 900 and WalkSpeed / 10 or WalkSpeed end; if v4753 and v4753 > 0 then local walkSpeed = v4753 * 10; Humanoid.WalkSpeed = walkSpeed; v4754 = walkSpeed end else v4753 = nil; v4754 = nil end; RunService2.Heartbeat:Wait() end end) end end
+
+    -- Initialize Window
+    local v4742 = SenaLibOverride:Window({
+        Title = "CAT HUB",
+        Footer = "by Cat",
+        Folder = "CAT",
+        Version = 1,
+        Color = Color3.fromRGB(232, 232, 238),
+        Image = "rbxassetid://132401977734278"
+    })
+
+    local t216 = {}
+
+    -- ==========================================
+    -- HOME TAB (Dashboard)
+    -- ==========================================
+    local v4790 = v4742:AddTab({ Name = "Home", Icon = "home" })
+    local homeSection = v4790:AddSection("Dashboard")
+    local welcomePara = homeSection:AddParagraph({
+        Title = "WELCOME BACK",
+        Content = string.format("User: %s (@%s)\nVersion: 2.0", LocalPlayer.DisplayName, LocalPlayer.Name)
+    })
+    local statsSection = v4790:AddSection("Statistics")
+    local fpsPara = statsSection:AddParagraph({ Title = "FPS", Content = "Calculating..." })
+    local pingPara = statsSection:AddParagraph({ Title = "PING", Content = "Calculating..." })
+    local playerPara = statsSection:AddParagraph({ Title = "PLAYERS", Content = "Calculating..." })
+    local sessionPara = statsSection:AddParagraph({ Title = "SESSION TIME", Content = "00:00:00" })
+    local joinIdPara = statsSection:AddParagraph({ Title = "JOIN ID", Content = game.JobId })
+    local hopSection = v4790:AddSection("Server Management")
+    hopSection:AddButton({
+        Title = "Hop Server",
+        Content = "Find a quieter server",
+        Callback = function()
+            task.spawn(function() if t145 and t145.hopPrivateOnce then t145.hopPrivateOnce() end end)
+        end
+    })
+    task.spawn(function()
+        local startTime = tick(); local fps = 60; local frames = 0; local lastTime = tick()
+        while v16() do
+            task.wait(1); frames = frames + 1; local now = tick()
+            if now - lastTime >= 1 then fps = frames / (now - lastTime); frames = 0; lastTime = now end
+            local ping = 0; pcall(function() ping = math.floor(LocalPlayer:GetNetworkPing() * 1000) end)
+            pcall(function()
+                fpsPara:SetContent(string.format("%d FPS", math.floor(fps)))
+                pingPara:SetContent(string.format("%d ms PING", ping))
+                playerPara:SetContent(string.format("%d PLAYERS", #Players:GetPlayers()))
+                local sessionTime = tick() - startTime
+                sessionPara:SetContent(string.format("%02d:%02d:%02d", math.floor(sessionTime / 3600), math.floor((sessionTime % 3600) / 60), math.floor(sessionTime % 60)))
+            end)
+        end
+    end)
+
+    -- ==========================================
+    -- ADMIN ABUSE TAB
+    -- ==========================================
+    local v4791 = v4742:AddTab({ Name = "Admin Abuse", Icon = "flame" })
+    t216.autoStealCapture = v4791:AddSection("Capture The Egg"):AddToggle({ Title = "Auto Steal Capture", Content = "Grabs the event egg.", Default = false, Callback = v4724 })
+    local Movement = v4791:AddSection("Movement")
+    t216.adminBoost = Movement:AddToggle({ Title = "Admin Abuse Boost", Default = false, Callback = v4750 })
+    t216.flyForCapture = Movement:AddToggle({ Title = "Fly For Capture", Default = false, Callback = v4722 })
+    t216.instantGrab = Movement:AddToggle({ Title = "Instant Grab", Default = false, Callback = v4723 })
+    t216.infiniteJump = Movement:AddToggle({ Title = "Infinite Jump", Default = false, Callback = v4725 })
+    t216.noclip = Movement:AddToggle({ Title = "Noclip", Default = false, Callback = v4560 })
+    t216.autoRingEvent = v4791:AddSection("Ring Event"):AddToggle({ Title = "Auto Ring Event", Default = false, Callback = v4569 })
+
+    -- ==========================================
+    -- MAIN TAB
+    -- ==========================================
+    local v4793 = v4742:AddTab({ Name = "Main", Icon = "home" })
+    local v4794 = v4793:AddSection("Auto Steal")
+    t216.autoSteal = v4794:AddToggle({ Title = "Auto Steal", Default = false, Callback = v4526 })
+    t216.helpFriend = v4794:AddToggle({ Title = "Help Friend", Default = false, Callback = function(p1069) senaV4Config.HelpFriend = p1069 == true end })
+    t216.godMode = v4794:AddToggle({ Title = "Aura Bat", Default = false, Callback = v4528 })
+    t216.stealMode = v4794:AddDropdown({ Title = "Steal Mode", Options = {"Low Speed User","High Speed User","High Speed User (Fly)"}, Default = "High Speed User", Callback = v4536 })
+    t216.stealHold = v4794:AddSlider({ Title = "Low Speed Multiplier", Min = 1, Max = 10, Default = 5, Increment = 1, Callback = v4527 })
+    local v4795 = v4793:AddSection("Egg Filter")
+    t216.names = v4795:AddDropdown({ Title = "Filter By Egg Name", Options = v4522, Multi = true, Default = {}, Callback = function(p1070) v4538("names", "name", p1070) end })
+    t216.rarities = v4795:AddDropdown({ Title = "Filter By Rarity", Options = v4524, Multi = true, Default = {}, Callback = function(p1071) v4538("rarities", "rarity", p1071) end })
+    t216.areas = v4795:AddDropdown({ Title = "Select Area", Options = v4523, Multi = true, Default = {}, Callback = function(p1072) v4538("areas", "area", p1072) end })
+    t216.value = v4795:AddInput({ Title = "Steal By Value", Placeholder = "e.g. 500k", Default = "", Callback = v4539 })
+    t216.mutations = v4795:AddDropdown({ Title = "Filter By Mutation", Options = t199, Multi = true, Default = {}, Callback = v4540 })
+    t216.weight = v4795:AddInput({ Title = "Steal By Weight", Placeholder = "e.g. 12000", Default = "", Callback = v4541 })
+    t216.priority = v4795:AddDropdown({ Title = "Steal Priority", Options = {"Rarity","Highest Value","Heaviest"}, Default = "Rarity", Callback = v4542 })
+    t216.autoIndex = v4795:AddToggle({ Title = "Auto Index", Default = false, Callback = v4737 })
+    local v4796 = v4793:AddSection("Egg ESP")
+    t216.eggEsp = v4796:AddToggle({ Title = "Egg ESP", Default = false, Callback = v4543 })
+    t216.espDetails = v4796:AddDropdown({ Title = "ESP Details", Options = {"Name","Rarity","Value","Weight","Mutation","Placed Eggs"}, Multi = true, Default = {"Name","Rarity","Value"}, Callback = v4544 })
+    t216.backpackRates = v4796:AddToggle({ Title = "Backpack Value/s", Default = false, Callback = v4546 })
+    local v4797 = v4793:AddSection("Steal Webhook")
+    t216.webhookEnabled = v4797:AddToggle({ Title = "Steal Webhook", Default = false, Callback = v4738 })
+    t216.webhookUrl = v4797:AddInput({ Title = "Webhook URL", Placeholder = "https://discord.com/api/webhooks/...", Default = "", Callback = v4739 })
+    t216.webhookRarities = v4797:AddDropdown({ Title = "Notify Rarities", Options = v4524, Multi = true, Default = {}, Callback = v4740 })
+    t216.webhookValue = v4797:AddInput({ Title = "Notify Minimum Value", Placeholder = "e.g. 500k", Default = "", Callback = v4741 })
+    v4797:AddButton({ Title = "Test Webhook", Callback = function() if genv.__SenaV4Webhook then genv.__SenaV4Webhook.test() end end })
+
+    -- ==========================================
+    -- AUTO TAB
+    -- ==========================================
+    local v4799 = v4742:AddTab({ Name = "Auto", Icon = "repeat" })
+    t216.privateTab = v4742:AddTab({ Name = "Private Server", Icon = "users" })
+    local v4800 = v4799:AddSection("Egg Automation")
+    t216.autoPlace = v4800:AddToggle({ Title = "Auto Place Egg", Default = false, Callback = v4566 })
+    t216.placeRarity = v4800:AddDropdown({ Title = "Place Egg Rarity", Options = v4524, Multi = true, Default = {}, Callback = function(p1073) senaV4Config.PlaceRarities = v4320(p1073) end })
+    t216.autoHatch = v4800:AddToggle({ Title = "Auto Hatch Egg", Default = false, Callback = v4567 })
+    t216.mutationChoice = v4800:AddDropdown({ Title = "Select Mutation", Options = {"Scrambled","Fractured"}, Default = "Scrambled", Callback = v4570 })
+    t216.mutationSpecies = v4800:AddDropdown({ Title = "Mutate Egg Name", Options = v4522, Multi = true, Default = {}, Callback = v4571 })
+    t216.mutationRarity = v4800:AddDropdown({ Title = "Mutate Egg Rarity", Options = v4524, Multi = true, Default = {}, Callback = v4572 })
+    t216.mutationRetry = v4800:AddToggle({ Title = "Retry Until Mutated", Default = true, Callback = v4573 })
+    t216.autoMutation = v4800:AddToggle({ Title = "Auto Apply Mutation", Default = false, Callback = v4568 })
+    v4800:AddButton({ Title = "Apply Mutation Now", Callback = function() task.spawn(function() pcall(t24.mutationSweep) end) end })
+
+    -- ==========================================
+    -- PETS TAB
+    -- ==========================================
+    local v4801 = v4742:AddTab({ Name = "Pets", Icon = "sparkles" })
+    local v4802 = v4801:AddSection("Pet Selling")
+    t216.autoSell = v4802:AddToggle({ Title = "Auto Sell Pet", Default = false, Callback = v4574 })
+    v4519 = v4802:AddDropdown({ Title = "Pet Name Filter", Options = v4525, Multi = true, Default = {}, Callback = function(p1074) senaV4Config.SellNames = v4320(p1074) end })
+    v4520 = v4802:AddDropdown({ Title = "Pet Rarity Filter", Options = v4330(v4524), Multi = true, Default = {}, Callback = function(p1075) senaV4Config.SellRarities = v4320(p1075) end })
+    t216.sellPetValue = v4802:AddInput({ Title = "Sell By Value", Placeholder = "e.g. 100k", Default = "", Callback = v4576 })
+    local v4803 = v4801:AddSection("Egg Selling")
+    t216.autoSellEgg = v4803:AddToggle({ Title = "Auto Sell Egg", Default = false, Callback = v4575 })
+    v4521 = v4803:AddDropdown({ Title = "Egg Rarity Filter", Options = v4330(v4524), Multi = true, Default = {}, Callback = function(p1076) senaV4Config.SellEggRarities = v4320(p1076) end })
+    t216.sellEggValue = v4803:AddInput({ Title = "Sell By Value", Placeholder = "e.g. 100k", Default = "", Callback = v4577 })
+
+    -- ==========================================
+    -- EVENTS TAB
+    -- ==========================================
+    local v4804 = v4742:AddTab({ Name = "Events", Icon = "flame" })
+    local v4805 = v4801:AddSection("Pet Favorite")
+    t216.autoFavorite = v4805:AddToggle({ Title = "Auto Favorite", Default = false, Callback = v4548 })
+    t216.favoriteRule = v4805:AddDropdown({ Title = "Favorite Rule", Options = {"Rarity","Species"}, Default = "Rarity", Callback = v4549 })
+    t216.favoriteRarities = v4805:AddDropdown({ Title = "Rarities to Keep", Options = v4524, Multi = true, Default = {}, Callback = v4550 })
+    t216.favoriteSpecies = v4805:AddDropdown({ Title = "Species to Keep", Options = v4522, Multi = true, Default = {}, Callback = v4551 })
+    t216.unfavoriteAll = v4805:AddButton({ Title = "Unfavorite Everything", Callback = function() local n83 = genv.__SenaV4PetBarn and genv.__SenaV4PetBarn.unfavoriteAll() or 0; SenaLibOverride:Notify({Title = "Pet Favorite", Content = n83 .. " pets unfavorited", Duration = 3}) end })
+    local v4808 = v4801:AddSection("Pet Fusion")
+    t216.autoFuse = v4808:AddToggle({ Title = "Auto Fuse", Default = false, Callback = v4556 })
+    t216.fuseRule = v4808:AddDropdown({ Title = "Fusion Rule", Options = {"Any Species","Selected Species"}, Default = "Any Species", Callback = v4557 })
+    t216.fuseRarities = v4808:AddDropdown({ Title = "Rarities to Fuse", Options = v4524, Multi = true, Default = {}, Callback = v4558 })
+    t216.fuseSpecies = v4808:AddDropdown({ Title = "Species to Fuse", Options = v4522, Multi = true, Default = {}, Callback = v4559 })
+    local v4809 = v4799:AddSection("Equip & Collect")
+    t216.autoEquipBest = v4809:AddToggle({ Title = "Auto Equip Best", Default = false, Callback = v4552 })
+    t216.autoClaimOffline = v4809:AddToggle({ Title = "Collect Offline Income", Default = false, Callback = v4553 })
+    t216.autoBaseUpgrade = v4809:AddToggle({ Title = "Auto Upgrade Base", Default = false, Callback = v4554 })
+    t216.autoClaimAlmanac = v4809:AddToggle({ Title = "Auto Claim Almanac", Default = false, Callback = v4555 })
+    t216.upgradeBaseOnce = v4809:AddButton({ Title = "Upgrade Base Now", Callback = function() local __SenaV4Upgrades = genv.__SenaV4Upgrades; local v4811, s18 = false, "Upgrades not ready"; if __SenaV4Upgrades and type(__SenaV4Upgrades.upgradeBase) == "function" then v4811, s18 = __SenaV4Upgrades.upgradeBase() end; SenaLibOverride:Notify({Title = "Base", Content = v4811 and "Base upgraded" or tostring(s18), Duration = 3}) end })
+
+    -- Butterfly & Scramble
+    local __SenaV4ButterflyRuntime = genv.__SenaV4ButterflyRuntime
+    local v4818 = v4804:AddSection("Butterfly Bloom")
+    local v4819 = v4818:AddParagraph({ Title = "Bloom Status", Content = "Reading the Bloom schedule..." })
+    t216.bloomAutoNet = v4818:AddToggle({ Title = "Auto Claim Net", Default = false, Callback = function(p1077) senaV4Config.ButterflyAutoNet = p1077 == true end })
+    t216.bloomAutoCatch = v4818:AddToggle({ Title = "Auto Catch", Default = false, Callback = function(p1078) senaV4Config.ButterflyAutoCatch = p1078 == true end })
+    local v4820 = __SenaV4ButterflyRuntime and __SenaV4ButterflyRuntime.modeOptions() or { "Tween to Butterfly" }
+    t216.bloomMode = v4818:AddDropdown({ Title = "Catch Mode", Options = v4820, Default = v4820[1], Callback = function(p1079) if __SenaV4ButterflyRuntime then __SenaV4ButterflyRuntime.setMode(p1079) end end })
+    t216.bloomTiers = v4818:AddDropdown({ Title = "Catch Tiers", Options = __SenaV4ButterflyRuntime and __SenaV4ButterflyRuntime.tierOptions() or {"Radiant","Amethyst","Sapphire","Emerald"}, Multi = true, Default = {}, Callback = function(p1080) if __SenaV4ButterflyRuntime then __SenaV4ButterflyRuntime.setTiers(v4320(p1080)) end end })
+    t216.bloomEsp = v4818:AddToggle({ Title = "Butterfly ESP", Default = false, Callback = function(p1081) senaV4Config.ButterflyEsp = p1081 == true end })
+    t216.bloomAutoTrade = v4818:AddToggle({ Title = "Auto Trade Up", Default = false, Callback = function(p1082) senaV4Config.ButterflyAutoTrade = p1082 == true end })
+    local v4821 = __SenaV4ButterflyRuntime and __SenaV4ButterflyRuntime.recipeOptions() or { "All Recipes" }
+    t216.bloomRecipe = v4818:AddDropdown({ Title = "Trade Recipe", Options = v4821, Default = v4821[1], Callback = function(p1083) if __SenaV4ButterflyRuntime then __SenaV4ButterflyRuntime.setRecipe(p1083) end end })
+    t216.bloomAutoCraft = v4818:AddToggle({ Title = "Auto Craft Essence", Default = false, Callback = function(p1084) senaV4Config.ButterflyAutoCraft = p1084 == true end })
+    local v4839 = v4804:AddSection("Dr Scramble Event")
+    t216.scrambleBuy = v4839:AddToggle({ Title = "Auto Buy Shop", Default = false, Callback = v4564 })
+    t216.scrambleBuyList = v4839:AddDropdown({ Title = "Shop Buy List", Options = t218, Multi = true, Default = {}, Callback = v4565 })
+    t216.scrambleTradeInTrade = v4839:AddToggle({ Title = "Auto Trade-In", Default = false, Callback = function(p1091) senaV4Config.ScrambleTradeInTrade = p1091 == true end })
+    t216.scrambleTradeInReroll = v4839:AddToggle({ Title = "Auto Free Reroll", Default = false, Callback = function(p1092) senaV4Config.ScrambleTradeInReroll = p1092 == true end })
+    t216.scrambleTradeInBanners = v4839:AddDropdown({ Title = "Target Banners", Options = {"Biohazard Pets","Experimental Pets","Unstable DNA"}, Multi = true, Default = {}, Callback = v4545 })
+    t216.scrambleBossAuto = v4839:AddToggle({ Title = "Auto Boss", Default = false, Callback = function(p1093) senaV4Config.ScrambleBossAuto = p1093 == true; if v612 and type(v612._reconcileScramblePortal) == "function" then pcall(v612._reconcileScramblePortal, v612) end end })
+    local Treadmill = v4799:AddSection("Treadmill")
+    t216.autoTreadmill = Treadmill:AddToggle({ Title = "Auto Treadmill", Default = false, Callback = v4529 })
+    t216.treadmillUpgrade = Treadmill:AddToggle({ Title = "Auto Upgrade Treadmill", Default = false, Callback = v4535 })
+
+    -- ==========================================
+    -- MISC TAB
+    -- ==========================================
+    local v4851 = v4742:AddTab({ Name = "Misc", Icon = "settings" })
+    local Performance = v4851:AddSection("Performance")
+    t216.startupBoost = Performance:AddToggle({ Title = "Startup Boost", Default = true, Callback = v4717 })
+    t216.boostFps = Performance:AddToggle({ Title = "Boost FPS", Default = false, Callback = v4719 })
+    t216.uncapFps = Performance:AddToggle({ Title = "Uncap FPS", Default = true, Callback = v4720 })
+    local Guard = v4851:AddSection("Guard")
+    t216.antiGuardKnockback = Guard:AddToggle({ Title = "Anti Guard Knockback", Default = true, Callback = v4547 })
+    t216.antiHitGuard = Guard:AddToggle({ Title = "Anti Hit Guard", Default = false, Callback = v4726 })
+    local Windows = v4851:AddSection("Windows")
+    Windows:AddButton({ Title = "Egg Logs", Callback = function() senaPanels.openLogs() end })
+    Windows:AddButton({ Title = "Egg Board", Callback = function() senaPanels.openBoard() end })
+    Windows:AddButton({ Title = "Inventory & Base", Callback = function() senaPanels.openInventory() end })
+    Windows:AddButton({ Title = "Egg Checker", Callback = function() senaPanels.openChecker() end })
+    Windows:AddButton({ Title = "Egg Data & History", Callback = function() senaPanels.openAnalyst() end })
+    Windows:AddButton({ Title = "Open All Windows", SubTitle = "Close All Windows", Callback = function() senaPanels.openAll() end, SubCallback = function() senaPanels.closeAll() end })
+    t216.antiTreadmill = v4851:AddSection("Blocker"):AddToggle({ Title = "Anti Treadmill", Default = false, Callback = v4530 })
+    local v4855 = v4851:AddSection("Server Hop")
+    t216.hopNoMatch = v4855:AddToggle({ Title = "Hop When Nothing Matches", Default = false, Callback = v4531 })
+    t216.hopCooldown = v4855:AddSlider({ Title = "Hop Cooldown", Min = 1, Max = 60, Default = 5, Increment = 1, Callback = v4534 })
+    local v4856 = t216.privateTab:AddSection("Find Private Server", true)
+    local v4857 = v4856:AddParagraph({ Title = "Current Server", Content = "Checking..." })
+    t216.privateServerMax = v4856:AddDropdown({ Title = "Max Players", Options = {"1","2","3","4","5"}, Default = "2", Callback = v4532 })
+    v4856:AddButton({ Title = "Hop Server Now", Callback = function() task.spawn(function() t145.hopPrivateOnce() end) end })
+    t216.privateServerAuto = v4856:AddToggle({ Title = "Auto Hop", Default = false, Callback = v4533 })
+    local Roaming = v4851:AddSection("Roaming")
+    t216.waypoint = Roaming:AddDropdown({ Title = "Waypoint", Options = t217, Default = t217[1], Callback = function(p1094) u4745 = p1094 end })
+    Roaming:AddButton({ Title = "Teleport To Waypoint", Callback = function() local __SenaV4Roaming = genv.__SenaV4Roaming; if __SenaV4Roaming then __SenaV4Roaming.teleportWaypoint(u4745) end end })
+    local v4863 = v4851:AddSection("Run Once")
+    v4863:AddButton({ Title = "Place Everything Now", Callback = function() runOnce("AutoPlace", t24.AutoPlaceLoop) end })
+    v4863:AddButton({ Title = "Hatch Everything Ready", Callback = function() runOnce("AutoHatch", t24.AutoHatchLoop) end })
+    v4863:AddButton({ Title = "Sell Pets Now", Callback = function() runOnce("AutoSell", t24.startAutoSellLoop) end })
+    v4863:AddButton({ Title = "Sell Eggs Now", Callback = function() runOnce("AutoSellEgg", t24.startAutoSellEggLoop) end })
+    local Session = v4851:AddSection("Session")
+    t216.bottingMode = Session:AddToggle({ Title = "Botting Mode", Default = false, Callback = v4561 })
+    t216.antiCutscene = Session:AddToggle({ Title = "Anti Cutscene", Default = false, Callback = v4562 })
+    Session:AddButton({ Title = "Rejoin This Server", Callback = function() game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end })
+    Session:AddButton({ Title = "Stop & Unload", Callback = function() for _, v in ipairs({"AutoSteal","AutoPlace","AutoHatch","AutoSell","AutoSellEgg","StealPlayers","AutoFavorite","AutoFusePets","AutoEquipBest","AutoClaimOffline","AutoBaseUpgrade","AutoClaimAlmanac","Noclip","BottingMode","AntiCutscene"}) do senaV4Config[v] = false end; v4560(false); v4561(false); if v612 then pcall(v612.setEnabled, v612, false) end; if type(genv.__SenaV4HubShutdown) == "function" then task.delay(0.2, function() pcall(genv.__SenaV4HubShutdown) end) end end })
+    local Player = v4851:AddSection("Player")
+    t216.antiAfk = Player:AddToggle({ Title = "Anti AFK", Default = true, Callback = v4727 })
+    t216.autoReconnect = Player:AddToggle({ Title = "Auto Reconnect", Default = true, Callback = v4728 })
+    t216.autoExecute = Player:AddToggle({ Title = "Auto Execute (Rejoin)", Default = false, Callback = v4729 })
+
+    -- ==========================================
+    -- STEAL PLAYERS TAB
+    -- ==========================================
+    local v4869 = v4742:AddTab({ Name = "Steal Players", Icon = "swords" })
+    local v4870 = v4869:AddSection("Auto Steal")
+    t216.stealPlayers = v4870:AddToggle({ Title = "Auto Steal From Players", Default = false, Callback = v4734 })
+    t216.stealPlayerRarities = v4870:AddDropdown({ Title = "Rarity Filter", Options = v4524, Multi = true, Default = {}, Callback = v4735 })
+    t216.stealPlayerValue = v4870:AddInput({ Title = "Minimum Value", Placeholder = "e.g. 500k", Default = "", Callback = v4736 })
+    local v4871 = v4869:AddSection("Steal From Specific Player", true)
+    local v4872 = v4869:AddSection("Steal History", true)
+    if v4871.AddActionList then
+        v4873 = v4871:AddActionList({ Title = "Players in this server", EmptyText = "Nobody else is in this server.", VisibleRows = 6, ButtonWidth = 76 })
+        v4874 = v4872:AddActionList({ Title = "History of stolen eggs from players", EmptyText = "No player steals yet.", VisibleRows = 5, ButtonWidth = 72 })
+    else
+        v4871:AddParagraph({ Title = "Update required", Content = "This Sena UI build has no player list yet." })
+    end
+    v4872:AddButton({ Title = "Clear History", Callback = function() if __SenaV4PlayerSteal then __SenaV4PlayerSteal:clearHistory() end end })
+
+    if __SenaV4PlayerSteal and v4873 then
+        local function v4877(p1095)
+            if not v4874 or not v4874:Alive() then return end
+            local t224 = {}
+            for i, v in ipairs(p1095.history) do
+                t224[i] = { id = tostring(i), name = v.player, sub = string.format("<font color=\"#A2A2AE\">%s</font>", os.date("!%H:%M:%S", v.at)), status = v.egg, statusSub = v.outcome, button = false }
+            end
+            v4874:Update(t224)
+        end
+        __SenaV4PlayerSteal:onChanged(v4877)
+        v4877(__SenaV4PlayerSteal)
+        task.spawn(function()
+            while genv.__SenaV4PlayerSteal == __SenaV4PlayerSteal do
+                pcall(function()
+                    local v4883 = __SenaV4PlayerSteal:listEntries()
+                    if v4873:Alive() then v4873:Update(v4883) end
+                end)
+                task.wait(1)
+            end
+        end)
+    end
+
+    -- ==========================================
+    -- VISUAL / CONFIGURE TAB
+    -- ==========================================
+    local __SenaV4Visual = genv.__SenaV4Visual
+    local v4885 = v4742:AddTab({ Name = "Visual", Icon = "eye" })
+    local t225 = { rods = nil, fish = nil }
+    local v4887
+    local function v4888() if v4887 and __SenaV4Visual then pcall(function() v4887:SetContent(__SenaV4Visual.status) end) end end
+    local function v4889(p1096)
+        if not __SenaV4Visual then return end
+        task.spawn(function()
+            __SenaV4Visual.spawn(p1096, t225[p1096])
+            v4888()
+            SenaLibOverride:Notify({ Title = "Visual", Content = __SenaV4Visual.status, Duration = 3 })
+        end)
+        task.delay(0.1, v4888)
+    end
+    local v4890 = v4885:AddSection("Fish It")
+    local v4891 = v4890:AddDropdown({ Title = "Select Rod", Options = {}, Default = nil, Callback = function(p1097) t225.rods = p1097 end })
+    v4890:AddButton({ Title = "Spawn Rod", Callback = function() v4889("rods") end })
+    v4890:AddSlider({ Title = "Rod Size", Min = 0.5, Max = 2, Default = 1, Increment = 0.1, Callback = function(p1098) if __SenaV4Visual then __SenaV4Visual.rodScale = p1098; task.spawn(__SenaV4Visual.respawn, "rods") end end })
+    local v4892 = v4890:AddDropdown({ Title = "Select Fish", Options = {}, Default = nil, Callback = function(p1099) t225.fish = p1099 end })
+    v4890:AddButton({ Title = "Spawn Fish", Callback = function() v4889("fish") end })
+    v4890:AddSlider({ Title = "Fish Weight", Min = 0, Max = 100, Default = 0, Increment = 5, Callback = function(p1100) if __SenaV4Visual then __SenaV4Visual.fishWeight = (tonumber(p1100) or 0) / 100; task.spawn(__SenaV4Visual.respawn, "fish") end end })
+    v4887 = v4890:AddParagraph({ Title = "Status", Content = "Idle" })
+    v4890:AddButton({ Title = "Remove All Visual Items", Callback = function() if __SenaV4Visual then __SenaV4Visual.clear() end; v4888() end })
+    task.spawn(function()
+        if not __SenaV4Visual then return end
+        local rods = __SenaV4Visual.names("rods")
+        local fish = __SenaV4Visual.names("fish")
+        pcall(function() v4891:Refresh(rods) end)
+        pcall(function() v4892:Refresh(fish) end)
+        __SenaV4Visual.status = #rods > 0 and string.format("%d rods and %d fish available", #rods, #fish) or "Could not load the item list."
+        v4888()
+    end)
+    local v4896 = v4885:AddSection("Steal an Egg")
+    local s21, n84 = "Egg", 50
+    local Egg = genv.__SenaV4VisualSAE and genv.__SenaV4VisualSAE.categories("Egg") or {}
+    local u4900 = Egg[1]
+    v4896:AddDropdown({ Title = "Type", Options = {"Egg","Pet"}, Default = "Egg", Callback = function(p1101) s21 = p1101 or "Egg" end })
+    v4896:AddDropdown({ Title = "Select Egg / Pet", Options = Egg, Default = Egg[1], MaxVisible = 8, Callback = function(p1102) u4900 = p1102 end })
+    v4896:AddSlider({ Title = "Size / Flex", Min = 1, Max = 100, Default = 50, Increment = 1, Callback = function(p1103) n84 = tonumber(p1103) or 50 end })
+    v4896:AddButton({ Title = "Hold in Hand", Callback = function() if genv.__SenaV4VisualSAE then genv.__SenaV4VisualSAE.spawn(s21, u4900, n84, true) end end })
+    v4896:AddButton({ Title = "Add to Backpack (Kg)", Callback = function() if genv.__SenaV4VisualSAE then genv.__SenaV4VisualSAE.spawn(s21, u4900, n84, false) end end })
+    v4896:AddButton({ Title = "Remove Egg / Pet Visuals", Callback = function() if genv.__SenaV4VisualSAE then genv.__SenaV4VisualSAE.clear() end end })
+
+    print("[Cat Hub] Custom UI Loaded Successfully.")
+end
+
 do
 -- SenaHub Racing Event (SK Racing) - addon chay kem hub hoac doc lap
 -- Bat/tat: getgenv().SenaRacing = true / false
