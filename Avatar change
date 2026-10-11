@@ -651,7 +651,7 @@ renderFavorites = function()
 
         local c = Instance.new("UICorner")
         c.CornerRadius = UDim.new(0, 6)
-        c.Parent        c.Parent = entry
+        c.Parent = entry
 
         local img = Instance.new("ImageLabel")
         img.Size = UDim2.fromOffset(28, 28)
