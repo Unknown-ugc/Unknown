@@ -2,6 +2,43 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local HttpService = game:GetService("HttpService")
+
+local SAVE_FILE = "ChrisAvatarFavorites.json"
+
+local function hasFileAPI()
+    return type(writefile) == "function"
+        and type(readfile) == "function"
+        and type(isfile) == "function"
+end
+
+local function loadFavorites()
+    if not hasFileAPI() then return {} end
+    local ok, data = pcall(function()
+        if not isfile(SAVE_FILE) then return nil end
+        return HttpService:JSONDecode(readfile(SAVE_FILE))
+    end)
+    if ok and type(data) == "table" then
+        local cleaned = {}
+        for _, f in ipairs(data) do
+            if type(f) == "table"
+                and type(f.userId) == "number"
+                and type(f.name) == "string" then
+                table.insert(cleaned, { userId = f.userId, name = f.name })
+            end
+        end
+        return cleaned
+    end
+    return {}
+end
+
+local function saveFavorites()
+    if not hasFileAPI() then return end
+    pcall(function()
+        writefile(SAVE_FILE, HttpService:JSONEncode(Favorites))
+    end)
+end
+
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -16,7 +53,7 @@ local Overlay = {
     lastUsername = nil
 }
 
-local Favorites = {}
+local Favorites = loadFavorites()
 local PreviewUserId = nil
 local PreviewName = nil
 local Busy = false
@@ -705,6 +742,7 @@ renderFavorites = function()
             local idx = findFavorite(f.userId)
             if idx then
                 table.remove(Favorites, idx)
+                saveFavorites()
                 renderFavorites()
                 updateStar()
             end
@@ -730,6 +768,7 @@ StarBtn.MouseButton1Click:Connect(function()
         StatusLabel.Text = "★ Added to favorites."
     end
 
+    saveFavorites()
     renderFavorites()
     updateStar()
 end)
