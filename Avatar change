@@ -1,8 +1,10 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-
 local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local SAVE_FILE = "ChrisAvatarFavorites.json"
 
@@ -13,7 +15,10 @@ local function hasFileAPI()
 end
 
 local function loadFavorites()
-    if not hasFileAPI() then return {} end
+    if not hasFileAPI() then
+        warn("[Fav] No file API — favorites won't persist")
+        return {}
+    end
     local ok, data = pcall(function()
         if not isfile(SAVE_FILE) then return nil end
         return HttpService:JSONDecode(readfile(SAVE_FILE))
@@ -27,20 +32,29 @@ local function loadFavorites()
                 table.insert(cleaned, { userId = f.userId, name = f.name })
             end
         end
+        print("[Fav] Loaded " .. #cleaned .. " favorites from disk")
         return cleaned
     end
+    print("[Fav] No saved file yet")
     return {}
 end
 
 local function saveFavorites()
-    if not hasFileAPI() then return end
-    pcall(function()
+    if not hasFileAPI() then
+        warn("[Fav] Cannot save — no file API")
+        return false
+    end
+    local ok, err = pcall(function()
         writefile(SAVE_FILE, HttpService:JSONEncode(Favorites))
     end)
+    if ok then
+        print("[Fav] Saved " .. #Favorites .. " favorites")
+        return true
+    else
+        warn("[Fav] Save failed: " .. tostring(err))
+        return false
+    end
 end
-
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local Overlay = {
     model = nil,
@@ -850,4 +864,9 @@ end)
 
 renderFavorites()
 updateStar()
-StatusLabel.Text = "Ready"
+
+if hasFileAPI() then
+    StatusLabel.Text = "Ready • " .. #Favorites .. " saved favorites"
+else
+    StatusLabel.Text = "Ready • Favorites won't persist (no file API)"
+end
